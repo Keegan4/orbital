@@ -18,16 +18,19 @@ io.on('connection', function (socket) {
   playerId: socket.id,
   team: (Math.floor(Math.random() * 2) == 0) ? 'red' : 'blue'
 };
+
 // send the players object to the new player
 socket.emit('currentPlayers', players);
 // update all other players of the new player
 socket.broadcast.emit('newPlayer', players[socket.id]);
+
 socket.on('disconnect', function () {
     console.log('user disconnected');
     delete players[socket.id];
 // emit a message to all players to remove this player
     io.emit('playerDisconnect', socket.id);
   });
+
 socket.on('playerMovement', function (movementData) {
   players[socket.id].x = movementData.x;
   players[socket.id].y = movementData.y;
@@ -35,7 +38,19 @@ socket.on('playerMovement', function (movementData) {
   // emit a message to all players about the player that moved
   socket.broadcast.emit('playerMoved', players[socket.id]);
 });
+
+socket.on('PlayerShot', function (info) {
+console.log('PlayerShot received from', socket.id, info);
+// emit a message to all players to remove this player
+  socket.broadcast.emit('playerShoot', {
+    playerId: socket.id,
+    x: info.x,
+    y: info.y,
+    rotation: info.rotation
+  });
 });
+});
+
 
 server.listen(8081, function () {
   console.log(`Listening on ${server.address().port}`);

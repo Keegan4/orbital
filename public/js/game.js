@@ -22,9 +22,9 @@ function preload() {
     frameWidth: 171,
     frameHeight: 202
   });
-  this.load.spritesheet("tank1", "assets/bullets.png", {
-    frameWidth: 13,
-    frameHeight: 13
+  this.load.spritesheet("bullet", "assets/bullets.png", {
+    frameWidth: 17,
+    frameHeight: 17
   });
 
 
@@ -32,6 +32,7 @@ function preload() {
 function create() {
   var self = this;
   this.socket = io();
+  this.bullet = this.physics.add.group();
   this.otherPlayers = this.physics.add.group();
   this.socket.on('currentPlayers', function (players) {
     Object.keys(players).forEach(function (id) {
@@ -60,17 +61,29 @@ function create() {
     }
   });
 });
+  this.socket.on("playerShoot", (playerInfo) =>{
+    fireBullet(self, playerInfo);
+    console.log("playerShoot received:", playerInfo);
+
+  });
   this.cursors = this.input.keyboard.createCursorKeys();
+
+  this.lastFired = 0;
+  this.fireRate = 500;
 }
 function update() {
   if (this.tank) {
     if (this.cursors.left.isDown) {
       this.tank.setAngularVelocity(-150);
-    } else if (this.cursors.right.isDown) {
-      this.tank.setAngularVelocity(150);
-    } else {
+    }  else {
       this.tank.setAngularVelocity(0);
     }
+
+    if (this.cursors.right.isDown) {
+      this.tank.setAngularVelocity(150);
+    } 
+    
+    
   
     if (this.cursors.up.isDown) {
       this.physics.velocityFromRotation(this.tank.rotation + 1.5, 100, this.tank.body.velocity);
@@ -93,8 +106,10 @@ function update() {
   rotation: this.tank.rotation
   };
 
-  if (this.cursors.space.isDown) {
-    fireBullet(this.tank);
+  if (Phaser.Input.Keyboard.JustDown(this.cursors.space) && this.time.now > this.fireRate + this.lastFired) {
+    fireBullet(this, this.tank);
+    this.socket.emit("PlayerShot", {x: this.tank.x, y: this.tank.y, rotation: this.tank.rotation });
+    this.lastFired = this.time.now;
   }
 
   }
@@ -123,6 +138,8 @@ function addOtherPlayers(self, playerInfo) {
   self.otherPlayers.add(otherPlayer);
 }
 
-function fireBullet(self, tank) {
-  self.bullet = self.physics.add.sprite
+function fireBullet(scene, tank) {
+  scene.bullet = scene.physics.add.sprite(tank.x, tank.y, 'bullet', 1).setOrigin(0.5, 0.5).setScale(2);
+  scene.bullet.setRotation(tank.rotation +3.141592654);
+  scene.physics.velocityFromRotation(tank.rotation + Math.PI/2, 500, scene.bullet.body.velocity);
 }

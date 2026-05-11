@@ -18,7 +18,7 @@ var config = {
 };
 
 var game = new Phaser.Game(config);
-var tank;
+
 function preload() {
   this.load.spritesheet("tank1", "assets/tanks.png", {
     frameWidth: 171,
@@ -32,73 +32,69 @@ function preload() {
     frameWidth: 32,
     frameHeight: 32
   });
-
-
 }
+
 function create() {
-  var self = this;
+  // Scene fields
+  this.tank;
   this.socket = io();
-
   this.otherPlayers = this.physics.add.group();
-  this.tanks = this.physics.add.group();
-  walls = this.physics.add.staticGroup();
+  this.walls = this.physics.add.staticGroup();
   this.bullets = this.physics.add.group();
+  this.cursors = this.input.keyboard.createCursorKeys();
+  this.lastFired = 0;
+  this.fireRate = 500;
 
-
-  this.physics.add.collider(this.bullets, walls, (bullet, wall) => {
+  this.physics.add.collider(this.bullets, this.walls, (bullet, wall) => {
     bullet.bounces++;
     if (bullet.bounces >= bullet.maxBounce) {
       bullet.destroy();
     }
   });
 
-  //Wall creation
-  walls.create(5, 10, "wall").setScale(50, 1).refreshBody();
-  walls.create(5, 590, "wall").setScale(50, 1).refreshBody();
+   // Wall creation
+  this.walls.create(5, 10, "wall").setScale(50, 1).refreshBody();
+  this.walls.create(5, 590, "wall").setScale(50, 1).refreshBody();
+  this.walls.create(15, 150, "wall", 2).setScale(1, 30).refreshBody();
+  this.walls.create(790, 150, "wall", 2).setScale(1, 30).refreshBody();
 
-  walls.create(15, 150, "wall", 2).setScale(1, 30).refreshBody();
-  walls.create(790, 150, "wall", 2).setScale(1, 30).refreshBody();
-
-  this.socket.on('currentPlayers', function (players) {
-    Object.keys(players).forEach(function (id) {
-      if (players[id].playerId === self.socket.id) {
-        addPlayer(self, players[id]);
-        self.physics.add.collider(self.tank, walls);
+  this.socket.on('currentPlayers', (players) => {
+    Object.keys(players).forEach((id) => {
+      if (players[id].playerId === this.socket.id) {
+        addSelf(this, players[id]);
+        this.physics.add.collider(this.tank, this.walls);
       } else {
-        addOtherPlayers(self, players[id]);
+        addOtherPlayers(this, players[id]);
       }
     });
   });
 
-  this.socket.on('newPlayer', function (playerInfo) {
-    addOtherPlayers(self, playerInfo);
+  this.socket.on('newPlayer', (playerInfo) => {
+    addOtherPlayers(this, playerInfo);
   });
 
-  this.socket.on('playerDisconnect', function (playerId) {
-    self.otherPlayers.getChildren().forEach(function (otherPlayer) {
+  this.socket.on('playerDisconnect', (playerId) => {
+    this.otherPlayers.getChildren().forEach((otherPlayer) => {
       if (playerId === otherPlayer.playerId) {
         otherPlayer.destroy();
       }
     });
   });
 
-  this.socket.on('playerMoved', function (playerInfo) {
-  self.otherPlayers.getChildren().forEach(function (otherPlayer) {
-    if (playerInfo.playerId === otherPlayer.playerId) {
-      otherPlayer.setRotation(playerInfo.rotation);
-      otherPlayer.setPosition(playerInfo.x, playerInfo.y);
-    }
+  this.socket.on('playerMoved', (playerInfo) => {
+    this.otherPlayers.getChildren().forEach((otherPlayer) => {
+      if (playerInfo.playerId === otherPlayer.playerId) {
+        otherPlayer.setRotation(playerInfo.rotation);
+        otherPlayer.setPosition(playerInfo.x, playerInfo.y);
+      }
     });
   });
 
-  this.socket.on("playerShoot", (playerInfo) =>{
-    fireBullet(self, playerInfo);
+  this.socket.on("playerShoot", (playerInfo) => {
+    fireBullet(this, playerInfo);
   });
-
-  this.cursors = this.input.keyboard.createCursorKeys();
-  this.lastFired = 0;
-  this.fireRate = 500;
 }
+
 function update() {
   if (this.tank) {
     if (this.cursors.right.isDown) {
@@ -117,22 +113,23 @@ function update() {
       this.tank.setVelocity(0);
     }
     
-  // emit player movement
+  // Emit player movement
   var x = this.tank.x;
   var y = this.tank.y;
   var r = this.tank.rotation;
-  if (this.tank.oldPosition && (x !== this.tank.oldPosition.x || y !== this.tank.oldPosition.y || r !== this.tank.oldPosition.rotation)) {
-    this.socket.emit('playerMovement', { x: this.tank.x, y: this.tank.y, rotation: this.tank.rotation });
+  if (this.tank.oldPosition && (x !== this.tank.oldPosition.x || y !== this.tank.oldPosition.y 
+                                  || r !== this.tank.oldPosition.rotation)) {
+    this.socket.emit('playerMovement', { x : x, y : y, rotation : r });
   }
   this.tank.oldPosition = {
-  x: this.tank.x,
-  y: this.tank.y,
-  rotation: this.tank.rotation
+    x : this.tank.x,
+    y : this.tank.y,
+    rotation : this.tank.rotation
   };
 
   if (Phaser.Input.Keyboard.JustDown(this.cursors.space) && this.time.now > this.fireRate + this.lastFired) {
     fireBullet(this, this.tank);
-    this.socket.emit("PlayerShot", {x: this.tank.x, y: this.tank.y, rotation: this.tank.rotation });
+    this.socket.emit("playerShot", {x: this.tank.x, y: this.tank.y, rotation: this.tank.rotation });
     this.lastFired = this.time.now;
   }
   }
@@ -142,32 +139,34 @@ function update() {
       bullet.rotation = Math.atan2(bullet.body.velocity.y, bullet.body.velocity.x) + Math.PI/2;
     })
   }
-
-
-
 }
 
-function addPlayer(self, playerInfo) {
-  self.tank = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'tank1', 0).setOrigin(0.5, 0.5).setScale(0.3);
+// Helper functions
+function addSelf(scene, playerInfo) {
+  scene.tank = scene.physics.add.sprite(playerInfo.x, playerInfo.y, 'tank1', 0)
+               .setOrigin(0.5, 0.5)
+               .setScale(0.3);
   if (playerInfo.team === 'blue') {
-    //self.tank.setTint(0x000000);
+    //scene.tank.setTint(0x000000);
   } else {
-    //self.tank.setTint(0x220000);
+    //scene.tank.setTint(0x220000);
   }
-  self.tank.setDrag(100);
-  self.tank.setAngularDrag(100);
-  self.tank.setMaxVelocity(200);
+  scene.tank.setDrag(100);
+  scene.tank.setAngularDrag(100);
+  scene.tank.setMaxVelocity(200);
 }
 
-function addOtherPlayers(self, playerInfo) {
-  const otherPlayer = self.add.sprite(playerInfo.x, playerInfo.y, 'tank1', 1).setOrigin(0.5, 0.5).setScale(0.3);
+function addOtherPlayers(scene, playerInfo) {
+  const otherPlayer = scene.physics.add.sprite(playerInfo.x, playerInfo.y, 'tank1', 1)
+                      .setOrigin(0.5, 0.5)
+                      .setScale(0.3);
   if (playerInfo.team === 'blue') {
     //otherPlayer.setTint(0x000000);
   } else {
     //otherPlayer.setTint(0x220000);
   }
   otherPlayer.playerId = playerInfo.playerId;
-  self.otherPlayers.add(otherPlayer);
+  scene.otherPlayers.add(otherPlayer);
 }
 
 function fireBullet(scene, tank) {
@@ -183,6 +182,8 @@ function fireBullet(scene, tank) {
 }
 
 function playerHit(bullet, tank) {
-  tank.disableBody(true, true);
-  bullet.disableBody(true, true);
+  bullet.destroy();
+  tank.setTint(0xff0000);
+  //tank.disableBody(true, true);
+  //bullet.disableBody(true, true);
 }

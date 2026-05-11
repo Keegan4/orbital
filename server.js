@@ -1,3 +1,4 @@
+// Dependencies
 var express = require('express');
 var app = express();
 var server = require('http').Server(app);
@@ -7,12 +8,13 @@ app.get('/', function (req, res) {
   res.sendFile(__dirname + '/index.html');
 });
 
-
+// Global variables
 var players = {};
 
 io.on('connection', function (socket) {
-  console.log('a user connected');
+  console.log('user ' + socket.id + ': connected');
 
+  // Start state of this player
   players[socket.id] = {
   rotation: 0,
   x: Math.floor(Math.random() * 700) + 50,
@@ -21,15 +23,17 @@ io.on('connection', function (socket) {
   team: (Math.floor(Math.random() * 2) == 0) ? 'red' : 'blue'
   };
 
-  // send the players object to the new player
+  // Send the players object to the this player
   socket.emit('currentPlayers', players);
-  // update all other players of the new player
+
+  // Update all other players of this player
   socket.broadcast.emit('newPlayer', players[socket.id]);
 
+  // Disconnect of this player
   socket.on('disconnect', function () {
-      console.log('user disconnected');
+      console.log('user ' + socket.id + ': disconnected');
       delete players[socket.id];
-  // emit a message to all players to remove this player
+      // Emit a message to all players to remove this player
       io.emit('playerDisconnect', socket.id);
     });
 
@@ -37,12 +41,11 @@ io.on('connection', function (socket) {
     players[socket.id].x = movementData.x;
     players[socket.id].y = movementData.y;
     players[socket.id].rotation = movementData.rotation;
-    // emit a message to all players about the player that moved
+    // Emit a message to all players about the player that moved
     socket.broadcast.emit('playerMoved', players[socket.id]);
   });
 
-  socket.on('PlayerShot', function (info) {
-
+  socket.on('playerShot', function (info) {
     socket.broadcast.emit('playerShoot', {
       playerId: socket.id,
       x: info.x,
@@ -51,7 +54,6 @@ io.on('connection', function (socket) {
     });
   });
 });
-
 
 server.listen(8081, function () {
   console.log(`Listening on ${server.address().port}`);

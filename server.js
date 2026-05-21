@@ -11,23 +11,24 @@ app.get('/', function (req, res) {
 });
 
 // CONSTANTS
-const TICK_RATE = 60;
+const CONSTANTS = require('./public/js/constants.js')
+const {TICK_RATE, 
+TANK_SPEED,
+TANK_ANGULAR_SPEED,
+GAME_WIDTH,
+GAME_HEIGHT,
+WALL_THICKNESS,
+BULLET_SPEED,
+BULLET_RADIUS,
+MAX_BOUNCES,
+FIRE_COOLDOWN,
+BULLET_LIFESPAN,
+CATEGORY_WALL,
+CATEGORY_BULLET,
+CATEGORY_TANK
+  } = CONSTANTS;
 const TICK_DELTA = 1 / TICK_RATE;
-const TANK_SPEED = 150;
-const TANK_ANGULAR_SPEED = 2.5;
-const GAME_WIDTH = 800;
-const GAME_HEIGHT = 600;
-const WALL_THICKNESS = 100;
 
-const BULLET_SPEED = 500;
-const BULLET_RADIUS = 5;
-const MAX_BOUNCES = 3;
-const FIRE_COOLDOWN = 300; //ms
-const BULLET_LIFESPAN = 1000; //ms
-
-const CATEGORY_WALL   = 0x0001;
-const CATEGORY_BULLET = 0x0002;
-const CATEGORY_TANK   = 0x0004;
 
 // Physics engine initialisation
 var engine = Matter.Engine.create();
@@ -145,6 +146,7 @@ Matter.Events.on(engine, 'collisionStart', function(event) {
                      : bodyB.label === 'wall' 
                      ? bodyB 
                      : null;
+                  
 
     if (!bulletBody) return;
 

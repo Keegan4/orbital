@@ -1,3 +1,5 @@
+
+
 var config = {
   type: Phaser.AUTO,
   width: 800,
@@ -12,6 +14,7 @@ var config = {
   },
   scene: { preload, create, update }
 };
+const {GAME_WIDTH, GAME_HEIGHT, WALL_THICKNESS} = CONSTANTS;
 
 var game = new Phaser.Game(config);
 
@@ -19,9 +22,11 @@ function preload() {
   this.load.image('blue', 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_blue.png');
   this.load.image('red', 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_red.png');
   this.load.image('bullet', 'assets/kenney_topdownTanksRedux/PNG/Default size/bulletRed2.png')
+  this.load.spritesheet("walls", "assets/techblocks2")
 }
 
 function create() {
+  
   this.socket = io();
   this.tank;
   this.cursors = this.input.keyboard.createCursorKeys();

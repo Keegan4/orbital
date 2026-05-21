@@ -11,7 +11,8 @@ app.get('/', function (req, res) {
 });
 
 // CONSTANTS
-const CONSTANTS = require('./public/js/constants.js')
+const {CONSTANTS, WALL_POS} = require('./public/js/constants.js');
+
 const {TICK_RATE, 
 TANK_SPEED,
 TANK_ANGULAR_SPEED,
@@ -25,7 +26,7 @@ FIRE_COOLDOWN,
 BULLET_LIFESPAN,
 CATEGORY_WALL,
 CATEGORY_BULLET,
-CATEGORY_TANK
+CATEGORY_TANK,
   } = CONSTANTS;
 const TICK_DELTA = 1 / TICK_RATE;
 
@@ -46,7 +47,18 @@ const topWall    = Matter.Bodies.rectangle(GAME_WIDTH / 2, -WALL_THICKNESS / 2, 
 const bottomWall = Matter.Bodies.rectangle(GAME_WIDTH / 2, GAME_HEIGHT + WALL_THICKNESS / 2, GAME_WIDTH, WALL_THICKNESS, wallOptions);
 const leftWall   = Matter.Bodies.rectangle(-WALL_THICKNESS / 2, GAME_HEIGHT / 2, WALL_THICKNESS, GAME_HEIGHT, wallOptions);
 const rightWall  = Matter.Bodies.rectangle(GAME_WIDTH + WALL_THICKNESS / 2, GAME_HEIGHT / 2, WALL_THICKNESS, GAME_HEIGHT, wallOptions);
+
+const interiorWalls = WALL_POS.map(w => 
+  Matter.Bodies.rectangle(
+    w.x + w.w / 2,
+    w.y + w.h / 2,
+    w.w,
+    w.h,
+    wallOptions 
+  )
+)
 Matter.Composite.add(world, [topWall, bottomWall, leftWall, rightWall]);
+Matter.Composite.add(world, interiorWalls);
 
 // Global variables
 var players = {};

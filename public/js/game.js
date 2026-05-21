@@ -9,7 +9,7 @@ var config = {
     default: 'matter',
     matter: {
       gravity: { y: 0 },
-      debug: false
+      debug: true
     }
   },
   scene: { preload, create, update }
@@ -21,12 +21,40 @@ var game = new Phaser.Game(config);
 function preload() {
   this.load.image('blue', 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_blue.png');
   this.load.image('red', 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_red.png');
-  this.load.image('bullet', 'assets/kenney_topdownTanksRedux/PNG/Default size/bulletRed2.png')
-  this.load.spritesheet("walls", "assets/techblocks2")
+  this.load.image('bullet', 'assets/kenney_topdownTanksRedux/PNG/Default size/bulletRed2.png');
+  this.load.svg("background", "assets/tank_background.svg");
+  this.load.svg("wall-tile", "assets/wall_tile.svg");
+
+
+  // Gameplan, For each unique width*height combination you essentially load a new image
+  // So it doesnt look too stretched out. You first load them into a string so you
+  // Can turn into a set to remove duplicates
+  
 }
 
 function create() {
-  
+  //background
+  this.add.image(GAME_WIDTH/2, GAME_HEIGHT/2, "background").setOrigin(0.5, 0.5);
+  this.wallGroup = this.add.group();
+
+  WALL_POS.forEach(w => {
+    const sprite = this.add.tileSprite(
+      w.x + w.w/2,
+      w.y + w.h / 2,
+      w.w,
+      w.h,
+      'wall-tile'
+    );
+    sprite.setDepth(20);
+    this.wallGroup.add(sprite);
+  });
+
+  // Debug, you click then you know
+  this.input.on('pointerdown', (pointer) => {
+    console.log(`Click: x=${Math.round(pointer.x)}, y=${Math.round(pointer.y)}`);
+  });
+
+
   this.socket = io();
   this.tank;
   this.cursors = this.input.keyboard.createCursorKeys();

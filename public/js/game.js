@@ -7,7 +7,7 @@ var config = {
     default: 'matter',
     matter: {
       gravity: { y: 0 },
-      debug: true
+      debug: false
     }
   },
   scene: { preload, create, update }
@@ -77,7 +77,7 @@ function create() {
       // Update position
       this.bullets[b.id].x = b.x;
       this.bullets[b.id].y = b.y;
-      this.bullets[b.id].rotation = Math.atan2(b.vy, b.vx) + Math.PI / 2;
+      this.bullets[b.id].rotation = Math.atan2(b.vy, b.vx) + Math.PI / 2; // + pi/2 since bullet faces south initially
     });
     
     // Remove expired bullets
@@ -99,6 +99,7 @@ function create() {
   this.socket.on('playerHit', (data) => {
     if (data.playerId === this.socket.id) {
       console.log('You were hit');
+      this.tank.setTint(0x808080);
       // respawn logic goes here later
     } else {
       if (this.otherPlayers[data.playerId]) {

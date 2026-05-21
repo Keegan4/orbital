@@ -1,24 +1,20 @@
+
+
 var config = {
   type: Phaser.AUTO,
   width: 800,
   height: 600,
   backgroundColor: '#000000',
   physics: {
-<<<<<<< HEAD
-    default: 'arcade',
-    arcade: {
-      debug: true,
-      gravity: { y: 0 }
-=======
     default: 'matter',
     matter: {
       gravity: { y: 0 },
       debug: false
->>>>>>> 136d9f5970c96d7557b742e1d827c2c454048d7e
     }
   },
   scene: { preload, create, update }
 };
+const {GAME_WIDTH, GAME_HEIGHT, WALL_THICKNESS} = CONSTANTS;
 
 var game = new Phaser.Game(config);
 
@@ -26,9 +22,11 @@ function preload() {
   this.load.image('blue', 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_blue.png');
   this.load.image('red', 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_red.png');
   this.load.image('bullet', 'assets/kenney_topdownTanksRedux/PNG/Default size/bulletRed2.png')
+  this.load.spritesheet("walls", "assets/techblocks2")
 }
 
 function create() {
+  
   this.socket = io();
   this.tank;
   this.cursors = this.input.keyboard.createCursorKeys();

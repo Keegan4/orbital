@@ -94,14 +94,14 @@ function createBullet(player) {
     label : 'bullet',
     collisionFilter: {
       category: CATEGORY_BULLET,
-      mask: CATEGORY_WALL | CATEGORY_TANK     // only collides with walls, not other bullets or tanks
+      mask: CATEGORY_WALL | CATEGORY_TANK
     }
   });
 
   // Set initial velocity
   Matter.Body.setVelocity(body, {
-    x: Math.cos(angle) * BULLET_SPEED * (1 / TICK_RATE),
-    y: Math.sin(angle) * BULLET_SPEED * (1 / TICK_RATE),
+    x: Math.cos(angle) * BULLET_SPEED * TICK_DELTA,
+    y: Math.sin(angle) * BULLET_SPEED * TICK_DELTA,
   });
 
   Matter.Composite.add(world, body);
@@ -188,7 +188,7 @@ setInterval(() => {
     Matter.Body.setAngularVelocity(body, TANK_ANGULAR_SPEED * TICK_DELTA * turnDirection);
 
     let moveDirection = 0;
-    const angle = body.angle //- Math.PI / 2;
+    const angle = body.angle - Math.PI / 2;
     if (input.up) {
       moveDirection -= 1;
     }
@@ -266,9 +266,8 @@ io.on('connection', function (socket) {
   socket.on('disconnect', function () {
       console.log('user ' + socket.id + ': disconnected');
       if (players[socket.id]) {
-        Matter.Composite.remove(world, players[socket.id].body);
+        destroyPlayer(socket.id);
       }
-      delete players[socket.id];
       // Emit a message to all players to remove this player
       io.emit('playerDisconnect', socket.id);
     });

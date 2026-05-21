@@ -58,11 +58,16 @@ function create() {
         this.tank.x = p.x;
         this.tank.y = p.y;
         this.tank.rotation = p.rotation;
+        this.tankDead = !p.isAlive;
+        p.isAlive ? this.tank.clearTint() : this.tank.setTint(0x808080);
       } else {
           if (this.otherPlayers[p.playerId]) {
             this.otherPlayers[p.playerId].x = p.x;
             this.otherPlayers[p.playerId].y = p.y;
             this.otherPlayers[p.playerId].rotation = p.rotation;
+            p.isAlive 
+              ? this.otherPlayers[p.playerId].clearTint() 
+              : this.otherPlayers[p.playerId].setTint(0x808080);
           }
         }
     });
@@ -96,18 +101,20 @@ function create() {
                                               //.setScale(0.3);
   });
 
-  this.socket.on('playerHit', (data) => {
-    if (data.playerId === this.socket.id) {
-      console.log('You were hit');
-      this.tank.setTint(0x808080);
-      // respawn logic goes here later
-    } else {
-      if (this.otherPlayers[data.playerId]) {
-        this.otherPlayers[data.playerId].destroy();
-        delete this.otherPlayers[data.playerId];
-      }
-    }
-  });
+//  this.socket.on('playerHit', (data) => {
+//    if (data.playerId === this.socket.id) {
+//      console.log('You were hit');
+//      this.tank.setTint(0x808080);
+//      this.tank.disable();
+//      // respawn logic goes here later
+//    } else {
+//      if (this.otherPlayers[data.playerId]) {
+//        this.otherPlayers[data.playerId].setTint(0x808080);
+//        //this.otherPlayers[data.playerId].destroy();
+//        //delete this.otherPlayers[data.playerId];
+//      }
+//    }
+//  });
 
   this.socket.on('playerDisconnect', (id) => {
     console.log('Player left:', id);
@@ -119,7 +126,7 @@ function create() {
 }
 
 function update() {
-  if (!this.tank) return;
+  if (!this.tank || this.tankDead) return;
 
   const input = {
     left : this.cursors.left.isDown || this.wasd.left.isDown,

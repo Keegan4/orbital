@@ -71,7 +71,8 @@ function createPlayer(socketId) {
     team : (Math.floor(Math.random() * 2) == 0) ? 'red' : 'blue',
     body : body,
     input : { left : false, right : false, up : false, down : false },
-    lastFired : 0
+    lastFired : 0,
+    isAlive : true
   };
 }
 
@@ -162,12 +163,15 @@ Matter.Events.on(engine, 'collisionStart', function(event) {
     // Bullet hit a tank
     if (tankBody) {
       const player = Object.values(players).find(p => p.body === tankBody);
-      if (!player) return;
+      if (!player || !player.isAlive) return;
       //if (bullet.ownerId === player.playerId) return; // no self hit
-
-      io.emit('playerHit', { playerId: player.playerId });
+      player.isAlive = false;
+      Matter.Body.setVelocity(player.body, { x: 0, y: 0 });
+      Matter.Body.setAngularVelocity(player.body, 0);
+      player.body.isSensor = true;      
+      //io.emit('playerHit', { playerId: player.playerId });
       destroyBullet(bullet.id);
-      destroyPlayer(player.playerId);
+      //destroyPlayer(player.playerId);
     }
   });
 });
@@ -177,6 +181,7 @@ setInterval(() => {
   const now = Date.now();
   
   Object.values(players).forEach(player => {
+    if (!player.isAlive) return;
     const { input, body } = player;
     let turnDirection = 0;
     if (input.left) { 
@@ -219,6 +224,7 @@ setInterval(() => {
       x : p.body.position.x,
       y : p.body.position.y,
       rotation : p.body.angle,
+      isAlive:  p.isAlive
     })),
     bullets : Object.values(bullets).map(b => ({
       id : b.id,

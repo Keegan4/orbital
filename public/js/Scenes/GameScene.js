@@ -1,3 +1,4 @@
+const {GAME_WIDTH, GAME_HEIGHT, WALL_THICKNESS} = CONSTANTS;
 export default class PostHitScene extends Phaser.Scene {
   constructor() {
     super({ key: 'GameScene' });
@@ -6,7 +7,9 @@ export default class PostHitScene extends Phaser.Scene {
   preload() {
     this.load.image('blue', 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_blue.png');
     this.load.image('red', 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_red.png');
-    this.load.image('bullet', 'assets/kenney_topdownTanksRedux/PNG/Default size/bulletRed2.png')
+    this.load.image('bullet', 'assets/kenney_topdownTanksRedux/PNG/Default size/bulletRed2.png');
+    this.load.svg("background", "assets/tank_background.svg");
+    this.load.svg("wall-tile", "assets/wall_tile.svg");
   }
 
   create() {
@@ -22,6 +25,25 @@ export default class PostHitScene extends Phaser.Scene {
     this.lastInput = {};
     this.otherPlayers = {};
     this.bullets = {}; 
+    this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, "background").setOrigin(0.5, 0.5);
+    this.wallGroup = this.add.group();
+
+    WALL_POS.forEach(w => {
+      const sprite = this.add.tileSprite(
+        w.x + w.w/2,
+        w.y + w.h / 2,
+        w.w,
+        w.h,
+        'wall-tile'
+      );
+      sprite.setDepth(20);
+      this.wallGroup.add(sprite);
+    });
+
+    // Debug, you click then you know
+    this.input.on('pointerdown', (pointer) => {
+      console.log(`Click: x=${Math.round(pointer.x)}, y=${Math.round(pointer.y)}`);
+    });
 
     this.socket.on('currentPlayers', (players) => {
       console.log('I,', this.socket.id, 'connected. Players online:', Object.keys(players).length);

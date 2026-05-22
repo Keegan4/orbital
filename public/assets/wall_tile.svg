@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">
+  <!-- Tile size: 40x40. Contains 2 rows of bricks in offset (running bond) pattern.
+       Row 1 (top half, y=0-20): one full brick, with bricks bleeding off both sides
+                                 to make the offset tile correctly with the row below.
+       Row 2 (bottom half, y=20-40): two full bricks side by side.
+       This way: the top of row 1 connects to the bottom of row 2 of the tile above,
+       and the offsets continue properly across tile boundaries. -->
+
+  <!-- Base brick color fills the whole tile -->
+  <rect width="40" height="40" fill="#7a4e2a"/>
+
+  <!-- ROW 1 (y=0 to y=20): offset row -->
+  <!-- Left half-brick (continues from previous tile) -->
+  <rect x="0"  y="0" width="10" height="20" fill="#7a4e2a"/>
+  <!-- Full middle brick -->
+  <rect x="10" y="0" width="20" height="20" fill="#8b5d35"/>
+  <!-- Right half-brick (continues into next tile) -->
+  <rect x="30" y="0" width="10" height="20" fill="#6a4220"/>
+
+  <!-- ROW 2 (y=20 to y=40): aligned row -->
+  <rect x="0"  y="20" width="20" height="20" fill="#8b5d35"/>
+  <rect x="20" y="20" width="20" height="20" fill="#7a4e2a"/>
+
+  <!-- Mortar lines (dark gaps between bricks) -->
+  <g stroke="#3d2410" stroke-width="1.5" fill="none">
+    <!-- Horizontal mortar -->
+    <line x1="0" y1="20" x2="40" y2="20"/>
+    <!-- Vertical mortar in row 1 -->
+    <line x1="10" y1="0" x2="10" y2="20"/>
+    <line x1="30" y1="0" x2="30" y2="20"/>
+    <!-- Vertical mortar in row 2 -->
+    <line x1="20" y1="20" x2="20" y2="40"/>
+  </g>
+
+  <!-- Top edge highlights on each brick (lighter strokes for "lit from above" depth) -->
+  <g stroke="#a06a3d" stroke-width="0.8" opacity="0.7" fill="none">
+    <!-- Row 1 highlights -->
+    <line x1="0"  y1="1" x2="9"  y2="1"/>
+    <line x1="11" y1="1" x2="29" y2="1"/>
+    <line x1="31" y1="1" x2="40" y2="1"/>
+    <!-- Row 2 highlights -->
+    <line x1="0"  y1="21" x2="19" y2="21"/>
+    <line x1="21" y1="21" x2="40" y2="21"/>
+  </g>
+
+  <!-- Subtle brick variation - a few darker spots for character -->
+  <!-- Kept fully inside individual bricks so it doesn't break the seam -->
+  <circle cx="17" cy="10" r="1.5" fill="#5a3a1f" opacity="0.4"/>
+  <circle cx="6"  cy="30" r="1.2" fill="#5a3a1f" opacity="0.4"/>
+  <circle cx="34" cy="32" r="1.0" fill="#a06a3d" opacity="0.3"/>
+  <circle cx="25" cy="13" r="0.8" fill="#a06a3d" opacity="0.3"/>
+</svg>

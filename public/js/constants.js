@@ -29,4 +29,4 @@ const WALL_POS = coords.map(x => {
         }
 })
 
-if (typeof module !== 'undefined') module.exports = {CONSTANTS, WALL_POS};
+module.exports = {CONSTANTS, WALL_POS};

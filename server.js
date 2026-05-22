@@ -14,22 +14,21 @@ app.get('/', function (req, res) {
 const {CONSTANTS, WALL_POS} = require('./public/js/constants.js');
 
 const {TICK_RATE, 
-TANK_SPEED,
-TANK_ANGULAR_SPEED,
-GAME_WIDTH,
-GAME_HEIGHT,
-WALL_THICKNESS,
-BULLET_SPEED,
-BULLET_RADIUS,
-MAX_BOUNCES,
-FIRE_COOLDOWN,
-BULLET_LIFESPAN,
-CATEGORY_WALL,
-CATEGORY_BULLET,
-CATEGORY_TANK,
+    TANK_SPEED,
+    TANK_ANGULAR_SPEED,
+    GAME_WIDTH,
+    GAME_HEIGHT,
+    WALL_THICKNESS,
+    BULLET_SPEED,
+    BULLET_RADIUS,
+    MAX_BOUNCES,
+    FIRE_COOLDOWN,
+    BULLET_LIFESPAN,
+    CATEGORY_WALL,
+    CATEGORY_BULLET,
+    CATEGORY_TANK,
   } = CONSTANTS;
 const TICK_DELTA = 1 / TICK_RATE;
-
 
 // Physics engine initialisation
 var engine = Matter.Engine.create();
@@ -57,8 +56,8 @@ const interiorWalls = WALL_POS.map(w =>
     wallOptions 
   )
 )
-Matter.Composite.add(world, [topWall, bottomWall, leftWall, rightWall]);
-Matter.Composite.add(world, interiorWalls);
+Matter.Composite.add(world, [topWall, bottomWall, leftWall, rightWall, ...interiorWalls]);
+//Matter.Composite.add(world, interiorWalls);
 
 // Global variables
 var players = {};

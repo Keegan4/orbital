@@ -291,6 +291,7 @@ io.on('connection', function (socket) {
     if (players[socket.id]) {
       const player = players[socket.id];
       player.isAlive = true;
+      player.body.isSensor = false;    
       Matter.Body.setPosition(player.body, respawn());
       socket.emit("respawnSuccess");
     }

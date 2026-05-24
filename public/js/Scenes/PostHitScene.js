@@ -8,6 +8,7 @@ export default class PostHitScene extends Phaser.Scene {
     this.killCount = data.killCount || 0;
     this.team = data.team || 'blue';
     this.timeAlive = data.timeAlive || 0;
+    this.socket = data.socket;
   }
 
   create() {
@@ -74,8 +75,12 @@ export default class PostHitScene extends Phaser.Scene {
 
   handleRespawn() {
     // Tell server to respawn
-    this.scene.get('GameScene').socket.emit('respawnRequest');
-    this.scene.stop('PostHitScene');
-    this.scene.resume('GameScene');
+    this.socket.emit('respawnRequest');
+    this.socket.once("respawnSuccess", () => {
+      this.tankDead = false;
+      this.scene.stop('PostHitScene');
+      this.scene.resume('GameScene');
+    })
+    
   }
 }

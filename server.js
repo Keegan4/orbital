@@ -68,8 +68,7 @@ var bulletIdCounter = 0;
 function createPlayer(socketId) {
   const spriteWidth = 42;
   const spriteHeight = 46;
-  var x = Math.floor(Math.random() * 700) + 50;
-  var y = Math.floor(Math.random() * 500) + 50;
+  var {x, y} = respawn();
   var body = Matter.Bodies.rectangle(x, y, spriteWidth, spriteHeight, 
     { frictionAir : 0.1, 
       label : 'tank',
@@ -85,6 +84,13 @@ function createPlayer(socketId) {
     input : { left : false, right : false, up : false, down : false },
     lastFired : 0,
     isAlive : true
+  };
+}
+
+function respawn() {
+  return {
+    x: Math.floor(Math.random() * 700) + 50,
+    y: Math.floor(Math.random() * 500) + 50
   };
 }
 
@@ -278,6 +284,15 @@ io.on('connection', function (socket) {
   socket.on('playerInput', function (input) {
     if (players[socket.id]) {
       players[socket.id].input = input;
+    }
+  });
+
+  socket.on("respawnRequest", () => {
+    if (players[socket.id]) {
+      const player = players[socket.id];
+      player.isAlive = true;
+      Matter.Body.setPosition(player.body, respawn());
+      socket.emit("respawnSuccess");
     }
   });
 

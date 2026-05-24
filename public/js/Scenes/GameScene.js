@@ -61,6 +61,11 @@ export default class PostHitScene extends Phaser.Scene {
       })
     });
 
+    // Respawn logic
+    this.socket.on("respawnSuccess", () => {
+      this.tankDead = false;
+    });
+
     this.socket.on('gameState', (state) => {
       if (!this.tank) return;
       state.players.forEach(p => {
@@ -141,6 +146,7 @@ export default class PostHitScene extends Phaser.Scene {
     if (this.tankDead) {
       this.scene.pause('GameScene');
       this.scene.launch('PostHitScene', {
+        socket: this.socket,
         killCount: 2,
         team: this.playerTeam,
         timeAlive: 30

@@ -4,6 +4,7 @@ const CONSTANTS = {
     GAME_WIDTH : 800,
     GAME_HEIGHT : 600,
     WALL_THICKNESS : 100,
+    CELL_SIZE: 40,
 
     // Tank atributes
     FRIENDLY_TEAM: "blue",
@@ -40,4 +41,4 @@ const WALL_POS = coords.map(x => {
         }
 })
 
-if (typeof module !== 'undefined') module.exports = {CONSTANTS, WALL_POS};
+if (typeof module !== 'undefined') module.exports = {CONSTANTS, WALL_POS, coords};

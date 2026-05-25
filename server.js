@@ -4,6 +4,7 @@ var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var Matter = require('matter-js');
+var EasyStar = require('easystarjs');
 
 app.use(express.static(__dirname + '/public'));
 app.get('/', function (req, res) {
@@ -11,7 +12,7 @@ app.get('/', function (req, res) {
 });
 
 // CONSTANTS
-const {CONSTANTS, WALL_POS} = require('./public/js/constants.js');
+const {CONSTANTS, WALL_POS, coords} = require('./public/js/constants.js');
 
 const {TICK_RATE, 
     TANK_SPEED,
@@ -30,7 +31,8 @@ const {TICK_RATE,
     FRIENDLY_TEAM,
     ENEMY_TEAM,
     SPAWN_COOLDOWN,
-    BOT_LIMIT
+    BOT_LIMIT,
+    CELL_SIZE
   } = CONSTANTS;
 const TICK_DELTA = 1 / TICK_RATE;
 
@@ -109,6 +111,51 @@ function createBot() {
     rotation : players[BotID].body.angle,
   })
 }
+
+// Creating the grid
+
+const GRID_W = GAME_WIDTH / CELL_SIZE;
+const GRID_H = GAME_HEIGHT / CELL_SIZE;
+const grid = []
+for (var i = 0; i < GRID_W; i++) {
+  grid[i] = []
+  for (var j = 0; j < GRID_H; j++) {
+    grid[i][j] = 1;
+  }
+}
+console.log('WALL_POS length:', coords?.length);
+console.log('First wall:', coords?.[0]);
+
+coords.forEach(w => {
+  const x1 = Math.floor(w.x1 / CELL_SIZE);
+  const x2 = Math.ceil(w.x2 / CELL_SIZE);
+  const y1 = Math.floor(w.y1 / CELL_SIZE);
+  const y2 = Math.ceil(w.y2 / CELL_SIZE);
+  for (var y = y1; y < y2; y++) {
+    for (var x = x1; x < x2; x++) {
+      // We set impassable walls to be 0
+      if (grid[y] !== undefined && grid[y][x] !== undefined) {
+        grid[y][x] = 0;
+      }
+      
+    }
+  }
+});
+
+
+var easystar = new EasyStar.js();
+easystar.setGrid(grid);
+easystar.setAcceptableTiles([1]);
+easystar.findPath(0, 0, 8, 8, path => {
+  if (path == null) {
+    console.warn("Path was not found.");
+  }else {
+    console.log(path);
+  }
+});
+console.log(grid);
+easystar.enableDiagonals();
+easystar.calculate();
 
 
 

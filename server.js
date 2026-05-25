@@ -94,7 +94,7 @@ function createPlayer(socketId, team) {
     isAlive : true
   };
 }
-// AI Bot creation, we will cheat and use the create
+// AI Bot creation, we will cheat and use the createPlayer
 
 function createBot() {
   const BotID = `BOT-${Date.now()}-${botNum}`;

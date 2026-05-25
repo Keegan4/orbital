@@ -27,6 +27,10 @@ const {TICK_RATE,
     CATEGORY_WALL,
     CATEGORY_BULLET,
     CATEGORY_TANK,
+    FRIENDLY_TEAM,
+    ENEMY_TEAM,
+    SPAWN_COOLDOWN,
+    BOT_LIMIT
   } = CONSTANTS;
 const TICK_DELTA = 1 / TICK_RATE;
 
@@ -64,8 +68,12 @@ var players = {};
 var bullets = {};
 var bulletIdCounter = 0;
 
+// Bot variables
+var botNum = 0;
+var lastSpawn = 0;
+
 // Helper functions
-function createPlayer(socketId) {
+function createPlayer(socketId, team) {
   const spriteWidth = 42;
   const spriteHeight = 46;
   var {x, y} = respawn();
@@ -79,13 +87,30 @@ function createPlayer(socketId) {
   Matter.Composite.add(world, body);
   return {
     playerId : socketId,
-    team : (Math.floor(Math.random() * 2) == 0) ? 'red' : 'blue',
+    team : team,
     body : body,
     input : { left : false, right : false, up : false, down : false },
     lastFired : 0,
     isAlive : true
   };
 }
+// AI Bot creation, we will cheat and use the create
+
+function createBot() {
+  const BotID = `BOT-${Date.now()}-${botNum}`;
+  botNum++;
+  players[BotID] = createPlayer(BotID, ENEMY_TEAM);
+  console.log(`Bot created ID: ${BotID}`);
+  io.emit("newPlayer", {
+    playerId : players[BotID].playerId,
+    team : players[BotID].team,
+    x : players[BotID].body.position.x,
+    y : players[BotID].body.position.y,
+    rotation : players[BotID].body.angle,
+  })
+}
+
+
 
 function respawn() {
   return {
@@ -184,13 +209,20 @@ Matter.Events.on(engine, 'collisionStart', function(event) {
       const player = Object.values(players).find(p => p.body === tankBody);
       if (!player || !player.isAlive) return;
       //if (bullet.ownerId === player.playerId) return; // no self hit
-      player.isAlive = false;
-      Matter.Body.setVelocity(player.body, { x: 0, y: 0 });
-      Matter.Body.setAngularVelocity(player.body, 0);
-      player.body.isSensor = true;      
-      //io.emit('playerHit', { playerId: player.playerId });
+
+      // Just despawn the enemies if you hit them
+      if (player.team == ENEMY_TEAM) {
+        destroyPlayer(player.playerId)
+        botNum--;
+      } else {
+        player.isAlive = false;
+        Matter.Body.setVelocity(player.body, { x: 0, y: 0 });
+        Matter.Body.setAngularVelocity(player.body, 0);
+        player.body.isSensor = true;      
+        //io.emit('playerHit', { playerId: player.playerId });
+        //destroyPlayer(player.playerId);
+      }
       destroyBullet(bullet.id);
-      //destroyPlayer(player.playerId);
     }
   });
 });
@@ -198,6 +230,11 @@ Matter.Events.on(engine, 'collisionStart', function(event) {
 // GAME LOOP
 setInterval(() => {
   const now = Date.now();
+
+  if (now - lastSpawn > SPAWN_COOLDOWN && botNum < BOT_LIMIT) {
+    createBot()
+    lastSpawn = now;
+  }
   
   Object.values(players).forEach(player => {
     if (!player.isAlive) return;
@@ -259,7 +296,7 @@ io.on('connection', function (socket) {
   console.log('user ' + socket.id + ': connected');
 
   // Start state of this player
-  players[socket.id] = createPlayer(socket.id);
+  players[socket.id] = createPlayer(socket.id, FRIENDLY_TEAM);
 
   // Send the players object to the this player
   socket.emit('currentPlayers', Object.fromEntries(

@@ -68,6 +68,8 @@ export default class PostHitScene extends Phaser.Scene {
 
     this.socket.on('gameState', (state) => {
       if (!this.tank) return;
+
+
       state.players.forEach(p => {
         if (p.playerId === this.socket.id) {
           this.tank.x = p.x;
@@ -86,6 +88,19 @@ export default class PostHitScene extends Phaser.Scene {
             }
           }
       });
+      
+      // Figuring out which tanks are alive then 
+      // Automatically remove tanks that dont exist
+      const aliveTanks = new Set(state.players.map(x => x.playerId));
+      
+      Object.keys(this.otherPlayers).forEach(id => {
+        if (!aliveTanks.has(id)) {
+          this.otherPlayers[id].destroy();
+          delete this.otherPlayers[id];
+        }
+      });
+
+
       // Update bullets — create new, remove destroyed
       const activeBulletIds = new Set(state.bullets.map(b => b.id));
       state.bullets.forEach(b => {

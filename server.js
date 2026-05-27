@@ -175,6 +175,8 @@ Matter.Events.on(engine, 'collisionStart', function(event) {
       bullet.bounces++;
       if (bullet.bounces >= MAX_BOUNCES) {
         destroyBullet(bullet.id);
+      } else {
+        io.emit('sfx', { type : 'bulletBounce', x : bullet.body.position.x, y : bullet.body.position.y });
       }
       return;
     }
@@ -190,6 +192,7 @@ Matter.Events.on(engine, 'collisionStart', function(event) {
       player.body.isSensor = true;      
       //io.emit('playerHit', { playerId: player.playerId });
       destroyBullet(bullet.id);
+      io.emit('sfx', { type : 'tankHit', x : player.body.position.x, y : player.body.position.y, playerId: player.playerId });
       //destroyPlayer(player.playerId);
     }
   });
@@ -225,6 +228,7 @@ setInterval(() => {
     if (input.fire && now - player.lastFired > FIRE_COOLDOWN) {
       player.lastFired = now;
       createBullet(player);
+      io.to(player.playerId).emit('sfx', { type : 'shoot' }); //only emits to shooter, but might want to find tanks within a radius to emit to too
     }  
   });
 

@@ -5,11 +5,22 @@ export default class PostHitScene extends Phaser.Scene {
   }
 
   preload() {
+    // Load images
     this.load.image('blue', 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_blue.png');
     this.load.image('red', 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_red.png');
     this.load.image('bullet', 'assets/kenney_topdownTanksRedux/PNG/Default size/bulletRed2.png');
     this.load.svg("background", "assets/tank_background.svg");
     this.load.svg("wall-tile", "assets/wall_tile.svg");
+
+    // Load audio
+    this.load.audio('shoot',       'assets/shoot.ogg');
+    this.load.audio('bulletBounce','assets/bounce.ogg');
+    this.load.audio('tankHit',     'assets/explosion.ogg');
+
+    // Load animations
+    for (let i = 1; i <= 5; i++) {
+      this.load.image(`exp${i}`, `assets/explosion${i}.png`);
+    }
   }
 
   create() {
@@ -27,6 +38,49 @@ export default class PostHitScene extends Phaser.Scene {
     this.bullets = {}; 
     this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, "background").setOrigin(0.5, 0.5);
     this.wallGroup = this.add.group();
+
+    this.sounds = { shoot : this.sound.add('shoot', { volume: 0.5 }),
+                    bulletBounce : this.sound.add('bulletBounce', { volume: 0.3 }),
+                    tankHit : this.sound.add('tankHit', { volume: 0.8 }) };
+    
+    this.anims.create({
+      key: 'explode',
+      frames: Array.from({ length: 5 }, (_, i) => ({ key: `exp${i + 1}` })),
+      frameRate: 15,
+      repeat: 0
+    });
+
+    this.socket.on('sfx', (data) => {
+      if (data.type === 'tankHit') {
+        // Explosion animation
+        const explosion = this.add.sprite(data.x, data.y, 'exp1')
+          .setDepth(30)
+          .play('explode');
+        if (data.playerId === this.socket.id) {
+          explosion.on('animationcomplete', () => {
+            explosion.destroy();
+            this.scene.pause('GameScene');
+            this.scene.launch('PostHitScene', { socket: this.socket });
+          });
+        } else {
+          explosion.on('animationcomplete', () => explosion.destroy());
+        }
+      }
+
+      const sound = this.sounds[data.type];
+      if (!sound) return;
+      if (!data.x || !data.y || !this.tank) {
+        sound.play();
+        return;
+      }
+      // Modulate sound by dist from this tank
+      const dx = data.x - this.tank.x;
+      const dy = data.y - this.tank.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const maxDist = 600;
+      const volume = Math.max(0, 1 - dist / maxDist);
+      sound.play({ volume });
+    });
 
     WALL_POS.forEach(w => {
       const sprite = this.add.tileSprite(
@@ -143,6 +197,7 @@ export default class PostHitScene extends Phaser.Scene {
   update() {
     if (!this.tank) return;
 
+    /*
     if (this.tankDead) {
       this.scene.pause('GameScene');
       this.scene.launch('PostHitScene', {
@@ -152,6 +207,7 @@ export default class PostHitScene extends Phaser.Scene {
         timeAlive: 30
       });
     }
+    */
     const input = {
       left : this.cursors.left.isDown || this.wasd.left.isDown,
       right : this.cursors.right.isDown || this.wasd.right.isDown,

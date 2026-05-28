@@ -1,5 +1,5 @@
 const {GAME_WIDTH, GAME_HEIGHT, WALL_THICKNESS} = CONSTANTS;
-export default class PostHitScene extends Phaser.Scene {
+export default class GameScene extends Phaser.Scene {
   constructor() {
     super({ key: 'GameScene' });
   }
@@ -39,6 +39,27 @@ export default class PostHitScene extends Phaser.Scene {
     this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, "background").setOrigin(0.5, 0.5);
     this.wallGroup = this.add.group();
 
+    this.add.text(70, 10, 'SCOREBOARD', {
+      fontSize : '24px',
+      color : '#ffffff',
+      backgroundColor: '#000000aa',
+    }).setOrigin(0.5);
+
+    this.scoreSlots = [];
+
+    // create 10 places that are revealed later
+    for (let i = 0; i < 10; i++) {
+      // The weird position is so that each score will be
+      // lower than the next
+      const text = this.add.text(10, 45 + i * 24, '', {
+        fontSize : '24px',
+        color : '#ffffff',
+        backgroundColor: '#000000aa',
+      }).setVisible(false);
+      this.scoreSlots.push(text);
+    }
+
+    // Aesthetics
     this.sounds = { shoot : this.sound.add('shoot', { volume: 0.5 }),
                     bulletBounce : this.sound.add('bulletBounce', { volume: 0.3 }),
                     tankHit : this.sound.add('tankHit', { volume: 0.8 }) };
@@ -118,6 +139,17 @@ export default class PostHitScene extends Phaser.Scene {
     // Respawn logic
     this.socket.on("respawnSuccess", () => {
       this.tankDead = false;
+    });
+
+    // Scoreboard update
+    this.socket.on("scoreUpdate", scores => {
+        this.scoreSlots.forEach(x => {
+          x.setVisible(false);
+        });
+        for (let i = 0; i < scores.length; i++) {
+          this.scoreSlots[i].setText(`${scores[i].name}: ${scores[i].score}`);
+          this.scoreSlots[i].setVisible(true);
+        }
     });
 
     this.socket.on('gameState', (state) => {

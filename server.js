@@ -83,7 +83,8 @@ function createPlayer(socketId) {
     body : body,
     input : { left : false, right : false, up : false, down : false },
     lastFired : 0,
-    isAlive : true
+    isAlive : true,
+    score: 0
   };
 }
 
@@ -193,10 +194,34 @@ Matter.Events.on(engine, 'collisionStart', function(event) {
       //io.emit('playerHit', { playerId: player.playerId });
       destroyBullet(bullet.id);
       io.emit('sfx', { type : 'tankHit', x : player.body.position.x, y : player.body.position.y, playerId: player.playerId });
+
+      // Players cant shoot themselves for more points
+      
+      if (bullet.ownerId !== player.playerId) {
+        const firer = players[bullet.ownerId];
+        if (firer) {
+          firer.score++;
+          scoreUpdate();
+        }
+
+      }
       //destroyPlayer(player.playerId);
     }
   });
 });
+
+function scoreUpdate() {
+  // Basically we will be displaying a hashmap? (whatever its called in js)
+  // Where the key is your name and the value is your score/kills
+  // For now our name will just be the socketID
+
+  var scoreBoard = Object.values(players)
+    .map(player => ({
+      name: player.playerId.slice(0, 5),
+      score: player.score}))
+    .sort((a, b) => b.score - a.score);
+  io.emit("scoreUpdate", scoreBoard);
+}
 
 // GAME LOOP
 setInterval(() => {
@@ -259,11 +284,15 @@ setInterval(() => {
   });
 }, 1000 / TICK_RATE);
 
+
 io.on('connection', function (socket) {
   console.log('user ' + socket.id + ': connected');
 
   // Start state of this player
   players[socket.id] = createPlayer(socket.id);
+
+  // Display the scoreboard once connected
+  scoreUpdate();
 
   // Send the players object to the this player
   socket.emit('currentPlayers', Object.fromEntries(
@@ -309,6 +338,9 @@ io.on('connection', function (socket) {
       }
       // Emit a message to all players to remove this player
       io.emit('playerDisconnect', socket.id);
+
+      // Remove them from the scoreboard
+      scoreUpdate();
     });
 });
 

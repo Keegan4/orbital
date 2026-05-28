@@ -35,7 +35,7 @@ export default class PostHitScene extends Phaser.Scene {
     // Respawn button — wired to server later
     const btn = this.add.text(width / 2, height * 0.75, '[ RESPAWN ]', {
       fontSize : '32px',
-      color : '#44ff44',
+      color : '#888888',
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
     btn.on('pointerover', () => btn.setColor('#88ff88'));

@@ -13,7 +13,9 @@ const CONSTANTS = {
     BULLET_LIFESPAN : 10000,
     CATEGORY_WALL   : 0x0001,
     CATEGORY_BULLET : 0x0002,
-    CATEGORY_TANK: 0x0004
+    CATEGORY_TANK: 0x0004,
+    RESPAWN_LIMIT: 300,
+    MIN_DIST: 300
 }
 const coords = [
     {x1: 258, y1: 0, x2: 304, y2: 155},

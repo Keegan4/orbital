@@ -60,9 +60,9 @@ export default class GameScene extends Phaser.Scene {
     }
 
     // Aesthetics
-    this.sounds = { shoot : this.sound.add('shoot', { volume: 0.5 }),
+    this.sounds = { shoot : this.sound.add('shoot', { volume: 0.4 }),
                     bulletBounce : this.sound.add('bulletBounce', { volume: 0.3 }),
-                    tankHit : this.sound.add('tankHit', { volume: 0.8 }) };
+                    tankHit : this.sound.add('tankHit', { volume: 0.6 }) };
     
     this.anims.create({
       key: 'explode',
@@ -81,7 +81,11 @@ export default class GameScene extends Phaser.Scene {
           explosion.on('animationcomplete', () => {
             explosion.destroy();
             this.scene.pause('GameScene');
-            this.scene.launch('PostHitScene', { socket: this.socket });
+            this.scene.launch('PostHitScene', {
+              socket: this.socket,
+              score: data.score,
+              timeAlive: data.timeAlive
+            });
           });
         } else {
           explosion.on('animationcomplete', () => explosion.destroy());

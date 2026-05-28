@@ -27,6 +27,8 @@ const {TICK_RATE,
     CATEGORY_WALL,
     CATEGORY_BULLET,
     CATEGORY_TANK,
+    RESPAWN_LIMIT,
+    MIN_DIST
   } = CONSTANTS;
 const TICK_DELTA = 1 / TICK_RATE;
 
@@ -68,7 +70,7 @@ var bulletIdCounter = 0;
 function createPlayer(socketId) {
   const spriteWidth = 42;
   const spriteHeight = 46;
-  var {x, y} = respawn();
+  var {x, y} = spawn(null);
   var body = Matter.Bodies.rectangle(x, y, spriteWidth, spriteHeight, 
     { frictionAir : 0.1, 
       label : 'tank',
@@ -76,6 +78,7 @@ function createPlayer(socketId) {
                          mask : CATEGORY_WALL | CATEGORY_BULLET | CATEGORY_TANK // collides with walls and bullets
                        } 
     });
+  
   Matter.Composite.add(world, body);
   return {
     playerId : socketId,
@@ -84,15 +87,44 @@ function createPlayer(socketId) {
     input : { left : false, right : false, up : false, down : false },
     lastFired : 0,
     isAlive : true,
-    score: 0
+    score: 0,
+    createdAt: Date.now()
   };
 }
 
-function respawn() {
+// Respawn with no params just gives you a random spawn
+function spawnRand() {
   return {
     x: Math.floor(Math.random() * 700) + 50,
     y: Math.floor(Math.random() * 500) + 50
   };
+}
+
+// Ensure respawn is not within a certain radius of other tanks
+function spawn(body) {
+  var tries = 0;
+
+  while (tries < RESPAWN_LIMIT) {
+    var {x, y} = spawnRand();
+    if (Object.values(players).every(player => {
+      if (player.body === body) return true;
+      if (!player.isAlive) return true;
+      const dx = player.body.position.x - x;
+      const dy = player.body.position.y - y;
+
+      //My debugging
+      if (Math.sqrt(dx * dx + dy * dy) > MIN_DIST) {
+        console.log(`Distance found!: ${Math.sqrt(dx * dx + dy * dy)}`);
+      }
+      return Math.sqrt(dx * dx + dy * dy) > MIN_DIST;
+    })) {
+      return {x: x, y: y};
+    }else {
+      tries++;
+    }
+  }
+  console.log("No distance found :(");
+  return {x: x, y: y};
 }
 
 function destroyPlayer(id) {
@@ -184,6 +216,7 @@ Matter.Events.on(engine, 'collisionStart', function(event) {
 
     // Bullet hit a tank
     if (tankBody) {
+
       const player = Object.values(players).find(p => p.body === tankBody);
       if (!player || !player.isAlive) return;
       //if (bullet.ownerId === player.playerId) return; // no self hit
@@ -193,10 +226,17 @@ Matter.Events.on(engine, 'collisionStart', function(event) {
       player.body.isSensor = true;      
       //io.emit('playerHit', { playerId: player.playerId });
       destroyBullet(bullet.id);
-      io.emit('sfx', { type : 'tankHit', x : player.body.position.x, y : player.body.position.y, playerId: player.playerId });
+
+      io.emit('sfx', { 
+        type : 'tankHit', 
+        x : player.body.position.x, 
+        y : player.body.position.y, 
+        playerId: player.playerId,
+        score: player.score,
+        timeAlive: Date.now() - player.createdAt
+      });
 
       // Players cant shoot themselves for more points
-      
       if (bullet.ownerId !== player.playerId) {
         const firer = players[bullet.ownerId];
         if (firer) {
@@ -324,8 +364,9 @@ io.on('connection', function (socket) {
     if (players[socket.id]) {
       const player = players[socket.id];
       player.isAlive = true;
-      player.body.isSensor = false;    
-      Matter.Body.setPosition(player.body, respawn());
+      player.body.isSensor = false;
+      player.createdAt = Date.now();    
+      Matter.Body.setPosition(player.body, spawn(player.body));
       socket.emit("respawnSuccess");
     }
   });

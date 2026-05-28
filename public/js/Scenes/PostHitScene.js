@@ -5,9 +5,9 @@ export default class PostHitScene extends Phaser.Scene {
 
   // Data passed in from GameScene when player dies
   init(data) {
-    this.killCount = data.killCount || 0;
+    this.score = data.score || 0;
     this.team = data.team || 'blue';
-    this.timeAlive = data.timeAlive || 0;
+    this.timeAlive = Math.floor(data.timeAlive / 1000) || 0;
     this.socket = data.socket;
   }
 
@@ -26,7 +26,7 @@ export default class PostHitScene extends Phaser.Scene {
 
     // Stats
     this.add.text(width / 2, height / 2, 
-      `Kills: ${this.killCount}\nTime alive: ${this.timeAlive}s`, {
+      `Kills: ${this.score}\nTime alive: ${this.timeAlive}s`, {
       fontSize : '24px',
       color : '#ffffff',
       align : 'center'

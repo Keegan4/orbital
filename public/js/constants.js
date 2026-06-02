@@ -4,7 +4,7 @@ const CONSTANTS = {
     GAME_WIDTH : 800,
     GAME_HEIGHT : 600,
     WALL_THICKNESS : 100,
-    CELL_SIZE: 40,
+    CELL_SIZE: 30,
 
     // Tank atributes
     FRIENDLY_TEAM: "blue",
@@ -25,7 +25,10 @@ const CONSTANTS = {
     // Enemy Constants
     ENEMY_TEAM : "red",
     SPAWN_COOLDOWN : 2000,
-    BOT_LIMIT: 7
+    BOT_LIMIT: 3,
+    TURN_THRESHOLD: 0.1,
+    NEW_TARGET: 1000,
+    FIRE_CHANCE: 0.2
 }
 const coords = [
     {x1: 258, y1: 0, x2: 304, y2: 155},

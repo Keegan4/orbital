@@ -13,6 +13,7 @@ app.get('/', function (req, res) {
 
 // CONSTANTS
 const {CONSTANTS, WALL_POS, coords} = require('./public/js/constants.js');
+const path = require('path');
 
 const {TICK_RATE, 
     TANK_SPEED,
@@ -32,7 +33,10 @@ const {TICK_RATE,
     ENEMY_TEAM,
     SPAWN_COOLDOWN,
     BOT_LIMIT,
-    CELL_SIZE
+    CELL_SIZE,
+    TURN_THRESHOLD,
+    NEW_TARGET,
+    FIRE_CHANCE
   } = CONSTANTS;
 const TICK_DELTA = 1 / TICK_RATE;
 
@@ -73,6 +77,7 @@ var bulletIdCounter = 0;
 // Bot variables
 var botNum = 0;
 var lastSpawn = 0;
+var lastTarget = 0;
 
 // Helper functions
 function createPlayer(socketId, team) {
@@ -101,7 +106,20 @@ function createPlayer(socketId, team) {
 function createBot() {
   const BotID = `BOT-${Date.now()}-${botNum}`;
   botNum++;
-  players[BotID] = createPlayer(BotID, ENEMY_TEAM);
+  var bot = createPlayer(BotID, ENEMY_TEAM);
+  players[BotID] = bot
+  
+  //Bot specific attributes
+  bot.path = null;
+  bot.pathIdx = 0;
+  bot.target = null;
+
+
+  reqPath(bot, pixelToTile(respawn()));
+  // In the future lets create different bots,
+  // But for now this bot always targets one sepcific player
+
+
   console.log(`Bot created ID: ${BotID}`);
   io.emit("newPlayer", {
     playerId : players[BotID].playerId,
@@ -117,9 +135,9 @@ function createBot() {
 const GRID_W = GAME_WIDTH / CELL_SIZE;
 const GRID_H = GAME_HEIGHT / CELL_SIZE;
 const grid = []
-for (var i = 0; i < GRID_W; i++) {
+for (var i = 0; i < GRID_H; i++) {
   grid[i] = []
-  for (var j = 0; j < GRID_H; j++) {
+  for (var j = 0; j < GRID_W; j++) {
     grid[i][j] = 1;
   }
 }
@@ -137,25 +155,9 @@ coords.forEach(w => {
       if (grid[y] !== undefined && grid[y][x] !== undefined) {
         grid[y][x] = 0;
       }
-      
     }
   }
 });
-
-
-var easystar = new EasyStar.js();
-easystar.setGrid(grid);
-easystar.setAcceptableTiles([1]);
-easystar.findPath(0, 0, 8, 8, path => {
-  if (path == null) {
-    console.warn("Path was not found.");
-  }else {
-    console.log(path);
-  }
-});
-console.log(grid);
-easystar.enableDiagonals();
-easystar.calculate();
 
 
 
@@ -274,13 +276,123 @@ Matter.Events.on(engine, 'collisionStart', function(event) {
   });
 });
 
+var easystar = new EasyStar.js();
+easystar.setGrid(grid);
+easystar.setAcceptableTiles([1]);
+easystar.enableDiagonals();
+
+
+function tileToPixel(coord) {
+  return {
+    x: coord.x * CELL_SIZE + CELL_SIZE / 2,
+    y: coord.y * CELL_SIZE + CELL_SIZE / 2
+  };
+}
+
+function pixelToTile(coord) {
+  return {
+    x: Math.floor(coord.x / CELL_SIZE),
+    y: Math.floor(coord.y / CELL_SIZE)
+  }
+}
+
+function reqPath(bot, coord) {
+  const {x: startx, y: starty} = pixelToTile(bot.body.position);
+  easystar.findPath(startx, starty, coord.x, coord.y, path => {
+    if (path) {
+      bot.path = path;
+      bot.pathIdx = 0;
+    }else {
+      bot.path = null;
+    }
+  });
+}
+
+function botTarget(bot) {
+  const choices = Object.values(players).filter(p => {
+    return !p.playerId.startsWith("BOT-") &&
+    p.isAlive;
+  });
+  if (choices.length === 0) {
+    return null;
+  }
+  return choices[Math.floor(Math.random() * choices.length)]; 
+}
+
+// we test at 402, 300
+function moveBot(bot) {
+
+  Object.keys(bot.input).forEach(x => {
+    bot.input[x] = false;
+  });
+  if (!bot.path || bot.pathIdx >= bot.path.length) {
+    return;
+  }
+  
+  var nextPoint = tileToPixel(bot.path[bot.pathIdx]);
+  var dy = nextPoint.y - bot.body.position.y;
+  var dx = nextPoint.x - bot.body.position.x;
+
+  if (Math.sqrt(dy * dy + dx * dx) < 15) {
+    bot.pathIdx++;
+    
+    return;
+  }
+
+  var reqAngle = Math.atan2(dy, dx) - Math.PI / 2;
+  var toTurn = reqAngle - bot.body.angle;
+
+  // To keep the bot within the range [-pi, pi]
+  // So you dont turn 360 for no reason
+  if (toTurn > Math.PI) {
+    toTurn -= Math.PI * 2;
+  }else if (toTurn < -Math.PI) {
+    toTurn += Math.PI * 2;
+  }
+
+  if (Math.abs(toTurn) < TURN_THRESHOLD) {
+    bot.input.up = true;
+    
+  }else if (toTurn > TURN_THRESHOLD) {
+    bot.input.right = true;
+  }else {
+    bot.input.left = true;
+  }
+}
+
 // GAME LOOP
 setInterval(() => {
   const now = Date.now();
+  easystar.calculate();
 
   if (now - lastSpawn > SPAWN_COOLDOWN && botNum < BOT_LIMIT) {
     createBot()
     lastSpawn = now;
+  }
+
+
+  // Bot inputs 
+  Object.values(players).forEach(player => {
+    if (player.playerId.startsWith("BOT-")) {
+      moveBot(player);
+    }
+  });
+
+  if (now - lastTarget > NEW_TARGET) {
+    Object.values(players).forEach(player => {
+      if (!player.playerId.startsWith("BOT-")) return;
+      const targ = botTarget(player);
+      if (targ) {
+        reqPath(player, pixelToTile(targ.body.position));
+        if (Math.random() < FIRE_CHANCE) {
+          player.input.fire = true;
+        }
+        
+      }
+      
+
+    })
+    lastTarget = now;
   }
   
   Object.values(players).forEach(player => {

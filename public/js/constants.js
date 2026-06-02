@@ -15,7 +15,8 @@ const CONSTANTS = {
     CATEGORY_BULLET : 0x0002,
     CATEGORY_TANK: 0x0004,
     RESPAWN_LIMIT: 300,
-    MIN_DIST: 300
+    MIN_DIST: 300,
+    TICK_DELTA : 1 / 60
 }
 const coords = [
     {x1: 258, y1: 0, x2: 304, y2: 155},

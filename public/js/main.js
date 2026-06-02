@@ -1,3 +1,6 @@
+import BootScene from './Scenes/BootScene.js';
+import LobbyMenuScene from './Scenes/LobbyMenuScene.js';
+import WaitingRoomScene from './Scenes/WaitingRoomScene.js';
 import GameScene from './Scenes/GameScene.js';
 import PostHitScene from './Scenes/PostHitScene.js';
 

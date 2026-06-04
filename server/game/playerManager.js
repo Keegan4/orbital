@@ -1,6 +1,4 @@
 const Matter = require('matter-js');
-const { engine, world } = require('./physics.js');
-const state = require('../state.js');
 const { CONSTANTS } = require('../../public/js/constants.js');
 
 const {
@@ -11,6 +9,9 @@ const {
   MIN_DIST,
 } = CONSTANTS;
 
+const SPRITE_WIDTH = 42;
+const SPRITE_HEIGHT = 46;
+
 // Respawn with no params just gives you a random spawn
 function spawnRand() {
   return {
@@ -20,12 +21,12 @@ function spawnRand() {
 }
 
 // Ensure respawn is not within a certain radius of other tanks
-function spawn(body) {
+function spawn(body, room) {
   var tries = 0;
 
   while (tries < RESPAWN_LIMIT) {
     var {x, y} = spawnRand();
-    if (Object.values(state.players).every(player => {
+    if (Object.values(room.players).every(player => {
       if (player.body === body) return true;
       if (!player.isAlive) return true;
       const dx = player.body.position.x - x;
@@ -46,12 +47,10 @@ function spawn(body) {
   return {x: x, y: y};
 }
 
-function createPlayer(socketId) {
-  const spriteWidth = 42;
-  const spriteHeight = 46;
-  const { x, y } = spawn(null);
+function createPlayer(socketId, room) {
+  const { x, y } = spawnRand();
 
-  const body = Matter.Bodies.rectangle(x, y, spriteWidth, spriteHeight, {
+  const body = Matter.Bodies.rectangle(x, y, SPRITE_WIDTH, SPRITE_HEIGHT, {
     frictionAir: 0.1,
     label: 'tank',
     collisionFilter: {
@@ -60,24 +59,26 @@ function createPlayer(socketId) {
     }
   });
 
-  Matter.Composite.add(world, body);
+  Matter.Composite.add(room.world, body);
 
-  return {
+  const player = {
     playerId: socketId,
     team: Math.floor(Math.random() * 2) === 0 ? 'red' : 'blue',
     body,
-    input: { left: false, right: false, up: false, down: false },
+    input: { left: false, right: false, up: false, down: false, fire: false },
     lastFired: 0,
     isAlive: true,
     score: 0,
     createdAt: Date.now()
   };
+  room.players[socketId] = player;
+  return player;
 }
 
-function destroyPlayer(id) {
-  if (!state.players[id]) return;
-  Matter.Composite.remove(world, state.players[id].body);
-  delete state.players[id];
+function destroyPlayer(id, room) {
+  if (!room.players[id]) return;
+  Matter.Composite.remove(room.world, room.players[id].body);
+  delete room.players[id];
 }
 
 module.exports = {

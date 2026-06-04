@@ -1,6 +1,4 @@
 const Matter = require('matter-js');
-const { engine } = require('./physics.js');
-const state = require('../state.js');
 const { createBullet, destroyBullet } = require('./bulletManager.js');
 const { CONSTANTS } = require('../../public/js/constants.js');
 
@@ -13,12 +11,12 @@ const {
   TICK_DELTA
 } = CONSTANTS;
 
-function startGameLoop(io) {
+function startGameLoop(room) {
   const interval = setInterval(() => {
     const now = Date.now();
 
     // Process player inputs
-    Object.values(state.players).forEach(player => {
+    Object.values(room.players).forEach(player => {
       if (!player.isAlive) return;
 
       const { input, body } = player;
@@ -42,24 +40,24 @@ function startGameLoop(io) {
       // Firing
       if (input.fire && now - player.lastFired > FIRE_COOLDOWN) {
         player.lastFired = now;
-        createBullet(player);
-        io.to(player.playerId).emit('sfx', { type: 'shoot' }); //only emits to shooter, but might want to find tanks within a radius to emit to too
+        createBullet(player, room);
+        room.io.to(player.playerId).emit('sfx', { type: 'shoot' }); //only emits to shooter, but might want to find tanks within a radius to emit to too
       }
     });
 
     // Remove expired bullets
-    Object.values(state.bullets).forEach(bullet => {
+    Object.values(room.bullets).forEach(bullet => {
       if (Date.now() - bullet.createdAt > BULLET_LIFESPAN) {
-        destroyBullet(bullet.id);
+        destroyBullet(bullet.id, room);
       }
     });
 
     // Physics step
-    Matter.Engine.update(engine, 1000 / TICK_RATE);
+    Matter.Engine.update(room.engine, 1000 / TICK_RATE);
 
     // Broadcast state
-    io.emit('gameState', {
-      players: Object.values(state.players).map(p => ({
+    room.io.to(room.code).emit('gameState', {
+      players: Object.values(room.players).map(p => ({
         playerId: p.playerId,
         team: p.team,
         x: p.body.position.x,
@@ -67,7 +65,7 @@ function startGameLoop(io) {
         rotation: p.body.angle,
         isAlive: p.isAlive
       })),
-      bullets: Object.values(state.bullets).map(b => ({
+      bullets: Object.values(room.bullets).map(b => ({
         id: b.id,
         x: b.body.position.x,
         y: b.body.position.y,

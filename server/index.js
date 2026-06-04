@@ -18,9 +18,7 @@ app.get('/', function (req, res) {
 });
 
 // Initialise game systems
-initialiseCollisions(io);
 initialiseConnections(io);
-startGameLoop(io);
 
 // Start listening
 server.listen(8081, function () {

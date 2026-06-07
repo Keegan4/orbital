@@ -144,24 +144,6 @@ export default class GameScene extends Phaser.Scene {
       }
     })
 
-    /*
-    this.socket.on('currentPlayers', (players) => {
-      console.log('I,', this.socket.id, 'connected. Players online:', Object.keys(players).length);
-      Object.keys(players).forEach((id) => {
-        if (players[id].playerId === this.socket.id) {
-          this.tank = this.add.sprite(players[id].x, players[id].y, players[id].team)
-                        .setOrigin(0.5, 0.5)
-                        //.setScale(0.3);
-          console.log('My tank spawned at:', players[id].x, players[id].y);
-        } else {
-          this.otherPlayers[players[id].playerId] = this.add.sprite(players[id].x, players[id].y, players[id].team)
-                                                      .setOrigin(0.5, 0.5)
-                                                      //.setScale(0.3);
-        }
-      })
-    });
-    */
-
     // Respawn logic
     this.socket.on("respawnSuccess", () => {
       this.tankDead = false;
@@ -228,21 +210,6 @@ export default class GameScene extends Phaser.Scene {
                                                 //.setScale(0.3);
     });
 
-  //  this.socket.on('playerHit', (data) => {
-  //    if (data.playerId === this.socket.id) {
-  //      console.log('You were hit');
-  //      this.tank.setTint(0x808080);
-  //      this.tank.disable();
-  //      // respawn logic goes here later
-  //    } else {
-  //      if (this.otherPlayers[data.playerId]) {
-  //        this.otherPlayers[data.playerId].setTint(0x808080);
-  //        //this.otherPlayers[data.playerId].destroy();
-  //        //delete this.otherPlayers[data.playerId];
-  //      }
-  //    }
-  //  });
-
     this.socket.on('playerDisconnect', (id) => {
       console.log('Player left:', id);
       if (this.otherPlayers[id]) {
@@ -255,17 +222,6 @@ export default class GameScene extends Phaser.Scene {
   update() {
     if (!this.tank) return;
 
-    /*
-    if (this.tankDead) {
-      this.scene.pause('GameScene');
-      this.scene.launch('PostHitScene', {
-        socket: this.socket,
-        killCount: 2,
-        team: this.playerTeam,
-        timeAlive: 30
-      });
-    }
-    */
     const input = {
       left : this.cursors.left.isDown || this.wasd.left.isDown,
       right : this.cursors.right.isDown || this.wasd.right.isDown,

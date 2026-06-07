@@ -16,7 +16,9 @@ var config = {
       debug: false
     }
   },
-  scene: [ GameScene, PostHitScene ]
+  parent: 'game-container',
+  scene: [ BootScene, LobbyMenuScene, WaitingRoomScene, GameScene, PostHitScene ],
+  dom: { createContainer: true }
 };
 
 var game = new Phaser.Game(config);

@@ -3,10 +3,24 @@
     <head>
         <meta charset="utf-8">
     </head>
+    <style>
+        body {
+            margin: 0;
+            background-color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #game-container {
+            position: relative;
+        }
+    </style>
     <body>
         <script src="//cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
         <script src="/socket.io/socket.io.js"></script>
         <script src="js/constants.js"></script>
         <script type= 'module' src="js/main.js"></script>
+        <div id="game-container"></div>
     </body>
 </html>

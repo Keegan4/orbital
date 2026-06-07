@@ -10,10 +10,6 @@ const {
   CATEGORY_TANK,
 } = CONSTANTS;
 
-const engine = Matter.Engine.create();
-engine.gravity.y = 0;
-const world = engine.world;
-
 const wallOptions = {
   isStatic: true,
   label: 'wall',
@@ -23,21 +19,31 @@ const wallOptions = {
   }
 };
 
-const topWall = Matter.Bodies.rectangle(GAME_WIDTH / 2, -WALL_THICKNESS / 2, GAME_WIDTH, WALL_THICKNESS, wallOptions);
-const bottomWall = Matter.Bodies.rectangle(GAME_WIDTH / 2, GAME_HEIGHT + WALL_THICKNESS / 2, GAME_WIDTH, WALL_THICKNESS, wallOptions);
-const leftWall = Matter.Bodies.rectangle(-WALL_THICKNESS / 2, GAME_HEIGHT / 2, WALL_THICKNESS, GAME_HEIGHT, wallOptions);
-const rightWall = Matter.Bodies.rectangle(GAME_WIDTH + WALL_THICKNESS / 2, GAME_HEIGHT / 2, WALL_THICKNESS, GAME_HEIGHT, wallOptions);
+function createPhysics(walls = WALL_POS) {
+  const engine = Matter.Engine.create();
+  engine.gravity.y = 0;
+  const world = engine.world;
 
-const interiorWalls = WALL_POS.map(w =>
-  Matter.Bodies.rectangle(
-    w.x + w.w / 2,
-    w.y + w.h / 2,
-    w.w,
-    w.h,
-    wallOptions
-  )
-);
+  // Boundary walls
+  const topWall = Matter.Bodies.rectangle(GAME_WIDTH / 2, -WALL_THICKNESS / 2, GAME_WIDTH, WALL_THICKNESS, wallOptions);
+  const bottomWall = Matter.Bodies.rectangle(GAME_WIDTH / 2, GAME_HEIGHT + WALL_THICKNESS / 2, GAME_WIDTH, WALL_THICKNESS, wallOptions);
+  const leftWall = Matter.Bodies.rectangle(-WALL_THICKNESS / 2, GAME_HEIGHT / 2, WALL_THICKNESS, GAME_HEIGHT, wallOptions);
+  const rightWall = Matter.Bodies.rectangle(GAME_WIDTH + WALL_THICKNESS / 2, GAME_HEIGHT / 2, WALL_THICKNESS, GAME_HEIGHT, wallOptions);
 
-Matter.Composite.add(world, [topWall, bottomWall, leftWall, rightWall, ...interiorWalls]);
+  // Map walls
+  const interiorWalls = walls.map(w =>
+    Matter.Bodies.rectangle(
+      w.x + w.w / 2,
+      w.y + w.h / 2,
+      w.w,
+      w.h,
+      wallOptions
+    )
+  );
 
-module.exports = { engine, world };
+  Matter.Composite.add(world, [topWall, bottomWall, leftWall, rightWall, ...interiorWalls]);
+  return { engine, world };
+}
+
+
+module.exports = { createPhysics };

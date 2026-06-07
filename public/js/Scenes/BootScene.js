@@ -8,7 +8,8 @@ export default class BootScene extends Phaser.Scene {
   }
 
   create() {
-
+    this.registry.set('socket', io());
+    this.scene.start('LobbyMenuScene');
   }
 
   update() {

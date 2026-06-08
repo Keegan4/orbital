@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "easystarjs": "^0.4.4",
     "express": "^5.2.1",
     "matter-js": "^0.20.0",
     "package.json": "^2.0.1",

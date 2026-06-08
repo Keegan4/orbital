@@ -120,7 +120,7 @@ export default class LobbyMenuScene extends Phaser.Scene {
   }
 
   handleSuccess(data) {
-    // REmove listeners
+    // Remove listeners
     this.removeListeners();
     this.scene.start('WaitingRoomScene', data);
   }

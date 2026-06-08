@@ -1,6 +1,15 @@
 const Matter = require('matter-js');
 const { createBullet, destroyBullet } = require('./bulletManager.js');
 const { CONSTANTS } = require('../../public/js/constants.js');
+const { createBot,
+  moveBot,
+  botTarget,
+  pixelToTile,
+  tileToPixel,
+  reqPath,
+  calculatePaths
+} = require('./enemyBots.js');
+
 
 const {
   TICK_RATE,
@@ -8,12 +17,49 @@ const {
   TANK_ANGULAR_SPEED,
   FIRE_COOLDOWN,
   BULLET_LIFESPAN,
-  TICK_DELTA
+  TICK_DELTA,
+  BOT_LIMIT,
+  SPAWN_COOLDOWN,
+  FIRE_CHANCE,
+  NEW_TARGET
 } = CONSTANTS;
+
+// For the bot control
+var lastSpawn = 0;
+var lastTarget = 0;
 
 function startGameLoop(room) {
   const interval = setInterval(() => {
     const now = Date.now();
+
+    calculatePaths();
+
+    const currentBots = Object.values(room.players).filter(p => p.playerId.startsWith("BOT-")).length;
+    if (now - lastSpawn > SPAWN_COOLDOWN && currentBots < BOT_LIMIT) {
+      createBot(room);
+      lastSpawn = now;
+    }
+
+    // Bot inputs 
+    Object.values(room.players).forEach(player => {
+      if (player.playerId.startsWith("BOT-")) {
+        moveBot(player);
+      }
+    });
+
+    if (now - lastTarget > NEW_TARGET) {
+      Object.values(room.players).forEach(player => {
+        if (!player.playerId.startsWith("BOT-")) return;
+        const targ = botTarget(player, room);
+        if (targ) {
+          reqPath(player, pixelToTile(targ.body.position));
+          if (Math.random() < FIRE_CHANCE) {
+            player.input.fire = true;
+          }
+        }
+      })
+      lastTarget = now;
+    }
 
     // Process player inputs
     Object.values(room.players).forEach(player => {

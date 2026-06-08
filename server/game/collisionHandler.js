@@ -1,6 +1,7 @@
 const Matter = require('matter-js');
 const { CONSTANTS } = require('../../public/js/constants.js');
 const { destroyBullet } = require('./bulletManager.js');
+const { destroyPlayer } = require('./playerManager.js');
 const { updateScore, getScoreboard } = require('./scoreManager.js');
 
 const {
@@ -56,11 +57,18 @@ function initialiseCollisions(room) {
       if (tankBody) {
         const player = Object.values(room.players).find(p => p.body === tankBody);
         if (!player || !player.isAlive) return;
-        player.isAlive = false;
-        Matter.Body.setVelocity(player.body, { x: 0, y: 0 });
-        Matter.Body.setAngularVelocity(player.body, 0);
-        player.body.isSensor = true;
+        
         destroyBullet(bullet.id, room);
+
+        if (player.playerId.startsWith("BOT-")) {
+          destroyPlayer(player.playerId, room);
+          room.io.to(room.code).emit('playerDisconnect', player.playerId); 
+        } else {
+          player.isAlive = false;
+          Matter.Body.setVelocity(player.body, { x: 0, y: 0 });
+          Matter.Body.setAngularVelocity(player.body, 0);
+          player.body.isSensor = true;
+        }
 
         room.io.emit('sfx', {
           type: 'tankHit',

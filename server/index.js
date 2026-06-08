@@ -3,8 +3,6 @@ const http = require('http');
 const socketIo = require('socket.io');
 
 const { initialiseConnections } = require('./game/connectionHandler.js');
-const { startGameLoop } = require('./game/gameLoop.js');
-const { initialiseCollisions } = require('./game/bulletManager.js');
 
 // Initialize server
 const app = express();

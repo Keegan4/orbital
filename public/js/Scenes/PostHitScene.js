@@ -1,3 +1,4 @@
+
 export default class PostHitScene extends Phaser.Scene {
   constructor() {
     super({ key: 'PostHitScene' });
@@ -9,6 +10,8 @@ export default class PostHitScene extends Phaser.Scene {
     this.team = data.team || 'blue';
     this.timeAlive = Math.floor(data.timeAlive / 1000) || 0;
     this.socket = data.socket;
+    this.powerups = data.powerups;
+    console.log(this.powerups)
   }
 
   create() {
@@ -18,22 +21,56 @@ export default class PostHitScene extends Phaser.Scene {
     this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7);
 
     // YOU WERE HIT
-    this.add.text(width / 2, height / 3, 'YOU WERE HIT', {
+    this.add.text(width / 2, height / 6, 'YOU WERE HIT', {
       fontSize : '48px',
       color : '#ff4444',
       fontStyle : 'bold'
     }).setOrigin(0.5);
 
     // Stats
-    this.add.text(width / 2, height / 2, 
+    this.add.text(width / 2, height * 0.75, 
       `Kills: ${this.score}\nTime alive: ${this.timeAlive}s`, {
       fontSize : '24px',
       color : '#ffffff',
       align : 'center'
     }).setOrigin(0.5);
 
-    // Respawn button — wired to server later
-    const btn = this.add.text(width / 2, height * 0.75, '[ RESPAWN ]', {
+    const cardW = 150;
+    const cardH = 200;
+    const createPower = (x, y, powerup) => {
+      const rect = this.add.rectangle(0, 0, cardW, cardH, 0xffffff);
+      rect.setStrokeStyle(2, 0x000000);
+      const title = this.add.text(0, -30, powerup.display, {
+      fontSize : '12px',
+      color : '#000000',
+      align : 'center',
+      wordWrap: {width: cardW - 40}
+      }).setOrigin(0.5);
+
+      const rarity = this.add.text(0, -60, powerup.rarity.toUpperCase(), {
+      fontSize : '20px',
+      color : RARITIES[powerup.rarity],
+      align : 'center'
+      }).setOrigin(0.5);
+
+      const disc = this.add.text(0, 40, powerup.disc, {
+      fontSize : '12px',
+      color : "#000000",
+      align : 'center',
+      wordWrap: {width: cardW - 40}
+      }).setOrigin(0.5);
+      return this.add.container(x, y, [rect, title, rarity, disc])
+    };
+
+    let x = 190;
+    let y = 270; //Hardcoded found to be the best looking
+    for (let i = 0; i < 3; i++) {
+      createPower(x, y, this.powerups[i]);
+      x += cardW + 40;
+    }
+
+    // Respawn button — wired to server 
+    const btn = this.add.text(width / 2, height * 0.90, '[ RESPAWN ]', {
       fontSize : '32px',
       color : '#888888',
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
@@ -44,7 +81,7 @@ export default class PostHitScene extends Phaser.Scene {
 
     // Respawn countdown
     this.respawnTimer = 5;
-    this.timerText = this.add.text(width / 2, height * 0.65, 
+    this.timerText = this.add.text(width / 2, height * 0.85, 
       `Respawn available in ${this.respawnTimer}s`, {
       fontSize: '18px',
       color: '#aaaaaa',
@@ -72,6 +109,8 @@ export default class PostHitScene extends Phaser.Scene {
       btn.setInteractive({ useHandCursor: true });
     });
   }
+
+
 
   handleRespawn() {
     // Tell server to respawn

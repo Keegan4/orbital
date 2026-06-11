@@ -89,7 +89,8 @@ export default class GameScene extends Phaser.Scene {
             this.scene.launch('PostHitScene', {
               socket: this.socket,
               score: data.score,
-              timeAlive: data.timeAlive
+              timeAlive: data.timeAlive,
+              powerups: data.powerups
             });
           });
         } else {

@@ -64,7 +64,7 @@ const POWERUPS = {
         flag: {rockShot: true}
     },
 
-    rockShot: {
+    skullShot: {
         id: "skullShot",
         display: "Shoot a skull every 3 bullets",
         rarity: "rare",
@@ -72,7 +72,7 @@ const POWERUPS = {
         flag: {skullShot: true}
     },
 
-
+    // Legendary Powerups
     quadShot: {
         id: "quadShot",
         display: "Shoot 4 more bullets at once!",
@@ -104,6 +104,12 @@ const POWERUPS = {
         disc: "Walls cannot stop you",
         flag: {bulletPhase: true}
     },
-
-
 }
+
+const RARITIES = {"common": "#5D62F5", "rare": "#279CF5", "legendary": "#F5E727"}
+
+function powerupsRarity(rarity) {
+    return Object.values(POWERUPS).filter(x => x.rarity === rarity);
+}
+
+if (typeof module !== 'undefined') module.exports = {POWERUPS, powerupsRarity, RARITIES};

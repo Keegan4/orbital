@@ -31,7 +31,11 @@ const CONSTANTS = {
     BOT_LIMIT: 3,
     TURN_THRESHOLD: 0.1,
     NEW_TARGET: 1000,
-    FIRE_CHANCE: 0.2
+    FIRE_CHANCE: 0.2,
+
+    // Powerup configs
+    RARE_CHANCE: 0.2,
+    LEGEND_CHANCE: 0.05,
 }
 const coords = [
     {x1: 258, y1: 0, x2: 304, y2: 155},

@@ -117,7 +117,6 @@ function botTarget(bot, room) {
   return choices[Math.floor(Math.random() * choices.length)]; 
 }
 
-// we test at 402, 300
 function moveBot(bot) {
 
   Object.keys(bot.input).forEach(x => {

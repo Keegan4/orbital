@@ -81,6 +81,10 @@ function destroyPlayer(id, room) {
   delete room.players[id];
 }
 
+function powerupControl(player) {
+  
+}
+
 module.exports = {
   createPlayer,
   destroyPlayer,

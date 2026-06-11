@@ -48,10 +48,57 @@ export default class WaitingRoomScene extends Phaser.Scene {
 		});
 
     // Room code text
-    this.add.text(400, 50, `ROOM CODE: ${this.roomCode}`, { 
+    this.roomCodeText = this.add.text(400, 50, `ROOM CODE: ${this.roomCode}`, { 
       fontSize: '36px', 
       fill: '#ffff00'
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+    const hintText = this.add.text(400, 15, 'Click to copy code', { 
+        fontSize: '14px', 
+        fill: '#ffffff',
+        backgroundColor: '#222222',
+        padding: { x: 8, y: 4 }
     }).setOrigin(0.5);
+
+    hintText.setAlpha(0);
+
+    this.roomCodeText.on('pointerover', () => {
+      this.tweens.killTweensOf(hintText);
+      this.tweens.add({
+        targets: hintText,
+        alpha: 1,
+        duration: 200,
+        ease: 'Power1'
+      });
+      this.tweens.add({ targets: this.roomCodeText, scale: 1.08, duration: 100 });
+    });
+
+    this.roomCodeText.on('pointerout', () => {
+      this.tweens.killTweensOf(hintText);
+      this.tweens.add({
+        targets: hintText,
+        alpha: 0,
+        duration: 200,
+        ease: 'Power1',
+        onComplete: () => {
+          hintText.setText('Click to copy code');
+        }
+      });
+      this.tweens.add({ targets: this.roomCodeText, scale: 1.0, duration: 100 });
+    });
+
+    this.roomCodeText.on('pointerdown', () => {
+      this.sound.play('click');
+      const rawCode = this.roomCode; 
+      navigator.clipboard.writeText(rawCode)
+        .then(() => {
+          hintText.setText('Copied to Clipboard! ✅');
+        })
+        .catch(err => {
+          hintText.setText('Failed to copy ❌');
+          console.error('Clipboard error:', err);
+        });
+    });
 
     // Name input field
     this.add.text(400, 110, 'Type Name(max 16 characters) & Press Enter:', { fontSize: '18px', fill: '#ffffff' }).setOrigin(0.5);

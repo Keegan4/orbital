@@ -4,7 +4,9 @@ export default class LobbyMenuScene extends Phaser.Scene {
   }
 
   preload() {
-
+    this.load.audio('click', 'assets/click_003.ogg');
+    this.load.audio('tick', 'assets/tick_001.ogg');
+    this.load.audio('error', 'assets/error_008.ogg')
   }
 
   create() {
@@ -44,6 +46,7 @@ export default class LobbyMenuScene extends Phaser.Scene {
     createBtn.on('pointerdown', () => {
       createBtn.setScale(0.95);
       createBtn.setTint(0x00aa00);
+      this.sound.play('click');
     });
 
     createBtn.on('pointerup', () => {
@@ -100,9 +103,11 @@ export default class LobbyMenuScene extends Phaser.Scene {
     joinBtn.on('pointerdown', () => {
       joinBtn.setScale(0.95);
       joinBtn.setTint(0x0088cc);
+      this.sound.play('click');
     });
 
     joinBtn.on('pointerup', () => {
+      this.sound.play('click');
       joinBtn.setScale(1.1);
       joinBtn.setTint(0x88ffff);
       const code = this.roomInput.node.value.trim().toUpperCase();
@@ -126,6 +131,7 @@ export default class LobbyMenuScene extends Phaser.Scene {
   }
 
   showError(message) {
+    this.sound.play('error');
     this.errorText.setText(`Error: ${message.message}`);
     this.tweens.add({         // vibrate effect
       targets: this.errorText,

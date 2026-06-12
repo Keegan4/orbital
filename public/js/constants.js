@@ -37,7 +37,7 @@ const CONSTANTS = {
 
     // Powerup configs
     RARE_CHANCE: 0.3,
-    LEGEND_CHANCE: 0.8,
+    LEGEND_CHANCE: 0.05,
 }
 const coords = [
     {x1: 258, y1: 0, x2: 304, y2: 155},

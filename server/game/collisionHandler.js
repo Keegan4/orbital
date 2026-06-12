@@ -68,7 +68,7 @@ function initialiseCollisions(room) {
       // Bullet hit wall
       if (wallBody) {
         bullet.bounces++;
-        if (bullet.bounces >= MAX_BOUNCES) {
+        if (bullet.bounces >= MAX_BOUNCES + bullet.stats.bulletBounce) {
           destroyBullet(bullet.id, room);
         } else {
           room.io.emit('sfx', { type: 'bulletBounce', x: bullet.body.position.x, y: bullet.body.position.y });
@@ -82,6 +82,11 @@ function initialiseCollisions(room) {
         if (!player || !player.isAlive) return;
         
         destroyBullet(bullet.id, room);
+
+        // Preventing selfHarm if powerup is enabled
+        if (player.stats.selfHarmImmune && bullet.ownerId === player.playerId) {
+          return;
+        }
 
         if (player.playerId.startsWith("BOT-")) {
           destroyPlayer(player.playerId, room);

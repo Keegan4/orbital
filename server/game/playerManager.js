@@ -7,6 +7,7 @@ const {
   CATEGORY_BULLET,
   RESPAWN_LIMIT,
   MIN_DIST,
+  CATEGORY_BOUNDARY
 } = CONSTANTS;
 
 const SPRITE_WIDTH = 42;
@@ -55,7 +56,7 @@ function createPlayer(socketId, room) {
     label: 'tank',
     collisionFilter: {
       category: CATEGORY_TANK,
-      mask: CATEGORY_WALL | CATEGORY_BULLET | CATEGORY_TANK
+      mask: CATEGORY_WALL | CATEGORY_BULLET | CATEGORY_TANK | CATEGORY_BOUNDARY
     }
   });
 
@@ -69,7 +70,9 @@ function createPlayer(socketId, room) {
     lastFired: 0,
     isAlive: true,
     score: 0,
-    createdAt: Date.now()
+    createdAt: Date.now(),
+    powerups: [],
+    stats: {}
   };
   room.players[socketId] = player;
   return player;
@@ -79,10 +82,6 @@ function destroyPlayer(id, room) {
   if (!room.players[id]) return;
   Matter.Composite.remove(room.world, room.players[id].body);
   delete room.players[id];
-}
-
-function powerupControl(player) {
-  
 }
 
 module.exports = {

@@ -25,10 +25,10 @@ const POWERUPS = {
     },
     bulletBounce: {
         id: "bulletBounce",
-        display: "Increase Speed",
+        display: "Increase bullet bounces",
         rarity: "common",
-        disc: "+15% movement speed",
-        stats: {velocity: 1.15}
+        disc: "+2 bullet bounces",
+        stats: {bulletBounce: 2}
     },
 
     bulletLife: {
@@ -56,14 +56,16 @@ const POWERUPS = {
         stats: {frontBullets: 1}
     },
 
-    rockShot: {
-        id: "rockShot",
-        display: "Shoot a rock every 3 bullets",
-        rarity: "rare",
-        disc: "Rocks destroy bullets and knockBack players",
-        flag: {rockShot: true}
-    },
+    
 
+    bulletAccelerate: {
+        id: "bulletAccelerate",
+        display: "Accelerating bullets",
+        rarity: "rare",
+        disc: "Your bullets gain speed on bounce (Stacks). +2 bullet bounces",
+        stats: {bulletAccelerate: 1.1, bulletBounce: 2}
+    },
+    /*
     skullShot: {
         id: "skullShot",
         display: "Shoot a skull every 3 bullets",
@@ -71,6 +73,15 @@ const POWERUPS = {
         disc: "Skulls teleport players randomly",
         flag: {skullShot: true}
     },
+
+    rockShot: {
+        id: "rockShot",
+        display: "Shoot a rock every 3 bullets",
+        rarity: "rare",
+        disc: "Rocks destroy bullets and knockBack players",
+        flag: {rockShot: true}
+    },
+    */
 
     // Legendary Powerups
     quadShot: {
@@ -101,12 +112,14 @@ const POWERUPS = {
         id: "bulletPhase",
         display: "Phase through walls",
         rarity: "legendary",
-        disc: "Walls cannot stop you",
+        disc: "Bullets are no longer stopped by walls",
         flag: {bulletPhase: true}
     },
+
+    // Bullet can slow down and explode
 }
 
-const RARITIES = {"common": "#5D62F5", "rare": "#279CF5", "legendary": "#F5E727"}
+const RARITIES = {"common": "#5D62F5", "rare": "#279CF5", "legendary": "#D3AF37"}
 
 function powerupsRarity(rarity) {
     return Object.values(POWERUPS).filter(x => x.rarity === rarity);

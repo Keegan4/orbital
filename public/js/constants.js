@@ -17,10 +17,12 @@ const CONSTANTS = {
     FIRE_COOLDOWN : 300,
     BULLET_LIFESPAN : 10000,
 
-    // Category Ids
+    // Category Ids 
+    // Note they need to be powers of 2 if not you cant bitwise OR properly
     CATEGORY_WALL   : 0x0001,
     CATEGORY_BULLET : 0x0002,
     CATEGORY_TANK: 0x0004,
+    CATEGORY_BOUNDARY: 0x0008,
     RESPAWN_LIMIT: 300,
     MIN_DIST: 300,
     TICK_DELTA : 1 / 60,
@@ -34,8 +36,8 @@ const CONSTANTS = {
     FIRE_CHANCE: 0.2,
 
     // Powerup configs
-    RARE_CHANCE: 0.2,
-    LEGEND_CHANCE: 0.05,
+    RARE_CHANCE: 0.3,
+    LEGEND_CHANCE: 0.8,
 }
 const coords = [
     {x1: 258, y1: 0, x2: 304, y2: 155},

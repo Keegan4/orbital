@@ -11,7 +11,7 @@ export default class PostHitScene extends Phaser.Scene {
     this.timeAlive = Math.floor(data.timeAlive / 1000) || 0;
     this.socket = data.socket;
     this.powerups = data.powerups;
-    console.log(this.powerups)
+    
   }
 
   create() {
@@ -64,8 +64,32 @@ export default class PostHitScene extends Phaser.Scene {
 
     let x = 190;
     let y = 270; //Hardcoded found to be the best looking
+
+    
+    let powers = []
+
     for (let i = 0; i < 3; i++) {
-      createPower(x, y, this.powerups[i]);
+      const power = createPower(x, y, this.powerups[i]);
+
+      // Coordinates are relative to the container, so you need this
+      // Weird looking coordinates for your rectangle
+      power.setInteractive(new Phaser.Geom.Rectangle(-cardW / 2, -cardH / 2, cardW, cardH),
+         Phaser.Geom.Rectangle.Contains);
+      power.on('pointerover', () => this.tweens.add({ targets: power, scale: 1.08, duration: 100 }));
+      power.on('pointerout', () => this.tweens.add({ targets: power, scale: 1.0, duration: 100 }));
+      power.on("pointerdown", () => {
+        this.tweens.add({ targets: power, scale: 1.08, duration: 100 });
+        powers.forEach(x => {
+          if (x !== power) {
+            this.tweens.add({ targets: x, scale: 0.8, duration: 80 });
+          }
+        })
+        powers.forEach(x => {
+          x.disableInteractive();
+        });
+        this.selectedPower = this.powerups[i];
+      });
+      powers.push(power);
       x += cardW + 40;
     }
 
@@ -80,7 +104,7 @@ export default class PostHitScene extends Phaser.Scene {
     btn.on('pointerdown', () => this.handleRespawn());
 
     // Respawn countdown
-    this.respawnTimer = 5;
+    this.respawnTimer = 3;
     this.timerText = this.add.text(width / 2, height * 0.85, 
       `Respawn available in ${this.respawnTimer}s`, {
       fontSize: '18px',
@@ -114,7 +138,9 @@ export default class PostHitScene extends Phaser.Scene {
 
   handleRespawn() {
     // Tell server to respawn
-    this.socket.emit('respawnRequest');
+    this.socket.emit('respawnRequest', {
+      powerup: this.selectedPower
+    });
     this.socket.once("respawnSuccess", () => {
       this.tankDead = false;
       this.scene.stop('PostHitScene');

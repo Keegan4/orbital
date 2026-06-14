@@ -28,6 +28,8 @@ function createBot(room) {
   botNum++;
 
   var bot = createPlayer(BotID, room);
+
+
   bot.team = ENEMY_TEAM;
 
   //Bot specific attributes

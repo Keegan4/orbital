@@ -23,7 +23,6 @@ function createBullet(player, room, stats, angleOffset) {
   if (stats.bulletPhase) {
     collisions = CATEGORY_TANK | CATEGORY_BOUNDARY;
   }
-  console.log('bulletPhase:', stats.bulletPhase, '| mask:', collisions, '| WALL bit:', CATEGORY_WALL);
 
   const body = Matter.Bodies.circle(spawnX, spawnY, BULLET_RADIUS, {
     frictionAir: 0,

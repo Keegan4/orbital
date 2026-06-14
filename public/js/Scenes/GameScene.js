@@ -13,6 +13,7 @@ export default class GameScene extends Phaser.Scene {
     // Load images
     this.load.image('blue', 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_blue.png');
     this.load.image('red', 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_red.png');
+    this.load.image('black', 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_dark.png');
     this.load.image('bullet', 'assets/kenney_topdownTanksRedux/PNG/Default size/bulletRed2.png');
     this.load.svg("background", "assets/tank_background.svg");
     this.load.svg("wall-tile", "assets/wall_tile.svg");
@@ -243,7 +244,8 @@ export default class GameScene extends Phaser.Scene {
       right : this.cursors.right.isDown || this.wasd.right.isDown,
       up : this.cursors.up.isDown || this.wasd.up.isDown,
       down : this.cursors.down.isDown || this.wasd.down.isDown,
-      fire : this.cursors.space.isDown
+      fire : this.cursors.space.isDown,
+      alt_fire: this.cursors.shift.isDown
     };
 
     if (JSON.stringify(input) !== JSON.stringify(this.lastInput)) {

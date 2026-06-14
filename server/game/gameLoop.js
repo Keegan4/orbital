@@ -63,6 +63,9 @@ function effectiveStats(player) {
   ];
 
   player.powerups.forEach(powerup => {
+    if (powerup === undefined) {
+      return;
+    }
     if (powerup.flag !== undefined) {
       Object.keys(powerup.flag).forEach(x => {
         // OR it so we any change would be true

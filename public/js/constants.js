@@ -13,9 +13,9 @@ const CONSTANTS = {
     TANK_ANGULAR_SPEED : 2.5,
     BULLET_SPEED : 500,
     BULLET_RADIUS : 5,
-    MAX_BOUNCES : 6,
+    MAX_BOUNCES : 2,
     FIRE_COOLDOWN : 300,
-    BULLET_LIFESPAN : 10000,
+    BULLET_LIFESPAN : 4000,
 
     // Category Ids 
     // Note they need to be powers of 2 if not you cant bitwise OR properly
@@ -28,7 +28,7 @@ const CONSTANTS = {
     TICK_DELTA : 1 / 60,
 
     // Enemy Constants
-    ENEMY_TEAM : "red",
+    ENEMY_TEAM : "black",
     SPAWN_COOLDOWN : 2000,
     BOT_LIMIT: 3,
     TURN_THRESHOLD: 0.1,
@@ -37,7 +37,7 @@ const CONSTANTS = {
 
     // Powerup configs
     RARE_CHANCE: 0.3,
-    LEGEND_CHANCE: 0.05,
+    LEGEND_CHANCE: 0.2,
 }
 const coords = [
     {x1: 258, y1: 0, x2: 304, y2: 155},

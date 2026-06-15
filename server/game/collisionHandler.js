@@ -99,7 +99,7 @@ function initialiseCollisions(room) {
         }
         // This name is very misleading we should
         // Change to something more meaningful
-        room.io.emit('sfx', {
+        room.io.to(room.code).emit('sfx', {
           type: 'tankHit',
           x: player.body.position.x,
           y: player.body.position.y,

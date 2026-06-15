@@ -181,16 +181,25 @@ export default class GameScene extends Phaser.Scene {
               p.isAlive 
                 ? this.otherPlayers[p.playerId].clearTint() 
                 : this.otherPlayers[p.playerId].setTint(0x808080);
+            } else {
+              this.otherPlayers[p.playerId] = this.add.sprite(p.x, p.y, p.team)
+                .setOrigin(0.5, 0.5);
+              this.otherPlayers[p.playerId].x = p.x;
+              this.otherPlayers[p.playerId].y = p.y;
+              this.otherPlayers[p.playerId].rotation = p.rotation;
+              p.isAlive 
+                ? this.otherPlayers[p.playerId].clearTint() 
+                : this.otherPlayers[p.playerId].setTint(0x808080);
             }
           }
       });
       
-      // Figuring out which tanks are alive then 
-      // Automatically remove tanks that dont exist
-      const aliveTanks = new Set(state.players.map(x => x.playerId));
+      // presentTanks gives the players that exist in the gameState sent by the server
+      // we assume that the server correctly creates/destroys entities accordingly
+      const presentTanks = new Set(state.players.map(x => x.playerId));
       
       Object.keys(this.otherPlayers).forEach(id => {
-        if (!aliveTanks.has(id)) {
+        if (!presentTanks.has(id)) {
           this.otherPlayers[id].destroy();
           delete this.otherPlayers[id];
         }

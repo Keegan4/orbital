@@ -136,13 +136,11 @@ export default class GameScene extends Phaser.Scene {
     Object.keys(this.players).forEach((id) => {
       if (this.players[id].playerId === this.socket.id) {
         this.tank = this.add.sprite(this.players[id].x, this.players[id].y, this.players[id].team)
-                      .setOrigin(0.5, 0.5)
-                      //.setScale(0.3);
+                      .setOrigin(0.5, 0.5);
         console.log('My tank spawned at:', this.players[id].x, this.players[id].y);
       } else {
         this.otherPlayers[this.players[id].playerId] = this.add.sprite(this.players[id].x, this.players[id].y, this.players[id].team)
-                                                    .setOrigin(0.5, 0.5)
-                                                    //.setScale(0.3);
+                                                    .setOrigin(0.5, 0.5);
       }
     })
 
@@ -177,23 +175,16 @@ export default class GameScene extends Phaser.Scene {
           this.tankDead = !p.isAlive;
           p.isAlive ? this.tank.clearTint() : this.tank.setTint(0x808080);
         } else {
-            if (this.otherPlayers[p.playerId]) {
-              this.otherPlayers[p.playerId].x = p.x;
-              this.otherPlayers[p.playerId].y = p.y;
-              this.otherPlayers[p.playerId].rotation = p.rotation;
-              p.isAlive 
-                ? this.otherPlayers[p.playerId].clearTint() 
-                : this.otherPlayers[p.playerId].setTint(0x808080);
-            } else {
+            if (!this.otherPlayers[p.playerId]) {
               this.otherPlayers[p.playerId] = this.add.sprite(p.x, p.y, p.team)
                 .setOrigin(0.5, 0.5);
-              this.otherPlayers[p.playerId].x = p.x;
-              this.otherPlayers[p.playerId].y = p.y;
-              this.otherPlayers[p.playerId].rotation = p.rotation;
-              p.isAlive 
-                ? this.otherPlayers[p.playerId].clearTint() 
-                : this.otherPlayers[p.playerId].setTint(0x808080);
             }
+            this.otherPlayers[p.playerId].x = p.x;
+            this.otherPlayers[p.playerId].y = p.y;
+            this.otherPlayers[p.playerId].rotation = p.rotation;
+            p.isAlive 
+              ? this.otherPlayers[p.playerId].clearTint() 
+              : this.otherPlayers[p.playerId].setTint(0x808080);
           }
       });
       
@@ -214,8 +205,7 @@ export default class GameScene extends Phaser.Scene {
       state.bullets.forEach(b => {
         if (!this.bullets[b.id]) {
           this.bullets[b.id] = this.add.sprite(b.x, b.y, 'bullet')
-            .setOrigin(0.5, 0.5)
-            //.setScale(0.5);
+            .setOrigin(0.5, 0.5);
         }
         // Update position
         this.bullets[b.id].x = b.x;
@@ -235,8 +225,7 @@ export default class GameScene extends Phaser.Scene {
     this.socket.on('newPlayer', (playerInfo) => {
       console.log('New player joined:', playerInfo.playerId);
       this.otherPlayers[playerInfo.playerId] = this.add.sprite(playerInfo.x, playerInfo.y, playerInfo.team)
-                                                .setOrigin(0.5, 0.5)
-                                                //.setScale(0.3);
+                                                .setOrigin(0.5, 0.5);
     });
 
     this.socket.on('playerDisconnect', (id) => {

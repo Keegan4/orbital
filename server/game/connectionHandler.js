@@ -36,6 +36,12 @@ function initialiseConnections(io) {
       socket.emit('respawnSuccess');
     });
 
+    socket.on('getScore', () => {
+      const room = getRoom(socket.roomCode);
+      if (!room) return;
+      socket.emit('scoreUpdate', getScoreboard(room));
+    }); 
+
     // Disconnect
     socket.on('disconnect', function () {
       console.log('user ' + socket.id + ': disconnected');

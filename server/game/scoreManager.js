@@ -8,6 +8,7 @@ function updateScore(shooterId, room) {
 
 function getScoreboard(room) {
   return Object.values(room.players)
+    .filter(p => !p.playerId.startsWith("BOT-"))
     .map(p => ({ name: p.name || p.playerId.slice(0, 5), score: p.score }))
     .sort((a, b) => b.score - a.score);
 }

@@ -151,6 +151,9 @@ export default class GameScene extends Phaser.Scene {
       this.tankDead = false;
     });
 
+    // Show scoreboard on gameScene start
+    this.socket.emit("getScore");
+
     // Scoreboard update
     this.socket.on("scoreUpdate", scores => {
         this.scoreSlots.forEach(x => {

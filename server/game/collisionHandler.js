@@ -1,5 +1,6 @@
 const Matter = require('matter-js');
 const { CONSTANTS } = require('../../public/js/constants.js');
+const { POWERUPS, powerupsRarity, RARITIES } = require('../../public/js/powerups.js');
 const { destroyBullet } = require('./bulletManager.js');
 const { destroyPlayer } = require('./playerManager.js');
 const { updateScore, getScoreboard } = require('./scoreManager.js');
@@ -13,8 +14,30 @@ const {
   CATEGORY_WALL,
   CATEGORY_TANK,
   TICK_RATE,
-  TICK_DELTA
+  TICK_DELTA,
+  LEGEND_CHANCE,
+  RARE_CHANCE
 } = CONSTANTS;
+
+// Simple function to select powerups to display
+function choosePowerup() {
+  let powerups = [];
+  for (let i = 0; i < 3; i++) {
+    let select = Math.random();
+    if (select <= LEGEND_CHANCE) {
+      const legs = powerupsRarity("legendary");
+      powerups.push(legs[Math.floor(Math.random() * legs.length)]);
+    } else if (select <= RARE_CHANCE) {
+      const rares = powerupsRarity("rare");
+      powerups.push(rares[Math.floor(Math.random() * rares.length)]);
+    }else {
+      const commons = powerupsRarity("common");
+      powerups.push(commons[Math.floor(Math.random() * commons.length)]);
+    }
+  }
+
+  return powerups;
+}
 
 function initialiseCollisions(room) {
   Matter.Events.on(room.engine, 'collisionStart', function(event) {
@@ -45,7 +68,7 @@ function initialiseCollisions(room) {
       // Bullet hit wall
       if (wallBody) {
         bullet.bounces++;
-        if (bullet.bounces >= MAX_BOUNCES) {
+        if (bullet.bounces >= MAX_BOUNCES + bullet.stats.bulletBounce) {
           destroyBullet(bullet.id, room);
         } else {
           room.io.emit('sfx', { type: 'bulletBounce', x: bullet.body.position.x, y: bullet.body.position.y });
@@ -60,6 +83,11 @@ function initialiseCollisions(room) {
         
         destroyBullet(bullet.id, room);
 
+        // Preventing selfHarm if powerup is enabled
+        if (player.stats.selfHarmImmune && bullet.ownerId === player.playerId) {
+          return;
+        }
+
         if (player.playerId.startsWith("BOT-")) {
           destroyPlayer(player.playerId, room);
           room.io.to(room.code).emit('playerDisconnect', player.playerId); 
@@ -69,14 +97,16 @@ function initialiseCollisions(room) {
           Matter.Body.setAngularVelocity(player.body, 0);
           player.body.isSensor = true;
         }
-
+        // This name is very misleading we should
+        // Change to something more meaningful
         room.io.emit('sfx', {
           type: 'tankHit',
           x: player.body.position.x,
           y: player.body.position.y,
           playerId: player.playerId,
           score: player.score,
-          timeAlive: Date.now() - player.createdAt
+          timeAlive: Date.now() - player.createdAt,
+          powerups: choosePowerup()
         });
 
         // Players cant shoot themselves for more points
@@ -87,6 +117,8 @@ function initialiseCollisions(room) {
     });
   });
 }
+
+
 
 module.exports = {
   initialiseCollisions

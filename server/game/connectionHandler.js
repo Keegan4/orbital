@@ -22,13 +22,15 @@ function initialiseConnections(io) {
     });
 
     // Respawn request
-    socket.on('respawnRequest', () => {
+    socket.on('respawnRequest', (data) => {
       const room = getRoom(socket.roomCode);
       if (!room || !room.players[socket.id]) return;
       const player = room.players[socket.id];
       player.isAlive = true;
       player.body.isSensor = false;
       player.createdAt = Date.now();
+      player.powerups.push(data.powerup);
+      console.log(player.powerups);
       const { x, y } = spawn(player.body, room);
       Matter.Body.setPosition(player.body, { x, y });
       socket.emit('respawnSuccess');

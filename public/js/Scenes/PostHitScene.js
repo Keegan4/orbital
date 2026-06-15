@@ -76,7 +76,16 @@ export default class PostHitScene extends Phaser.Scene {
       power.setInteractive(new Phaser.Geom.Rectangle(-cardW / 2, -cardH / 2, cardW, cardH),
          Phaser.Geom.Rectangle.Contains);
       power.on('pointerover', () => this.tweens.add({ targets: power, scale: 1.08, duration: 100 }));
-      power.on('pointerout', () => this.tweens.add({ targets: power, scale: 1.0, duration: 100 }));
+      power.on('pointerout', () => {
+        if (this.selectedPower === undefined) {
+          this.tweens.add({ targets: power, scale: 1, duration: 100 });
+        } else {
+          if (this.selectedPower !== this.powerups[i]) {
+          this.tweens.add({ targets: power, scale: 0.8, duration: 100 });
+          } 
+        }
+        
+      });
       power.on("pointerdown", () => {
         this.tweens.add({ targets: power, scale: 1.08, duration: 100 });
         powers.forEach(x => {
@@ -84,9 +93,7 @@ export default class PostHitScene extends Phaser.Scene {
             this.tweens.add({ targets: x, scale: 0.8, duration: 80 });
           }
         })
-        powers.forEach(x => {
-          x.disableInteractive();
-        });
+
         this.selectedPower = this.powerups[i];
       });
       powers.push(power);

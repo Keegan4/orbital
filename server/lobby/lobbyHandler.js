@@ -53,12 +53,14 @@ function initialiseLobby(io, socket) {
     // Send room state to this player
     socket.emit('roomJoined', {
       code: room.code,
-      lobbyPlayers: Object.values(room.lobbyPlayers)
+      lobbyPlayers: Object.values(room.lobbyPlayers),
+      aiBot: room.aiBot
     });
 
     // Tell everyone else in room about this player
     socket.broadcast.to(code).emit('lobbyUpdate', {
-      lobbyPlayers: Object.values(room.lobbyPlayers)
+      lobbyPlayers: Object.values(room.lobbyPlayers),
+      aiBot: room.aiBot
     });
 
     console.log(`${socket.id} joined room ${code}`);
@@ -90,7 +92,20 @@ function initialiseLobby(io, socket) {
 
     room.lobbyPlayers[socket.id].isReady = isReady;
     broadcastLobbyUpdate(room);
-    checkAllReady(io, room);
+    if (!isReady) {
+      cancelCountdown(room);
+    } else {
+      checkAllReady(io, room);
+    }
+  });
+
+  // Toggle aiBots
+  socket.on('toggleAiBots', () => {
+    const room = getRoom(socket.roomCode);
+    if (!room || room.lobbyPlayers[socket.id].isHost !== true) return;
+    
+    room.aiBot = !room.aiBot;
+    broadcastLobbyUpdate(room);
   });
 
   // Leave lobby
@@ -102,7 +117,8 @@ function initialiseLobby(io, socket) {
 // Helpers
 function broadcastLobbyUpdate(room) {
   room.io.to(room.code).emit('lobbyUpdate', {
-    lobbyPlayers: Object.values(room.lobbyPlayers)
+    lobbyPlayers: Object.values(room.lobbyPlayers),
+    aiBot: room.aiBot
   });
 }
 
@@ -110,7 +126,35 @@ function checkAllReady(io, room) {
   const players = Object.values(room.lobbyPlayers);
   if (!players.every(p => p.isReady)) return;
 
-  startGame(io, room);
+  startCountdown(io, room);
+}
+
+let countdownInterval = null;
+
+function startCountdown(io, room) {
+  if (countdownInterval) clearInterval(countdownInterval);
+  
+  let timeLeft = 3;
+  room.io.to(room.code).emit('countdownStart', { timeLeft });
+
+  countdownInterval = setInterval(() => {
+    timeLeft--;
+    room.io.to(room.code).emit('countdownTick', { timeLeft });
+
+    if (timeLeft <= 0) {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+      startGame(io, room);
+    }
+  }, 1000);
+}
+
+function cancelCountdown(room) {
+  if (countdownInterval) {
+    clearInterval(countdownInterval);
+    countdownInterval = null;
+    room.io.to(room.code).emit('countdownCancelled');
+  }
 }
 
 function startGame(io, room) {

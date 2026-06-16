@@ -92,7 +92,11 @@ function initialiseLobby(io, socket) {
 
     room.lobbyPlayers[socket.id].isReady = isReady;
     broadcastLobbyUpdate(room);
-    checkAllReady(io, room);
+    if (!isReady) {
+      cancelCountdown(room);
+    } else {
+      checkAllReady(io, room);
+    }
   });
 
   // Toggle aiBots
@@ -122,7 +126,35 @@ function checkAllReady(io, room) {
   const players = Object.values(room.lobbyPlayers);
   if (!players.every(p => p.isReady)) return;
 
-  startGame(io, room);
+  startCountdown(io, room);
+}
+
+let countdownInterval = null;
+
+function startCountdown(io, room) {
+  if (countdownInterval) clearInterval(countdownInterval);
+  
+  let timeLeft = 3;
+  room.io.to(room.code).emit('countdownStart', { timeLeft });
+
+  countdownInterval = setInterval(() => {
+    timeLeft--;
+    room.io.to(room.code).emit('countdownTick', { timeLeft });
+
+    if (timeLeft <= 0) {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+      startGame(io, room);
+    }
+  }, 1000);
+}
+
+function cancelCountdown(room) {
+  if (countdownInterval) {
+    clearInterval(countdownInterval);
+    countdownInterval = null;
+    room.io.to(room.code).emit('countdownCancelled');
+  }
 }
 
 function startGame(io, room) {

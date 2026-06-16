@@ -209,9 +209,80 @@ export default class WaitingRoomScene extends Phaser.Scene {
       });
     }
 
+    // Count down text
+    this.countdownText = this.add.text(400, 350, '', {
+      fontSize: '96px',
+      fill: '#ff3333',
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setVisible(false);
+
+    this.countdownLabel = this.add.text(400, 260, 'GAME STARTING IN', {
+      fontSize: '24px',
+      fill: '#ffffff',
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setVisible(false);
+
+    // Helper for animation
+    const playCountdownAnimation = (textElement, newText) => {
+      textElement.setText(newText);
+      textElement.setVisible(true);
+
+      textElement.setScale(2);
+      textElement.setAlpha(0);
+
+      this.tweens.add({
+        targets: textElement,
+        scaleX: 1,
+        scaleY: 1,
+        alpha: 1,
+        duration: 250,
+        ease: 'Back.easeOut',
+        onComplete: () => {
+          this.tweens.add({
+            targets: textElement,
+            scaleX: 0.85,
+            scaleY: 0.85,
+            alpha: 0.7,
+            duration: 700,
+            ease: 'Linear'
+          });
+        }
+      });
+    };
+
     // Event listeners
     this.socket.on('lobbyUpdate', (data) => this.handleLobbyUpdate(data));
     this.socket.on('gameStart', (gameData) => this.handleGameStart(gameData));
+    this.socket.on('countdownStart', (data) => {
+      this.countdownLabel.setVisible(true).setAlpha(0);
+      this.tweens.add({
+        targets: this.countdownLabel,
+        alpha: 1,
+        duration: 300
+      });
+      playCountdownAnimation(this.countdownText, data.timeLeft);
+    });
+    this.socket.on('countdownTick', (data) => {
+      playCountdownAnimation(this.countdownText, data.timeLeft);
+    });
+    this.socket.on('countdownCancelled', () => {
+      this.tweens.add({
+        targets: this.countdownLabel,
+        alpha: 0,
+        duration: 200,
+        onComplete: () => this.countdownLabel.setVisible(false)
+      });
+
+      this.tweens.add({
+        targets: this.countdownText,
+        scaleX: 0,
+        scaleY: 0,
+        alpha: 0,
+        duration: 200,
+        ease: 'Power2',
+        onComplete: () => this.countdownText.setVisible(false)
+      });
+    });
 
     this.renderPlayerLists();
   }

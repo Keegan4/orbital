@@ -13,7 +13,7 @@ const {
 
 const wallOptions = {
   isStatic: true,
-  label: 'wall',
+  label: 'Boundary',
   collisionFilter: {
     category: CATEGORY_BOUNDARY,
     mask: CATEGORY_BULLET | CATEGORY_TANK

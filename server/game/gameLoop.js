@@ -7,7 +7,9 @@ const { createBot,
   pixelToTile,
   tileToPixel,
   reqPath,
-  calculatePaths
+  calculatePaths,
+  tankSighted,
+  botFacing
 } = require('./enemyBots.js');
 
 
@@ -100,6 +102,12 @@ function startGameLoop(room) {
     Object.values(room.players).forEach(player => {
       if (player.playerId.startsWith("BOT-")) {
         moveBot(player);
+        // This checks if a target is in sight then it shoots 
+        // every time it moves
+        const targ = botTarget(player, room);
+        if (targ && tankSighted(player, targ, room) && botFacing(player, targ) ) {
+            player.input.fire = true;
+        }
       }
     });
 
@@ -109,9 +117,6 @@ function startGameLoop(room) {
         const targ = botTarget(player, room);
         if (targ) {
           reqPath(player, pixelToTile(targ.body.position));
-          if (Math.random() < FIRE_CHANCE) {
-            player.input.fire = true;
-          }
         }
       })
       lastTarget = now;

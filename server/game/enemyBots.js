@@ -2,6 +2,7 @@ const Matter = require('matter-js');
 const { CONSTANTS, WALL_POS, coords} = require('../../public/js/constants.js');
 const { createPlayer, destroyPlayer, spawn } = require('./playerManager.js');
 var EasyStar = require('easystarjs');
+const { Composite, Engine } = require('matter-js');
 
 
  const {FRIENDLY_TEAM,
@@ -108,6 +109,35 @@ function reqPath(bot, coord) {
   });
 }
 
+function tankSighted(bot, target, room) {
+
+  // Cast a ray forward, anc check if you can see
+  // any walls
+  const walls = Composite.allBodies(room.world).filter(x => {
+    return x.label === "wall" || x.label === "boundary";
+  });
+  const hits = Matter.Query.ray(
+    walls,
+    bot.body.position,
+    target.body.position
+  )
+
+  return hits.length === 0;
+}
+
+function botFacing(bot, target) {
+  var dy = target.body.position.y - bot.body.position.y;
+  var dx = target.body.position.x - bot.body.position.x;
+  var reqAngle = Math.atan2(dy, dx) - Math.PI / 2;
+
+  let diff = reqAngle - bot.body.angle;
+
+  // This is to make sure the diff is within -pi to pi
+  while (diff > Math.PI)  diff -= Math.PI * 2;
+  while (diff < -Math.PI) diff = Math.PI * 2;
+  return Math.abs(reqAngle - bot.body.angle) < 0.20;
+}
+
 function botTarget(bot, room) {
   const choices = Object.values(room.players).filter(p => {
     return !p.playerId.startsWith("BOT-") &&
@@ -116,7 +146,20 @@ function botTarget(bot, room) {
   if (choices.length === 0) {
     return null;
   }
-  return choices[Math.floor(Math.random() * choices.length)]; 
+  let dist = 9999999;
+  let target = choices[0];
+  for (let i = 0; i < choices.length; i++) {
+    const temp = choices[i];
+    var dy = temp.body.position.y - bot.body.position.y;
+    var dx = temp.body.position.x - bot.body.position.x;
+    var newDist = Math.sqrt(dy * dy + dx * dx);
+    if (newDist < dist) {
+      dist = newDist;
+      target = temp;
+    }
+
+  }
+  return target; 
 }
 
 function moveBot(bot) {
@@ -169,5 +212,7 @@ module.exports = { createBot,
   pixelToTile,
   tileToPixel,
   reqPath,
-  calculatePaths
+  calculatePaths,
+  tankSighted,
+  botFacing
 };

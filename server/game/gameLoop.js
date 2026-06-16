@@ -91,7 +91,7 @@ function startGameLoop(room) {
     calculatePaths();
 
     const currentBots = Object.values(room.players).filter(p => p.playerId.startsWith("BOT-")).length;
-    if (now - lastSpawn > SPAWN_COOLDOWN && currentBots < BOT_LIMIT) {
+    if (now - lastSpawn > SPAWN_COOLDOWN && currentBots < BOT_LIMIT && room.aiBot) {
       createBot(room);
       lastSpawn = now;
     }

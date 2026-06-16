@@ -53,12 +53,14 @@ function initialiseLobby(io, socket) {
     // Send room state to this player
     socket.emit('roomJoined', {
       code: room.code,
-      lobbyPlayers: Object.values(room.lobbyPlayers)
+      lobbyPlayers: Object.values(room.lobbyPlayers),
+      aiBot: room.aiBot
     });
 
     // Tell everyone else in room about this player
     socket.broadcast.to(code).emit('lobbyUpdate', {
-      lobbyPlayers: Object.values(room.lobbyPlayers)
+      lobbyPlayers: Object.values(room.lobbyPlayers),
+      aiBot: room.aiBot
     });
 
     console.log(`${socket.id} joined room ${code}`);
@@ -93,6 +95,15 @@ function initialiseLobby(io, socket) {
     checkAllReady(io, room);
   });
 
+  // Toggle aiBots
+  socket.on('toggleAiBots', () => {
+    const room = getRoom(socket.roomCode);
+    if (!room || room.lobbyPlayers[socket.id].isHost !== true) return;
+    
+    room.aiBot = !room.aiBot;
+    broadcastLobbyUpdate(room);
+  });
+
   // Leave lobby
   socket.on('leaveLobby', () => {
     handleLobbyLeave(io, socket);
@@ -102,7 +113,8 @@ function initialiseLobby(io, socket) {
 // Helpers
 function broadcastLobbyUpdate(room) {
   room.io.to(room.code).emit('lobbyUpdate', {
-    lobbyPlayers: Object.values(room.lobbyPlayers)
+    lobbyPlayers: Object.values(room.lobbyPlayers),
+    aiBot: room.aiBot
   });
 }
 

@@ -6,6 +6,7 @@ export default class WaitingRoomScene extends Phaser.Scene {
   init(data) {
     this.roomCode = data.code;
     this.lobbyPlayers = data.lobbyPlayers;
+    this.aiBot = data.aiBot;
   }
 
   preload() {
@@ -188,6 +189,26 @@ export default class WaitingRoomScene extends Phaser.Scene {
     this.redTeamTexts = [];
     this.blueTeamTexts = [];
 
+    // aiBots toggle button (host only)
+    this.aiBotsBtn = this.add.text(70, 30, this.aiBot ? ' AI BOTS: ON ' : ' AI BOTS: OFF ', { 
+      fontSize: '16px', 
+      fontStyle: 'bold',
+      fill: '#ffffff', 
+      backgroundColor: this.aiBot ? '#00ff00' : '#ff4444',
+      padding: { x: 15, y: 8 }
+    }).setOrigin(0.5)
+
+    if (!this.lobbyPlayer.isHost) {
+      this.aiBotsBtn.setAlpha(0.5);
+    } else {
+      this.aiBotsBtn.setInteractive({ useHandCursor: true });
+      this.aiBotsBtn.on('pointerover', () => this.tweens.add({ targets: this.aiBotsBtn, scale: 1.08, duration: 100 }));
+      this.aiBotsBtn.on('pointerout', () => this.tweens.add({ targets: this.aiBotsBtn, scale: 1.0, duration: 100 }));
+      this.aiBotsBtn.on('pointerdown', () => {
+        this.socket.emit('toggleAiBots');
+      });
+    }
+
     // Event listeners
     this.socket.on('lobbyUpdate', (data) => this.handleLobbyUpdate(data));
     this.socket.on('gameStart', (gameData) => this.handleGameStart(gameData));
@@ -198,6 +219,9 @@ export default class WaitingRoomScene extends Phaser.Scene {
   handleLobbyUpdate(data) {
     this.lobbyPlayers = data.lobbyPlayers;
     this.lobbyPlayer = this.lobbyPlayers.find(p => p.socketId === this.socket.id);
+    this.aiBot = data.aiBot;
+    this.aiBotsBtn.setText(this.aiBot ? ' AI BOTS: ON ' : ' AI BOTS: OFF ');
+    this.aiBotsBtn.setBackgroundColor(this.aiBot ? '#00ff00' : '#ff4444');
     this.renderPlayerLists();
   }
 

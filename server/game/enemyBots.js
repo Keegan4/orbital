@@ -14,7 +14,8 @@ const { Composite, Engine } = require('matter-js');
     NEW_TARGET,
     FIRE_CHANCE,
     GAME_WIDTH,
-    GAME_HEIGHT
+    GAME_HEIGHT,
+    WALL_BUFFER
 } = CONSTANTS;
 
 
@@ -62,14 +63,26 @@ for (var i = 0; i < GRID_H; i++) {
 }
 
 coords.forEach(w => {
-  const x1 = Math.floor(w.x1 / CELL_SIZE);
-  const x2 = Math.ceil(w.x2 / CELL_SIZE);
-  const y1 = Math.floor(w.y1 / CELL_SIZE);
-  const y2 = Math.ceil(w.y2 / CELL_SIZE);
-  for (var y = y1; y < y2; y++) {
-    for (var x = x1; x < x2; x++) {
-      // We set impassable walls to be 0
-      if (grid[y] !== undefined && grid[y][x] !== undefined) {
+
+  const x1 = Math.floor((w.x1) / CELL_SIZE);
+  const x2 = Math.ceil((w.x2) / CELL_SIZE);
+  const y1 = Math.floor((w.y1) / CELL_SIZE);
+  const y2 = Math.ceil((w.y2) / CELL_SIZE);
+
+  // Buffer
+
+  for (var y = y1 - WALL_BUFFER; y < y2 + WALL_BUFFER; y++) {
+    for (var x = x1 - WALL_BUFFER; x < x2 + WALL_BUFFER; x++) {
+      
+      if (grid[y] === undefined || grid[y][x] === undefined ) {
+        continue;
+      } else if (y < y1 || y > y2 || x < x1 || x > x2) {
+        // We set tiles close to the wall as 2
+        // And increase the cost of these tiles to 
+        // discourage tanks from being close to walls
+        grid[y][x] = 2;
+      } else {
+        // We set impassable walls to be 0
         grid[y][x] = 0;
       }
     }
@@ -79,7 +92,8 @@ coords.forEach(w => {
 
 var easystar = new EasyStar.js();
 easystar.setGrid(grid);
-easystar.setAcceptableTiles([1]);
+easystar.setAcceptableTiles([1, 2]);
+easystar.setTileCost(2, 5);
 easystar.enableDiagonals();
 
 
@@ -132,10 +146,10 @@ function botFacing(bot, target) {
 
   let diff = reqAngle - bot.body.angle;
 
-  // This is to make sure the diff is within -pi to pi
+  // Normalize to [-pi, pi]
   while (diff > Math.PI)  diff -= Math.PI * 2;
-  while (diff < -Math.PI) diff = Math.PI * 2;
-  return Math.abs(reqAngle - bot.body.angle) < 0.20;
+  while (diff < -Math.PI) diff += Math.PI * 2;
+  return Math.abs(diff) < 0.20;
 }
 
 function botTarget(bot, room) {
@@ -194,6 +208,16 @@ function moveBot(bot) {
 
   if (Math.abs(toTurn) < TURN_THRESHOLD) {
     bot.input.up = true;
+    
+  } else if (Math.abs(toTurn) < TURN_THRESHOLD * 3) {
+    // Bots will try to move and turn if 
+    // roughly close enough
+    bot.input.up = true;
+    if (toTurn > 0) {
+      bot.input.right = true;
+    } else {
+      bot.input.left = true;
+    }
     
   } else if (toTurn > TURN_THRESHOLD) {
     bot.input.right = true;

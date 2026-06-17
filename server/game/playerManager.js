@@ -49,7 +49,9 @@ function spawn(body, room) {
 }
 
 function createPlayer(socketId, room) {
-  const { x, y } = spawnRand();
+
+  // Using spawn makes sure it wont spawn too close to things
+  const { x, y } = spawn(null, room);
 
   const body = Matter.Bodies.rectangle(x, y, SPRITE_WIDTH, SPRITE_HEIGHT, {
     frictionAir: 0.1,

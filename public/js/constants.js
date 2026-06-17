@@ -34,6 +34,7 @@ const CONSTANTS = {
     TURN_THRESHOLD: 0.1,
     NEW_TARGET: 1000,
     FIRE_CHANCE: 0.2,
+    WALL_BUFFER: 1,
 
     // Powerup configs
     RARE_CHANCE: 0.3,

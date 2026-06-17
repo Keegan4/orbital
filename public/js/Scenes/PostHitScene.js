@@ -148,6 +148,7 @@ export default class PostHitScene extends Phaser.Scene {
     this.socket.emit('respawnRequest', {
       powerup: this.selectedPower
     });
+    this.selectedPower = undefined;
     this.socket.once("respawnSuccess", () => {
       this.tankDead = false;
       this.scene.stop('PostHitScene');

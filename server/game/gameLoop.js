@@ -9,7 +9,8 @@ const { createBot,
   reqPath,
   calculatePaths,
   tankSighted,
-  botFacing
+  botFacing,
+  closestValid
 } = require('./enemyBots.js');
 
 
@@ -93,10 +94,16 @@ function startGameLoop(room) {
     calculatePaths();
 
     const currentBots = Object.values(room.players).filter(p => p.playerId.startsWith("BOT-")).length;
-    if (now - lastSpawn > SPAWN_COOLDOWN && currentBots < BOT_LIMIT && room.aiBot) {
+    if (now - lastSpawn > SPAWN_COOLDOWN && currentBots < BOT_LIMIT && room.diffSlider != 0) {
       createBot(room);
       lastSpawn = now;
     }
+
+
+    // To simulate difficulty, we will have a chance for Bots to missfire, meaning they 
+    // Could see you and shoot, but missfired. This puts them on a cooldown before they 
+    // Can shoot again
+    const missFireChance = [0, 0.6, 0.4, 0];
 
     // Bot inputs 
     Object.values(room.players).forEach(player => {
@@ -105,8 +112,13 @@ function startGameLoop(room) {
         // This checks if a target is in sight then it shoots 
         // every time it moves
         const targ = botTarget(player, room);
-        if (targ && tankSighted(player, targ, room) && botFacing(player, targ) ) {
-            player.input.fire = true;
+        if (targ && tankSighted(player, targ, room) && botFacing(player, targ)) {
+            const randFire = Math.random();
+            if (randFire >= missFireChance[room.diffSlider]) {
+              player.input.fire = true;
+            }else {
+              player.lastFired = now;
+            }
         }
       }
     });
@@ -116,7 +128,8 @@ function startGameLoop(room) {
         if (!player.playerId.startsWith("BOT-")) return;
         const targ = botTarget(player, room);
         if (targ) {
-          reqPath(player, pixelToTile(targ.body.position));
+          const loc = closestValid(pixelToTile(targ.body.position));
+          reqPath(player, loc);
         }
       })
       lastTarget = now;

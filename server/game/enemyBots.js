@@ -152,6 +152,26 @@ function botFacing(bot, target) {
   return Math.abs(diff) < 0.20;
 }
 
+function closestValid(tile) {
+  // The ? is a optional chainer thingy
+  // So if it is undefined it dosent explode
+  if (grid[tile.y]?.[tile.x] !== 0) {
+    return tile;
+  } 
+  const around = [
+    {x:0, y:1}, {x:1, y:0}, {x:0, y:-1}, {x:-1, y:0},
+    {x:-1, y:-1}, {x:-1, y:1}, {x:1, y:-1}, {x:1, y:1}
+  ];
+  for (const i of around) {
+    const nearX = tile.x + i.x;
+    const nearY = tile.y + i.y;
+    if (grid[nearY]?.[nearX] !== 0) {
+      return {x: nearX, y: nearY};
+    }
+  }
+  return tile;
+}
+
 function botTarget(bot, room) {
   const choices = Object.values(room.players).filter(p => {
     return !p.playerId.startsWith("BOT-") &&
@@ -238,5 +258,6 @@ module.exports = { createBot,
   reqPath,
   calculatePaths,
   tankSighted,
-  botFacing
+  botFacing,
+  closestValid
 };

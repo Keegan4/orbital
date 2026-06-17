@@ -14,7 +14,7 @@ const CONSTANTS = {
     BULLET_SPEED : 500,
     BULLET_RADIUS : 5,
     MAX_BOUNCES : 2,
-    FIRE_COOLDOWN : 300,
+    FIRE_COOLDOWN : 1000,
     BULLET_LIFESPAN : 4000,
 
     // Category Ids 

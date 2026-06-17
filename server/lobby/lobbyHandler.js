@@ -21,7 +21,9 @@ function initialiseLobby(io, socket) {
 
     socket.emit('roomCreated', {
       code: room.code,
-      lobbyPlayers: Object.values(room.lobbyPlayers)
+      lobbyPlayers: Object.values(room.lobbyPlayers),
+      difficulty: room.difficulties[room.diffSlider],
+      color: room.diffColors[room.diffSlider]
     });
 
     console.log(`Room ${room.code} created by ${socket.id}`);
@@ -54,13 +56,15 @@ function initialiseLobby(io, socket) {
     socket.emit('roomJoined', {
       code: room.code,
       lobbyPlayers: Object.values(room.lobbyPlayers),
-      aiBot: room.aiBot
+      difficulty: room.difficulties[room.diffSlider],
+      color: room.diffColors[room.diffSlider]
     });
 
     // Tell everyone else in room about this player
     socket.broadcast.to(code).emit('lobbyUpdate', {
       lobbyPlayers: Object.values(room.lobbyPlayers),
-      aiBot: room.aiBot
+      difficulty: room.difficulties[room.diffSlider],
+      color: room.diffColors[room.diffSlider]
     });
 
     console.log(`${socket.id} joined room ${code}`);
@@ -103,8 +107,10 @@ function initialiseLobby(io, socket) {
   socket.on('toggleAiBots', () => {
     const room = getRoom(socket.roomCode);
     if (!room || room.lobbyPlayers[socket.id].isHost !== true) return;
-    
-    room.aiBot = !room.aiBot;
+    room.diffSlider++;
+    if (room.diffSlider >= room.difficulties.length) {
+      room.diffSlider = 0;
+    }
     broadcastLobbyUpdate(room);
   });
 
@@ -118,7 +124,8 @@ function initialiseLobby(io, socket) {
 function broadcastLobbyUpdate(room) {
   room.io.to(room.code).emit('lobbyUpdate', {
     lobbyPlayers: Object.values(room.lobbyPlayers),
-    aiBot: room.aiBot
+    difficulty: room.difficulties[room.diffSlider],
+    color: room.diffColors[room.diffSlider]
   });
 }
 

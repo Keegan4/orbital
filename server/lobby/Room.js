@@ -8,7 +8,10 @@ class Room {
     this.code = code;
     this.host = host;     // socket id of creator
     this.status = 'waiting'; // waiting or playing
-    this.aiBot = false;
+
+    this.diffSlider = 0;
+    this.difficulties = ["Bots: Off", "Bots: Easy", "Bots: Normal", "Bots: DEATH"];
+    this.diffColors = ["#697064", "#40CF45", "#CF9840", "#D62222"]
 
     // Pre-game player info (name, team, ready state)
     // Separate from in-game player representation

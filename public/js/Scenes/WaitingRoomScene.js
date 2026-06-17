@@ -6,7 +6,8 @@ export default class WaitingRoomScene extends Phaser.Scene {
   init(data) {
     this.roomCode = data.code;
     this.lobbyPlayers = data.lobbyPlayers;
-    this.aiBot = data.aiBot;
+    this.difficulty = data.difficulty;
+    this.color = data.color;
   }
 
   preload() {
@@ -190,11 +191,11 @@ export default class WaitingRoomScene extends Phaser.Scene {
     this.blueTeamTexts = [];
 
     // aiBots toggle button (host only)
-    this.aiBotsBtn = this.add.text(70, 30, this.aiBot ? ' AI BOTS: ON ' : ' AI BOTS: OFF ', { 
+    this.aiBotsBtn = this.add.text(90, 45, this.difficulty , { 
       fontSize: '16px', 
       fontStyle: 'bold',
       fill: '#ffffff', 
-      backgroundColor: this.aiBot ? '#00ff00' : '#ff4444',
+      backgroundColor: this.color,
       padding: { x: 15, y: 8 }
     }).setOrigin(0.5)
 
@@ -290,9 +291,10 @@ export default class WaitingRoomScene extends Phaser.Scene {
   handleLobbyUpdate(data) {
     this.lobbyPlayers = data.lobbyPlayers;
     this.lobbyPlayer = this.lobbyPlayers.find(p => p.socketId === this.socket.id);
-    this.aiBot = data.aiBot;
-    this.aiBotsBtn.setText(this.aiBot ? ' AI BOTS: ON ' : ' AI BOTS: OFF ');
-    this.aiBotsBtn.setBackgroundColor(this.aiBot ? '#00ff00' : '#ff4444');
+    this.difficulty = data.difficulty;
+    this.color = data.color;
+    this.aiBotsBtn.setText(data.difficulty);
+    this.aiBotsBtn.setBackgroundColor(this.color);
     this.renderPlayerLists();
   }
 

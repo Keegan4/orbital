@@ -160,7 +160,7 @@ function botTarget(bot, room) {
   if (choices.length === 0) {
     return null;
   }
-  let dist = 9999999;
+  let dist = Number.MAX_SAFE_INTEGER;
   let target = choices[0];
   for (let i = 0; i < choices.length; i++) {
     const temp = choices[i];

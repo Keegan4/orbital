@@ -7,6 +7,8 @@ export default class GameScene extends Phaser.Scene {
   init(data) {
     this.players = data.players;
     this.walls = data.walls;
+    // A simple array of numbers, then the numbers represent the number of enemies
+    this.roundInfo = data.roundInfo;
   }
 
   preload() {
@@ -64,6 +66,18 @@ export default class GameScene extends Phaser.Scene {
       }).setVisible(false);
       this.scoreSlots.push(text);
     }
+
+    this.curRound = this.add.text(700, 20, 'ROUND 1', {
+      fontSize : '34px',
+      color : '#ffffff',
+      backgroundColor: '#000000aa',
+    }).setOrigin(0.5);
+
+    this.enemiesRem = this.add.text(640, 55 , 'Enemies: ', {
+      fontSize : '20px',
+      color : '#ffffff',
+      backgroundColor: '#000000aa',
+    }).setVisible(true);
 
     // Aesthetics
     this.sounds = { shoot : this.sound.add('shoot', { volume: 0.4 }),

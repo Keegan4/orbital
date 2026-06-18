@@ -1,4 +1,3 @@
-
 export default class PostHitScene extends Phaser.Scene {
   constructor() {
     super({ key: 'PostHitScene' });
@@ -11,7 +10,6 @@ export default class PostHitScene extends Phaser.Scene {
     this.timeAlive = Math.floor(data.timeAlive / 1000) || 0;
     this.socket = data.socket;
     this.powerups = data.powerups;
-    
   }
 
   create() {

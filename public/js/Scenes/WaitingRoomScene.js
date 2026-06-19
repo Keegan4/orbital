@@ -26,7 +26,7 @@ export default class WaitingRoomScene extends Phaser.Scene {
         .setInteractive({ useHandCursor: true });
     const setNameContainer = this.add.container(400, 300);
     const clickBlocker = this.add.rectangle(0, 0, 800, 600, 0x000000, 0).setInteractive(); // blocks entire screen
-    const setNameBackground = this.add.rectangle(0, 0, 550, 350, 0x111111, 0.95);
+    const setNameBackground = this.add.rectangle(0, 0, 650, 450, 0x111111, 0.95);
     setNameBackground.setStrokeStyle(1, 0x4a4a4a);
 
     const setNameTitle = this.add.text(0, -80, 'Type Name(max 16 characters) & Press Enter:', {
@@ -333,6 +333,148 @@ export default class WaitingRoomScene extends Phaser.Scene {
     });
 
     this.renderPlayerLists();
+
+  	this.selectedMode = 'pve';
+  	this.selectedDifficulty = 'med';
+  	this.selectedRounds = 10;
+    // Gamemode selection button
+  	this.modeSelectButton = this.add.text(400, 130, '[ MODE: CHOOSE GAME MODE ]', {
+  		fontSize: '22px',
+  		fill: '#888888',
+  		backgroundColor: '#111111',
+  		padding: 8
+  	}).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+  	const modeContainer = this.add.container(400, 300);
+  	modeContainer.setDepth(100);
+
+  	const modeBlocker = this.add.rectangle(0, 0, 800, 600, 0x000000, 0).setInteractive();
+  	const modeBg = this.add.rectangle(0, 0, 650, 450, 0x111111, 0.95);
+  	modeBg.setStrokeStyle(1, 0x4a4a4a);
+
+  	const modeTitle = this.add.text(0, -180, '— CONFIG GAME SETUP —', { fontSize: '24px', fill: '#ffffff' }).setOrigin(0.5);
+
+    // Left PVE side
+  	const pveTitle = this.add.text(-160, -110, 'PVE', { fontSize: '20px', fill: '#cccccc' }).setOrigin(0.5);
+  	const pveSubTitle = this.add.text(-160, -50, 'Select Difficulty:', { fontSize: '15px', fill: '#888888' }).setOrigin(0.5);
+
+  	// Difficulty choice buttons
+  	const btnEasy = this.add.text(-250, 10, '[ EASY ]', { fontSize: '16px', fill: '#888888' }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+  	const btnMed  = this.add.text(-160, 10, '[ MED ]',  { fontSize: '16px', fill: '#888888' }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+  	const btnHard = this.add.text(-70, 10, '[ HARD ]', { fontSize: '16px', fill: '#888888' }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+    // Right PVP side
+  	const pvpTitle = this.add.text(160, -110, 'PVP', { fontSize: '20px', fill: '#cccccc' }).setOrigin(0.5);
+  	const pvpSubTitle = this.add.text(160, -50, 'Select Rounds:', { fontSize: '15px', fill: '#888888' }).setOrigin(0.5);
+
+  	// Round choice buttons
+  	const btnRnd5  = this.add.text(70, 10, '[ 5 ]',  { fontSize: '16px', fill: '#888888' }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+  	const btnRnd10 = this.add.text(160, 10, '[ 10 ]', { fontSize: '16px', fill: '#888888' }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+  	const btnRnd15 = this.add.text(250, 10, '[ 15 ]', { fontSize: '16px', fill: '#888888' }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+    // Bottom confirm button
+  	const btnConfirm = this.add.text(0, 160, 'CONFIRM SELECTION', {
+  		fontSize: '22px', fill: '#888888', padding: 8
+  	}).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+  	modeContainer.add([
+  		modeBlocker, modeBg, modeTitle,
+  		pveTitle, pveSubTitle, btnEasy, btnMed, btnHard,
+  		pvpTitle, pvpSubTitle, btnRnd5, btnRnd10, btnRnd15,
+  		btnConfirm
+  	]);
+
+  	modeContainer.setVisible(false);
+
+  	this.modeSelectButton.on('pointerdown', () => {
+  		modeContainer.setVisible(true);
+  	});
+
+  	// Helper to set colours
+  	const clearPvpSelections = () => {
+  		pvpTitle.setStyle({ fill: '#cccccc' });
+  		btnRnd5.setStyle({ fill: '#888888' });
+  		btnRnd10.setStyle({ fill: '#888888' });
+  		btnRnd15.setStyle({ fill: '#888888' });
+  	};
+
+  	const clearPveSelections = () => {
+  		pveTitle.setStyle({ fill: '#cccccc' });
+  		btnEasy.setStyle({ fill: '#888888' });
+  		btnMed.setStyle({ fill: '#888888' });
+  		btnHard.setStyle({ fill: '#888888' });
+  	};
+
+  	// PVE options buttons
+  	btnEasy.on('pointerdown', () => {
+  		this.selectedMode = 'pve';
+  		this.selectedDifficulty = 'easy';
+  		clearPvpSelections();
+  		pveTitle.setStyle({ fill: '#00ff00' });
+  		btnEasy.setStyle({ fill: '#00ff00' });
+  		btnMed.setStyle({ fill: '#888888' });
+  		btnHard.setStyle({ fill: '#888888' });
+  	});
+
+  	btnMed.on('pointerdown', () => {
+  		this.selectedMode = 'pve';
+  		this.selectedDifficulty = 'med';
+  		clearPvpSelections();
+  		pveTitle.setStyle({ fill: '#ff9f43' });
+  		btnEasy.setStyle({ fill: '#888888' });
+  		btnMed.setStyle({ fill: '#ff9f43' });
+  		btnHard.setStyle({ fill: '#888888' });
+  	});
+
+  	btnHard.on('pointerdown', () => {
+  		this.selectedMode = 'pve';
+  		this.selectedDifficulty = 'hard';
+  		clearPvpSelections();
+  		pveTitle.setStyle({ fill: '#ff0000' });
+  		btnEasy.setStyle({ fill: '#888888' });
+  		btnMed.setStyle({ fill: '#888888' });
+  		btnHard.setStyle({ fill: '#ff0000' });
+  	});
+
+  	// PVP options buttons
+  	btnRnd5.on('pointerdown', () => {
+  		this.selectedMode = 'pvp';
+  		this.selectedRounds = 5;
+  		clearPveSelections();
+  		pvpTitle.setStyle({ fill: '#ff9f43' });
+  		btnRnd5.setStyle({ fill: '#ff9f43' });
+  		btnRnd10.setStyle({ fill: '#888888' });
+  		btnRnd15.setStyle({ fill: '#888888' });
+  	});
+
+  	btnRnd10.on('pointerdown', () => {
+  		this.selectedMode = 'pvp';
+  		this.selectedRounds = 10;
+  		clearPveSelections();
+  		pvpTitle.setStyle({ fill: '#ff9f43' });
+  		btnRnd5.setStyle({ fill: '#888888' });
+  		btnRnd10.setStyle({ fill: '#ff9f43' });
+  		btnRnd15.setStyle({ fill: '#888888' });
+  	});
+
+  	btnRnd15.on('pointerdown', () => {
+  		this.selectedMode = 'pvp';
+  		this.selectedRounds = 15;
+  		clearPveSelections();
+  		pvpTitle.setStyle({ fill: '#ff9f43' });
+  		btnRnd5.setStyle({ fill: '#888888' });
+  		btnRnd10.setStyle({ fill: '#888888' });
+  		btnRnd15.setStyle({ fill: '#ff9f43' });
+  	});
+
+  	btnConfirm.on('pointerdown', () => {
+  		modeContainer.setVisible(false);
+  		if (this.selectedMode === 'pve') {
+  			this.modeSelectButton.setText(`MODE: PVE - ${this.selectedDifficulty.toUpperCase()}`);
+  		} else {
+  			this.modeSelectButton.setText(`MODE: PVP - ${this.selectedRounds} ROUNDS`);
+  		}
+  	});
   }
 
   handleLobbyUpdate(data) {

@@ -20,6 +20,70 @@ export default class WaitingRoomScene extends Phaser.Scene {
     this.currentTeam = this.lobbyPlayer.team;
     this.isReady = this.lobbyPlayer.isReady;
 
+    // Set name button to container screen
+    const setNameButton = this.add.text(400, 90, 'Set Name')
+        .setOrigin(0.5)
+        .setInteractive({ useHandCursor: true });
+    const setNameContainer = this.add.container(400, 300);
+    const clickBlocker = this.add.rectangle(0, 0, 800, 600, 0x000000, 0).setInteractive(); // blocks entire screen
+    const setNameBackground = this.add.rectangle(0, 0, 550, 350, 0x111111, 0.95);
+    setNameBackground.setStrokeStyle(1, 0x4a4a4a);
+
+    const setNameTitle = this.add.text(0, -80, 'Type Name(max 16 characters) & Press Enter:', {
+        fontSize: '20px', 
+        fill: '#cccccc' 
+    }).setOrigin(0.5);
+
+    const setNameInputHtml = `
+      <input type="text" id="lobbyNameInput" 
+      style="font-size: 20px; width: 160px; text-align: center; padding: 5px; border-radius: 4px; border: none;" />
+    `;
+    this.nameInput = this.add.dom(0, -10).createFromHTML(setNameInputHtml);
+
+    const inputNode = this.nameInput.getChildByID('lobbyNameInput');
+    inputNode.title = 'Type Name(max 16 characters) & Press Enter:';
+    inputNode.maxLength = 16;
+    inputNode.placeholder = `Default: ${this.lobbyPlayer.name}`;
+
+    const setNameSubmitButton = this.add.text(0, 60, '[ SUBMIT ]', {
+        fontSize: '22px',
+        fill: '#ff9f43'
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    setNameContainer.add([clickBlocker, setNameBackground, setNameTitle, this.nameInput, setNameSubmitButton]);
+    setNameContainer.setDepth(100);
+    setNameContainer.setVisible(false);
+
+    const submitNameAction = () => {
+      const finalName = inputNode.value.trim().length === 0
+                      ? this.lobbyPlayer.name
+                      : inputNode.value.trim();
+      this.socket.emit('setName', { name: finalName });
+      this.cameras.main.flash(150, 0, 150, 0); // Flash green as confirmation
+      setNameContainer.setVisible(false);
+      setNameButton.setVisible(true);
+    };
+
+    setNameButton.on('pointerdown', () => {
+      setNameContainer.setVisible(true);
+      setNameButton.setVisible(false);
+      setTimeout(() => { inputNode.focus(); }, 10); 
+    });
+
+    setNameSubmitButton.on('pointerdown', () => {
+      submitNameAction();
+    });
+
+    inputNode.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        submitNameAction();
+      }
+      else if (event.key === 'Escape') {
+        inputNode.blur();
+        setNameContainer.setVisible(false);
+        setNameButton.setVisible(true);
+      }
+    });
+
     // Lobby leave button
     this.leaveBtn = this.add.text(730, 30, 'LEAVE', { 
 			fontSize: '18px', 
@@ -102,24 +166,7 @@ export default class WaitingRoomScene extends Phaser.Scene {
         });
     });
 
-    // Name input field
-    this.add.text(400, 110, 'Type Name(max 16 characters) & Press Enter:', { fontSize: '18px', fill: '#ffffff' }).setOrigin(0.5);
-    this.nameInput = this.add.dom(400, 145, 'input', {
-      type: 'text',
-      style: 'font-size: 20px; width: 150px;'
-    });
-    this.nameInput.node.maxLength = 16;
-    this.nameInput.node.placeholder = `Default name: ${this.lobbyPlayer.name}`;
-    this.nameInput.node.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') {
-        const finalName = this.nameInput.node.value.trim().length === 0
-                          ? this.lobbyPlayer.name
-                          : this.nameInput.node.value.trim();
-        this.socket.emit('setName', { name: finalName });
-        this.cameras.main.flash(150, 0, 150, 0); // Flash green as confirmation
-        this.nameInput.node.blur();
-      }
-    })
+    
 
     // Team selection button
     this.teamBtn = this.add.text(280, 210, ` TEAM: ${this.currentTeam.toUpperCase()} `, { 

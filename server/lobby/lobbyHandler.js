@@ -1,7 +1,7 @@
 const { createRoom, getRoom, destroyRoom } = require('./roomManager.js');
 const { createPlayer } = require('../game/playerManager.js');
 const { getScoreboard } = require('../game/scoreManager.js');
-const { WALL_POS } = require('../../public/js/constants.js');
+const { WALL_POS, CONSTANTS } = require('../../public/js/constants.js');
 
 function initialiseLobby(io, socket) {
   // Create a new room
@@ -14,7 +14,7 @@ function initialiseLobby(io, socket) {
     room.lobbyPlayers[socket.id] = {
       socketId: socket.id,
       name: socket.id.slice(0, 5),
-      team: 'red', // Host defaults to red
+      team: CONSTANTS.RED_TEAM, // Host defaults to red
       isReady: false,
       isHost: true
     };
@@ -22,8 +22,7 @@ function initialiseLobby(io, socket) {
     socket.emit('roomCreated', {
       code: room.code,
       lobbyPlayers: Object.values(room.lobbyPlayers),
-      difficulty: room.difficulties[room.diffSlider],
-      color: room.diffColors[room.diffSlider]
+      gameConfig: room.gameConfig
     });
 
     console.log(`Room ${room.code} created by ${socket.id}`);
@@ -31,13 +30,16 @@ function initialiseLobby(io, socket) {
 
   socket.on('joinRoom', ({ code }) => {
     const room = getRoom(code);
-
     if (!room) {
       socket.emit('lobbyError', { message: 'Room not found' });
       return;
     }
     if (room.status === 'playing') {
       socket.emit('lobbyError', { message: 'Game already started' });
+      return;
+    }
+    if (Object.keys(room.lobbyPlayers).length >= room.capacity) {
+      socket.emit('lobbyError', { message: 'Lobby full'});
       return;
     }
 
@@ -47,7 +49,7 @@ function initialiseLobby(io, socket) {
     room.lobbyPlayers[socket.id] = {
       socketId: socket.id,
       name: socket.id.slice(0, 5),
-      team: 'blue', // Otheres default to blue
+      team: Object.keys(room.lobbyPlayers).length % 2 === 0 ? CONSTANTS.BLUE_TEAM : CONSTANTS.RED_TEAM,
       isReady: false,
       isHost: false
     };
@@ -56,15 +58,13 @@ function initialiseLobby(io, socket) {
     socket.emit('roomJoined', {
       code: room.code,
       lobbyPlayers: Object.values(room.lobbyPlayers),
-      difficulty: room.difficulties[room.diffSlider],
-      color: room.diffColors[room.diffSlider]
+      gameConfig: room.gameConfig
     });
 
     // Tell everyone else in room about this player
     socket.broadcast.to(code).emit('lobbyUpdate', {
       lobbyPlayers: Object.values(room.lobbyPlayers),
-      difficulty: room.difficulties[room.diffSlider],
-      color: room.diffColors[room.diffSlider]
+      gameConfig: room.gameConfig
     });
 
     console.log(`${socket.id} joined room ${code}`);
@@ -80,13 +80,14 @@ function initialiseLobby(io, socket) {
   });
 
   // Update team
-  socket.on('setTeam', ({ team }) => {
+  socket.on('setTeam', ({ team, target }) => {
     const room = getRoom(socket.roomCode);
     if (!room || !room.lobbyPlayers[socket.id]) return;
-    if (team !== 'red' && team !== 'blue') return;
-
-    room.lobbyPlayers[socket.id].team = team;
-    broadcastLobbyUpdate(room);
+    if (team !== CONSTANTS.RED_TEAM && team !== CONSTANTS.BLUE_TEAM) return;
+    if (room.lobbyPlayers[socket.id].isHost || room.lobbyPlayers[socket.id].socketId === target) {
+      room.lobbyPlayers[target].team = team;
+      broadcastLobbyUpdate(room);
+    }
   });
 
   // Toggle ready
@@ -103,29 +104,30 @@ function initialiseLobby(io, socket) {
     }
   });
 
-  // Toggle aiBots
-  socket.on('toggleAiBots', () => {
-    const room = getRoom(socket.roomCode);
-    if (!room || room.lobbyPlayers[socket.id].isHost !== true) return;
-    room.diffSlider++;
-    if (room.diffSlider >= room.difficulties.length) {
-      room.diffSlider = 0;
-    }
-    broadcastLobbyUpdate(room);
-  });
-
   // Leave lobby
   socket.on('leaveLobby', () => {
     handleLobbyLeave(io, socket);
   });
+
+  socket.on('setGameConfig', (gameConfig) => {
+    const room = getRoom(socket.roomCode);
+    if (!room) return;
+    console.log(gameConfig);
+    room.gameConfig = gameConfig;
+    if (gameConfig.current.gameMode == 'PVE') {
+      room.capacity = 5;
+    } else {
+      room.capacity = 10;
+    }
+    broadcastLobbyUpdate(room);
+  })
 }
 
 // Helpers
 function broadcastLobbyUpdate(room) {
   room.io.to(room.code).emit('lobbyUpdate', {
     lobbyPlayers: Object.values(room.lobbyPlayers),
-    difficulty: room.difficulties[room.diffSlider],
-    color: room.diffColors[room.diffSlider]
+    gameConfig: room.gameConfig
   });
 }
 
@@ -184,7 +186,8 @@ function startGame(io, room) {
       y: p.body.position.y,
       rotation: p.body.angle,
     })),
-    walls: WALL_POS
+    walls: WALL_POS,
+    gameConfig: room.gameConfig
   });
 
   console.log(`Game started in room ${room.code}`);

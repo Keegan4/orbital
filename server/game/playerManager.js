@@ -7,7 +7,9 @@ const {
   CATEGORY_BULLET,
   RESPAWN_LIMIT,
   MIN_DIST,
-  CATEGORY_BOUNDARY
+  CATEGORY_BOUNDARY,
+  RED_TEAM,
+  BLUE_TEAM
 } = CONSTANTS;
 
 const SPRITE_WIDTH = 42;
@@ -66,7 +68,7 @@ function createPlayer(socketId, room) {
 
   const player = {
     playerId: socketId,
-    team: Math.floor(Math.random() * 2) === 0 ? 'red' : 'blue',
+    team: Math.floor(Math.random() * 2) === 0 ? RED_TEAM : BLUE_TEAM,
     body,
     input: { left: false, right: false, up: false, down: false, fire: false },
     lastFired: 0,

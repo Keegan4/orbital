@@ -6,6 +6,9 @@ const CONSTANTS = {
     WALL_THICKNESS : 100,
     CELL_SIZE: 30,
 
+    RED_TEAM: 'red',
+    BLUE_TEAM: 'blue',
+
     // Tank atributes
     FRIENDLY_TEAM: "blue",
     TICK_RATE : 60,

@@ -94,7 +94,7 @@ function startGameLoop(room) {
     calculatePaths();
 
     const currentBots = Object.values(room.players).filter(p => p.playerId.startsWith("BOT-")).length;
-    if (now - lastSpawn > SPAWN_COOLDOWN && currentBots < BOT_LIMIT && room.diffSlider != 0) {
+    if (now - lastSpawn > SPAWN_COOLDOWN && currentBots < BOT_LIMIT && room.gameConfig.current.gameMode === 'PVE') {
       createBot(room);
       lastSpawn = now;
     }
@@ -103,7 +103,7 @@ function startGameLoop(room) {
     // To simulate difficulty, we will have a chance for Bots to missfire, meaning they 
     // Could see you and shoot, but missfired. This puts them on a cooldown before they 
     // Can shoot again
-    const missFireChance = [0, 0.6, 0.4, 0];
+    const missFireChance = {'EASY': 0.6, 'MEDIUM': 0.4, 'HARD': 0};
 
     // Bot inputs 
     Object.values(room.players).forEach(player => {
@@ -114,7 +114,7 @@ function startGameLoop(room) {
         const targ = botTarget(player, room);
         if (targ && tankSighted(player, targ, room) && botFacing(player, targ)) {
             const randFire = Math.random();
-            if (randFire >= missFireChance[room.diffSlider]) {
+            if (randFire >= missFireChance[room.gameConfig.current.difficulty]) {
               player.input.fire = true;
             }else {
               player.lastFired = now;

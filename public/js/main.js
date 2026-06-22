@@ -3,6 +3,7 @@ import LobbyMenuScene from './Scenes/LobbyMenuScene.js';
 import WaitingRoomScene from './Scenes/WaitingRoomScene.js';
 import GameScene from './Scenes/GameScene.js';
 import PostHitScene from './Scenes/PostHitScene.js';
+import EndGameScene from './Scenes/EndGameScene.js';
 
 var config = {
   type: Phaser.AUTO,
@@ -17,7 +18,7 @@ var config = {
     }
   },
   parent: 'game-container',
-  scene: [ BootScene, LobbyMenuScene, WaitingRoomScene, GameScene, PostHitScene ],
+  scene: [ BootScene, LobbyMenuScene, WaitingRoomScene, GameScene, PostHitScene, EndGameScene ],
   dom: { createContainer: true }
 };
 

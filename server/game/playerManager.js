@@ -1,5 +1,6 @@
 const Matter = require('matter-js');
 const { CONSTANTS } = require('../../public/js/constants.js');
+const { destroyBullet } = require('./bulletManager.js');
 
 const {
   CATEGORY_TANK,
@@ -7,7 +8,9 @@ const {
   CATEGORY_BULLET,
   RESPAWN_LIMIT,
   MIN_DIST,
-  CATEGORY_BOUNDARY
+  CATEGORY_BOUNDARY,
+  RED_TEAM,
+  BLUE_TEAM
 } = CONSTANTS;
 
 const SPRITE_WIDTH = 42;
@@ -66,7 +69,7 @@ function createPlayer(socketId, room) {
 
   const player = {
     playerId: socketId,
-    team: Math.floor(Math.random() * 2) === 0 ? 'red' : 'blue',
+    team: Math.floor(Math.random() * 2) === 0 ? RED_TEAM : BLUE_TEAM,
     body,
     input: { left: false, right: false, up: false, down: false, fire: false },
     lastFired: 0,
@@ -82,6 +85,12 @@ function createPlayer(socketId, room) {
 
 function destroyPlayer(id, room) {
   if (!room.players[id]) return;
+  Object.values(room.bullets).forEach(x => {
+    console.log(x);
+    if (x.ownerId === id) {
+      destroyBullet(x.id, room);
+    }
+  });
   Matter.Composite.remove(room.world, room.players[id].body);
   delete room.players[id];
 }

@@ -79,6 +79,9 @@ function initialiseCollisions(room) {
       // Bullet hit tank
       if (tankBody) {
         const player = Object.values(room.players).find(p => p.body === tankBody);
+        const killer = Object.values(room.players).find(p => p.playerId === bullet.ownerId);
+        const info = {team: killer.team, name: killer.name, playerId: killer.playerId}
+
         if (!player || !player.isAlive) return;
         
         destroyBullet(bullet.id, room);
@@ -97,8 +100,7 @@ function initialiseCollisions(room) {
           Matter.Body.setAngularVelocity(player.body, 0);
           player.body.isSensor = true;
         }
-        // This name is very misleading we should
-        // Change to something more meaningful
+
         room.io.to(room.code).emit('sfx', {
           type: 'tankHit',
           x: player.body.position.x,
@@ -106,11 +108,12 @@ function initialiseCollisions(room) {
           playerId: player.playerId,
           score: player.score,
           timeAlive: Date.now() - player.createdAt,
-          powerups: choosePowerup()
+          powerups: killer.team === player.team ? null : choosePowerup(),
+          killerName: killer.playerId.startsWith("BOT-") ? 'BOT' : killer.name
         });
 
         // Players cant shoot themselves for more points
-        if (bullet.ownerId !== player.playerId) {
+        if (bullet.ownerId !== player.playerId && killer.team !== player.team) {
           updateScore(bullet.ownerId, room);
         }
       }

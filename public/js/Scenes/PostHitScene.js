@@ -10,6 +10,8 @@ export default class PostHitScene extends Phaser.Scene {
     this.timeAlive = Math.floor(data.timeAlive / 1000) || 0;
     this.socket = data.socket;
     this.powerups = data.powerups;
+    this.killerName = data.killerName;
+    
   }
 
   create() {
@@ -19,8 +21,14 @@ export default class PostHitScene extends Phaser.Scene {
     this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7);
 
     // YOU WERE HIT
-    this.add.text(width / 2, height / 6, 'YOU WERE HIT', {
+    this.add.text(width / 2, height / 7, `YOU HAVE BEEN KILLED`, {
       fontSize : '48px',
+      color : '#ff4444',
+      fontStyle : 'bold'
+    }).setOrigin(0.5);
+
+    this.add.text(width / 2, height / 5, `SHOT BY: ${this.killerName}`, {
+      fontSize : '23px',
       color : '#ff4444',
       fontStyle : 'bold'
     }).setOrigin(0.5);
@@ -30,8 +38,19 @@ export default class PostHitScene extends Phaser.Scene {
       `Kills: ${this.score}\nTime alive: ${this.timeAlive}s`, {
       fontSize : '24px',
       color : '#ffffff',
-      align : 'center'
+      align : 'center',
+     
     }).setOrigin(0.5);
+
+    if (!this.powerups) {
+      this.add.text(width / 2, height / 2, 
+        `YOU SHOT YOURSELF!`, {
+        fontSize : '50px',
+        color : '#ff4444',
+        align : 'center',
+        fontStyle : 'bold'
+      }).setOrigin(0.5);
+    }
 
     const cardW = 150;
     const cardH = 200;
@@ -63,39 +82,40 @@ export default class PostHitScene extends Phaser.Scene {
     let x = 190;
     let y = 270; //Hardcoded found to be the best looking
 
-    
-    let powers = []
+    if (this.powerups) {
+      let powers = []
 
-    for (let i = 0; i < 3; i++) {
-      const power = createPower(x, y, this.powerups[i]);
+      for (let i = 0; i < 3; i++) {
+        const power = createPower(x, y, this.powerups[i]);
 
-      // Coordinates are relative to the container, so you need this
-      // Weird looking coordinates for your rectangle
-      power.setInteractive(new Phaser.Geom.Rectangle(-cardW / 2, -cardH / 2, cardW, cardH),
-         Phaser.Geom.Rectangle.Contains);
-      power.on('pointerover', () => this.tweens.add({ targets: power, scale: 1.08, duration: 100 }));
-      power.on('pointerout', () => {
-        if (this.selectedPower === undefined) {
-          this.tweens.add({ targets: power, scale: 1, duration: 100 });
-        } else {
-          if (this.selectedPower !== this.powerups[i]) {
-          this.tweens.add({ targets: power, scale: 0.8, duration: 100 });
-          } 
-        }
-        
-      });
-      power.on("pointerdown", () => {
-        this.tweens.add({ targets: power, scale: 1.08, duration: 100 });
-        powers.forEach(x => {
-          if (x !== power) {
-            this.tweens.add({ targets: x, scale: 0.8, duration: 80 });
+        // Coordinates are relative to the container, so you need this
+        // Weird looking coordinates for your rectangle
+        power.setInteractive(new Phaser.Geom.Rectangle(-cardW / 2, -cardH / 2, cardW, cardH),
+          Phaser.Geom.Rectangle.Contains);
+        power.on('pointerover', () => this.tweens.add({ targets: power, scale: 1.08, duration: 100 }));
+        power.on('pointerout', () => {
+          if (this.selectedPower === undefined) {
+            this.tweens.add({ targets: power, scale: 1, duration: 100 });
+          } else {
+            if (this.selectedPower !== this.powerups[i]) {
+            this.tweens.add({ targets: power, scale: 0.8, duration: 100 });
+            } 
           }
-        })
+          
+        });
+        power.on("pointerdown", () => {
+          this.tweens.add({ targets: power, scale: 1.08, duration: 100 });
+          powers.forEach(x => {
+            if (x !== power) {
+              this.tweens.add({ targets: x, scale: 0.8, duration: 80 });
+            }
+          })
 
-        this.selectedPower = this.powerups[i];
-      });
-      powers.push(power);
-      x += cardW + 40;
+          this.selectedPower = this.powerups[i];
+        });
+        powers.push(power);
+        x += cardW + 40;
+      }
     }
 
     // Respawn button — wired to server 

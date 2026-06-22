@@ -95,6 +95,7 @@ easystar.setGrid(grid);
 easystar.setAcceptableTiles([1, 2]);
 easystar.setTileCost(2, 5);
 easystar.enableDiagonals();
+easystar.enableSync();
 
 
 function tileToPixel(coord) {
@@ -111,7 +112,15 @@ function pixelToTile(coord) {
   }
 }
 
-function reqPath(bot, coord) {
+function reqPath(bot, coord, botCoords) {
+
+  // Turns out there is a super easy function that helps you create additional points
+  // We want to do this so enemies stop overlapping withe each other
+  if (botCoords) {
+    botCoords.forEach(bot => {
+      easystar.avoidAdditionalPoint(bot.x, bot.y);
+    });
+  }
   const {x: startx, y: starty} = pixelToTile(bot.body.position);
   easystar.findPath(startx, starty, coord.x, coord.y, path => {
     if (path) {
@@ -120,7 +129,10 @@ function reqPath(bot, coord) {
     }else {
       bot.path = null;
     }
+    easystar.stopAvoidingAllAdditionalPoints();
   });
+  easystar.calculate();
+  
 }
 
 function tankSighted(bot, target, room) {

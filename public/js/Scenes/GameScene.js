@@ -7,6 +7,7 @@ export default class GameScene extends Phaser.Scene {
   init(data) {
     this.players = data.players;
     this.walls = data.walls;
+    this.gameMode = data.gameConfig.current.gameMode;
   }
 
   preload() {
@@ -49,7 +50,7 @@ export default class GameScene extends Phaser.Scene {
       fontSize : '24px',
       color : '#ffffff',
       backgroundColor: '#000000aa',
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setDepth(100);
 
     this.scoreSlots = [];
 
@@ -61,9 +62,18 @@ export default class GameScene extends Phaser.Scene {
         fontSize : '24px',
         color : '#ffffff',
         backgroundColor: '#000000aa',
-      }).setVisible(false);
+      }).setVisible(false).setDepth(100);
       this.scoreSlots.push(text);
     }
+    if (this.gameMode === 'PVP') {
+      this.teamScoreTally = this.add.text(400, 0, 'BLUE: 0  |  RED: 0', {
+        fontSize: '32px',
+        fontStyle: 'bold',
+        color: '#ffffff',
+        backgroundColor: '#000000bb',
+        padding: { x: 15, y: 5 }
+      }).setOrigin(0.5, 0).setDepth(100).setAlpha(0.95);
+  }
 
     // Aesthetics
     this.sounds = { shoot : this.sound.add('shoot', { volume: 0.4 }),
@@ -91,7 +101,8 @@ export default class GameScene extends Phaser.Scene {
               socket: this.socket,
               score: data.score,
               timeAlive: data.timeAlive,
-              powerups: data.powerups
+              powerups: data.powerups,
+              killerName: data.killerName
             });
           });
         } else {
@@ -157,8 +168,17 @@ export default class GameScene extends Phaser.Scene {
         this.scoreSlots.forEach(x => {
           x.setVisible(false);
         });
+        if (this.gameMode === 'PVP') {
+          const blueTotal = scores.filter(p => p.team === CONSTANTS.BLUE_TEAM).reduce((sum, p) => sum + p.score, 0);
+          const redTotal = scores.filter(p => p.team === CONSTANTS.RED_TEAM).reduce((sum, p) => sum + p.score, 0);
+          this.teamScoreTally.setText(`BLUE: ${blueTotal}  |  RED: ${redTotal}`);
+        }
+
         for (let i = 0; i < scores.length; i++) {
           this.scoreSlots[i].setText(`${scores[i].name}: ${scores[i].score}`);
+          if (this.gameMode === 'PVP') {
+            this.scoreSlots[i].setFill(scores[i].team === CONSTANTS.RED_TEAM ? '#ff0000' : '#0000ff');
+          }
           this.scoreSlots[i].setVisible(true);
         }
     });
@@ -235,6 +255,12 @@ export default class GameScene extends Phaser.Scene {
         delete this.otherPlayers[id];
       }
     });
+
+    this.socket.on('endGame', (data) => {
+      console.log(`Game ended: ${data.winner} won!`);
+      // off all listeners
+      this.scene.start('EndGameScene', data);
+    })
   }
 
   update() {

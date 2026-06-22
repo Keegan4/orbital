@@ -80,6 +80,8 @@ function initialiseCollisions(room) {
       if (tankBody) {
         const player = Object.values(room.players).find(p => p.body === tankBody);
         const killer = Object.values(room.players).find(p => p.playerId === bullet.ownerId);
+        const info = {team: killer.team, name: killer.name, playerId: killer.playerId}
+
         if (!player || !player.isAlive) return;
         
         destroyBullet(bullet.id, room);
@@ -98,8 +100,7 @@ function initialiseCollisions(room) {
           Matter.Body.setAngularVelocity(player.body, 0);
           player.body.isSensor = true;
         }
-        // This name is very misleading we should
-        // Change to something more meaningful
+
         room.io.to(room.code).emit('sfx', {
           type: 'tankHit',
           x: player.body.position.x,

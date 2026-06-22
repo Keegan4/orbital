@@ -22,8 +22,14 @@ export default class PostHitScene extends Phaser.Scene {
     this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7);
 
     // YOU WERE HIT
-    this.add.text(width / 2, height / 6, `YOU WERE KILLED BY: ${this.killerName}`, {
+    this.add.text(width / 2, height / 7, `YOU HAVE BEEN KILLED`, {
       fontSize : '48px',
+      color : '#ff4444',
+      fontStyle : 'bold'
+    }).setOrigin(0.5);
+
+    this.add.text(width / 2, height / 5, `SHOT BY: ${this.killerName}`, {
+      fontSize : '23px',
       color : '#ff4444',
       fontStyle : 'bold'
     }).setOrigin(0.5);
@@ -33,8 +39,19 @@ export default class PostHitScene extends Phaser.Scene {
       `Kills: ${this.score}\nTime alive: ${this.timeAlive}s`, {
       fontSize : '24px',
       color : '#ffffff',
-      align : 'center'
+      align : 'center',
+     
     }).setOrigin(0.5);
+
+    if (!this.powerups) {
+      this.add.text(width / 2, height / 2, 
+        `YOU SHOT YOURSELF!`, {
+        fontSize : '50px',
+        color : '#ff4444',
+        align : 'center',
+        fontStyle : 'bold'
+      }).setOrigin(0.5);
+    }
 
     const cardW = 150;
     const cardH = 200;

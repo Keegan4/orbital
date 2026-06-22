@@ -1,5 +1,6 @@
 const Matter = require('matter-js');
 const { CONSTANTS } = require('../../public/js/constants.js');
+const { destroyBullet } = require('./bulletManager.js');
 
 const {
   CATEGORY_TANK,
@@ -84,6 +85,12 @@ function createPlayer(socketId, room) {
 
 function destroyPlayer(id, room) {
   if (!room.players[id]) return;
+  Object.values(room.bullets).forEach(x => {
+    console.log(x);
+    if (x.ownerId === id) {
+      destroyBullet(x.id, room);
+    }
+  });
   Matter.Composite.remove(room.world, room.players[id].body);
   delete room.players[id];
 }

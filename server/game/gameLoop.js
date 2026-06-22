@@ -103,7 +103,7 @@ function startGameLoop(room) {
     // To simulate difficulty, we will have a chance for Bots to missfire, meaning they 
     // Could see you and shoot, but missfired. This puts them on a cooldown before they 
     // Can shoot again
-    const missFireChance = [0, 0.6, 0.4, 0];
+    const missFireChance = [0, 0.2, 0.1, 0];
 
     // Bot inputs 
     Object.values(room.players).forEach(player => {
@@ -124,12 +124,18 @@ function startGameLoop(room) {
     });
 
     if (now - lastTarget > NEW_TARGET) {
-      Object.values(room.players).forEach(player => {
-        if (!player.playerId.startsWith("BOT-")) return;
-        const targ = botTarget(player, room);
-        if (targ) {
-          const loc = closestValid(pixelToTile(targ.body.position));
-          reqPath(player, loc);
+      Object.values(room.players).forEach(bot => {
+        if (bot.playerId.startsWith("BOT-")) {
+          const targ = botTarget(bot, room);
+          if (targ) {
+            const loc = closestValid(pixelToTile(targ.body.position));
+            const otherBots = Object.values(room.players)
+              .filter(x => x.playerId.startsWith("BOT-"))
+              .filter(x => x.playerId !== bot.playerId)
+              .map(x => pixelToTile(x.body.position));
+
+            reqPath(bot, loc, otherBots);
+          }
         }
       })
       lastTarget = now;

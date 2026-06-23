@@ -23,19 +23,28 @@ const {
 function choosePowerup() {
   let powerups = [];
   for (let i = 0; i < 3; i++) {
-    let select = Math.random();
-    if (select <= LEGEND_CHANCE) {
-      const legs = powerupsRarity("legendary");
-      powerups.push(legs[Math.floor(Math.random() * legs.length)]);
-    } else if (select <= RARE_CHANCE) {
-      const rares = powerupsRarity("rare");
-      powerups.push(rares[Math.floor(Math.random() * rares.length)]);
-    }else {
-      const commons = powerupsRarity("common");
-      powerups.push(commons[Math.floor(Math.random() * commons.length)]);
-    }
-  }
+    while (true) {
+      let select = Math.random();
+      var choice = null;
+      if (select <= LEGEND_CHANCE) {
+        const legs = powerupsRarity("legendary");
+        choice = legs[Math.floor(Math.random() * legs.length)];
 
+
+      } else if (select <= RARE_CHANCE) {
+        const rares = powerupsRarity("rare");
+        choice = rares[Math.floor(Math.random() * rares.length)];
+
+      } else {
+        const commons = powerupsRarity("common");
+        choice = commons[Math.floor(Math.random() * commons.length)];
+      }
+      if (!powerups.includes(choice)) {
+        break;
+      }
+    }
+    powerups.push(choice);
+  }
   return powerups;
 }
 

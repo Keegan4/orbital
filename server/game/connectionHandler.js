@@ -56,9 +56,8 @@ function initialiseConnections(io) {
         if (Object.keys(room.players).length === 0) {
           room.stop();
         }
-      } else {
-        handleLobbyLeave(io, socket);
       }
+      handleLobbyLeave(io, socket);
     });
   });
 }

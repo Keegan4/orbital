@@ -19,6 +19,7 @@ const CONSTANTS = {
     MAX_BOUNCES : 2,
     FIRE_COOLDOWN : 1000,
     BULLET_LIFESPAN : 4000,
+    RESPAWN_TIME : 0,
 
     // Category Ids 
     // Note they need to be powers of 2 if not you cant bitwise OR properly

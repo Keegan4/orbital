@@ -188,6 +188,11 @@ function startGame(io, room) {
     gameConfig: room.gameConfig
   });
 
+  // Set all to notReady for lobby representation
+  Object.keys(room.lobbyPlayers).forEach(id => { 
+    room.lobbyPlayers[id].isReady = false;
+    })
+
   console.log(`Game started in room ${room.code}`);
 }
 

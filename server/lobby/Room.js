@@ -8,6 +8,7 @@ class Room {
     this.code = code;
     this.host = host;     // socket id of creator
     this.status = 'waiting'; // waiting or playing
+    this.history = [];
 
     this.gameConfig = {
         current: {

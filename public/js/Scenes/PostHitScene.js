@@ -130,7 +130,7 @@ export default class PostHitScene extends Phaser.Scene {
     btn.on('pointerdown', () => this.handleRespawn());
 
     // Respawn countdown
-    this.respawnTimer = 3;
+    this.respawnTimer = CONSTANTS.RESPAWN_TIME;
     this.timerText = this.add.text(width / 2, height * 0.85, 
       `Respawn available in ${this.respawnTimer}s`, {
       fontSize: '18px',

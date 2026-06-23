@@ -94,12 +94,39 @@ export default class GameScene extends Phaser.Scene {
         color : '#ff0303',
         backgroundColor: '#000000aa',
       }).setVisible(true);
+
+      this.roundComplete = this.add.text(400, 0, 'ROUND COMPLETE!', {
+        fontSize: '32px',
+        fontStyle: 'bold',
+        color: '#e77f0f',
+        backgroundColor: '#000000bb',
+        padding: { x: 15, y: 5 }
+      }).setOrigin(0.5, 0).setDepth(100).setAlpha(0.95).setVisible(false);
+
+      this.nextRound = this.add.text(400, 40, '', {
+        fontSize: '22px',
+        fontStyle: 'bold',
+        color: '#a51cd7',
+        backgroundColor: '#000000bb',
+        padding: { x: 15, y: 5 }
+      }).setOrigin(0.5, 0).setDepth(100).setAlpha(0.95).setVisible(false);
     }
     
     this.socket.on("updatePVE", (data) => {
       this.curRound.text = `ROUND ${data.roundNum}`;
       this.enemiesRem.text = `Enemies: ${data.enemiesRem}`;
       this.livesRem.text = `Lives Left: ${data.lives}`;
+    });
+
+    this.socket.on("newRound", (data) => {
+      this.roundComplete.setVisible(true);
+      this.nextRound.setVisible(true);
+      this.nextRound.text = `Next Round in: ${Math.floor(data.cooldown / 1000)}`
+
+    });
+    this.socket.on("startRound", () => {
+      this.roundComplete.setVisible(false);
+      this.nextRound.setVisible(false);
     });
 
     // Aesthetics

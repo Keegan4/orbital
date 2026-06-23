@@ -1,6 +1,7 @@
 const Matter = require('matter-js');
 const { createBullet, destroyBullet } = require('./bulletManager.js');
 const { CONSTANTS } = require('../../public/js/constants.js');
+const { POWERUPS, powerupsRarity, RARITIES } = require('../../public/js/powerups.js');
 const { createBot,
   moveBot,
   botTarget,
@@ -27,7 +28,11 @@ const {
   NEW_TARGET,
   CATEGORY_BULLET,
   CATEGORY_TANK,
-  CATEGORY_BOUNDARY
+  CATEGORY_BOUNDARY,
+  WAVE_COOLDOWN,
+  STARTING_ENEMIES,
+  LEGEND_CHANCE,
+  RARE_CHANCE
 } = CONSTANTS;
 
 // For the bot control
@@ -88,15 +93,81 @@ function effectiveStats(player) {
   return changedStats;
 }
 
+// Simple function to give the bots random powerups too
+function botPowers(num, bot) {
+  
+  for (let i = 0; i < num; i++) {
+    let select = Math.random();
+    var choice = null;
+    if (select <= LEGEND_CHANCE) {
+      const legs = powerupsRarity("legendary");
+      choice = legs[Math.floor(Math.random() * legs.length)];
+
+
+    } else if (select <= RARE_CHANCE) {
+      const rares = powerupsRarity("rare");
+      choice = rares[Math.floor(Math.random() * rares.length)];
+
+    } else {
+      const commons = powerupsRarity("common");
+      choice = commons[Math.floor(Math.random() * commons.length)];
+    }
+    bot.powerups.push(choice);
+  }
+  
+}
+
+// For now I find it fun to just have the bots have a ton of powerups
+function powerupsRound(round) {
+  return Math.floor(round / 1.5);
+}
+
 function startGameLoop(room) {
   const interval = setInterval(() => {
     const now = Date.now();
     calculatePaths();
 
     const currentBots = Object.values(room.players).filter(p => p.playerId.startsWith("BOT-")).length;
-    if (now - lastSpawn > SPAWN_COOLDOWN && currentBots < BOT_LIMIT && room.gameConfig.current.gameMode === 'PVE') {
-      createBot(room);
+    if (now - lastSpawn > SPAWN_COOLDOWN && 
+        currentBots < BOT_LIMIT + Math.floor(Math.pow(1.2, room.roundNum)) && 
+        room.gameConfig.current.gameMode === 'PVE' &&
+        room.enemiesRem > 0) {
+      const bot = createBot(room);
+      botPowers(powerupsRound(room.roundNum), bot);
+
       lastSpawn = now;
+      room.enemiesRem--;
+    }
+
+
+    if (room.enemiesRem === 0 && currentBots === 0) {
+
+      if (room.waveCountDown == 0) {
+       room.waveCountDown = WAVE_COOLDOWN + now;
+      }
+
+      const val = room.waveCountDown - now;
+      if (val > 0) {
+        room.io.to(room.code).emit("newRound", {
+          cooldown: room.waveCountDown - now
+        });
+      } else {
+        room.enemiesRem = STARTING_ENEMIES + Math.floor(Math.pow(1.2, room.roundNum));
+        room.roundNum++;
+        room.waveCountDown = 0;
+        room.io.to(room.code).emit("startRound");
+      }
+
+    }
+    
+
+    if (room.gameConfig.current.gameMode === 'PVE') {
+        const data = {
+          roundNum: room.roundNum,
+          enemiesRem: room.enemiesRem,
+          lives: room.lives
+        };
+      room.io.to(room.code).emit('updatePVE', data);
     }
 
 

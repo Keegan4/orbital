@@ -36,10 +36,6 @@ function spawn(body, room) {
       const dx = player.body.position.x - x;
       const dy = player.body.position.y - y;
 
-      //My debugging
-      if (Math.sqrt(dx * dx + dy * dy) > MIN_DIST) {
-        console.log(`Distance found!: ${Math.sqrt(dx * dx + dy * dy)}`);
-      }
       return Math.sqrt(dx * dx + dy * dy) > MIN_DIST;
     })) {
       return {x: x, y: y};
@@ -47,7 +43,6 @@ function spawn(body, room) {
       tries++;
     }
   }
-  console.log("No distance found :(");
   return {x: x, y: y};
 }
 
@@ -86,7 +81,6 @@ function createPlayer(socketId, room) {
 function destroyPlayer(id, room) {
   if (!room.players[id]) return;
   Object.values(room.bullets).forEach(x => {
-    console.log(x);
     if (x.ownerId === id) {
       destroyBullet(x.id, room);
     }

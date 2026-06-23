@@ -5,23 +5,40 @@ export default class WaitingRoomScene extends Phaser.Scene {
 
   init(data) {
     this.winner = data.winner;
-    this.waitingRoomSceneData = data.waitingRoomSceneData;
+    this.mode = data.mode;
+    this.round = data.round
+    
   }
 
   create() {
     this.socket = this.registry.get('socket');
-    this.add.text(400, 300, `Game ended: ${this.winner} won!`).setOrigin(0.5, 0.5);
+    if (this.mode === "PVE") {
+       this.add.text(400, 100, `Game ended!`, {
+        fontSize: '32px',
+        fontStyle: 'bold',
+        color: '#0fe7e7',
+       }).setOrigin(0.5, 0.5);
+
+       this.add.text(400, 250, `You are out of lives!`, {
+        fontSize: '42px',
+        fontStyle: 'bold',
+        color: '#ff0000',
+       }).setOrigin(0.5, 0.5);
+
+       this.add.text(400, 400, `Round Achieved: ${this.round}`, {
+        fontSize: '22px',
+        fontStyle: 'bold',
+        color: '#ff0000',
+       }).setOrigin(0.5, 0.5);
+
+    } else {
+      this.add.text(400, 300, `Game ended: ${this.winner} won!`).setOrigin(0.5, 0.5);
+    }
     const returnToLobbyButton = this.add.text(400, 550, 'Return to lobby').setOrigin(0.5, 0.5).setInteractive({ useHandCursor: true });
     returnToLobbyButton.on('pointerdown', () => {
       this.socket.off('lobbyUpdate');
       this.scene.start('WaitingRoomScene', this.waitingRoomSceneData);
     })
-
-    this.socket.on('lobbyUpdate', (data) => {
-      this.waitingRoomSceneData.lobbyPlayers = data.lobbyPlayers;
-      this.waitingRoomSceneData.gameConfig = data.gameConfig;
-    })
-
 
     
   }

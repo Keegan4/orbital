@@ -1,4 +1,3 @@
-
 export default class PostHitScene extends Phaser.Scene {
   constructor() {
     super({ key: 'PostHitScene' });
@@ -52,6 +51,11 @@ export default class PostHitScene extends Phaser.Scene {
         fontStyle : 'bold'
       }).setOrigin(0.5);
     }
+    this.socket.on('endGame', (data) => {
+      console.log(`Game ended: ${data.winner} won!`);
+      // off all listeners
+      this.scene.start('EndGameScene', data);
+    })
 
     const cardW = 150;
     const cardH = 200;

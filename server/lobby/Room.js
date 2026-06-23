@@ -38,6 +38,12 @@ class Room {
     this.engine = null;
     this.world = null;
     this.gameLoopInterval = null;
+
+    // PVE settings
+    this.roundNum = 0;
+    this.enemiesRem = 3;
+    this.lives = 0;
+    this.waveCountDown = 0;
   }
 
   start(walls) {

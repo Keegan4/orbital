@@ -8,6 +8,9 @@ const CONSTANTS = {
 
     RED_TEAM: 'red',
     BLUE_TEAM: 'blue',
+    LIVES_PLAYER: 3,
+    STARTING_ENEMIES: 3,
+    WAVE_COOLDOWN: 5000,
 
     // Tank atributes
     FRIENDLY_TEAM: "blue",
@@ -19,7 +22,7 @@ const CONSTANTS = {
     MAX_BOUNCES : 2,
     FIRE_COOLDOWN : 1000,
     BULLET_LIFESPAN : 4000,
-    RESPAWN_TIME : 0,
+    RESPAWN_TIME : 3,
 
     // Category Ids 
     // Note they need to be powers of 2 if not you cant bitwise OR properly

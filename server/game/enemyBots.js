@@ -26,8 +26,7 @@ var botNum = 0;
 // AI Bot creation, we will cheat and use the createPlayer
 
 function createBot(room) {
-  const BotID = `BOT-${Date.now()}-${botNum}`;
-  botNum++;
+  const BotID = `BOT-${Date.now()}`;
 
   var bot = createPlayer(BotID, room);
 
@@ -41,7 +40,6 @@ function createBot(room) {
 
   reqPath(bot, pixelToTile({ x: Math.floor(Math.random() * 700) + 50, y: Math.floor(Math.random() * 500) + 50 }));
 
-  console.log(`Bot created ID: ${BotID}`);
   room.io.to(room.code).emit("newPlayer", {
     playerId : room.players[BotID].playerId,
     team : room.players[BotID].team,
@@ -49,6 +47,7 @@ function createBot(room) {
     y : room.players[BotID].body.position.y,
     rotation : room.players[BotID].body.angle,
   });
+  return bot;
 }
 
 

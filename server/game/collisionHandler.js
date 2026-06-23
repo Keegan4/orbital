@@ -102,8 +102,18 @@ function initialiseCollisions(room) {
 
         if (player.playerId.startsWith("BOT-")) {
           destroyPlayer(player.playerId, room);
+          
+
           room.io.to(room.code).emit('playerDisconnect', player.playerId); 
         } else {
+          room.lives--; 
+          if (room.lives === 0) {
+            room.stop();
+            room.io.emit('endGame', {
+              mode: "PVE",
+              round: room.roundNum
+            });
+          }
           player.isAlive = false;
           Matter.Body.setVelocity(player.body, { x: 0, y: 0 });
           Matter.Body.setAngularVelocity(player.body, 0);

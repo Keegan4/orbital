@@ -7,6 +7,8 @@ export default class GameScene extends Phaser.Scene {
   init(data) {
     this.players = data.players;
     this.walls = data.walls;
+    // A simple array of numbers, then the numbers represent the number of enemies
+    this.roundInfo = data.roundInfo;
     this.gameMode = data.gameConfig.current.gameMode;
   }
 
@@ -74,6 +76,58 @@ export default class GameScene extends Phaser.Scene {
         padding: { x: 15, y: 5 }
       }).setOrigin(0.5, 0).setDepth(100).setAlpha(0.95);
   }
+    if (this.gameMode === 'PVE') {
+      this.curRound = this.add.text(700, 20, 'ROUND 1', {
+        fontSize : '34px',
+        color : '#ffffff',
+        backgroundColor: '#000000aa',
+      }).setOrigin(0.5);
+
+      this.enemiesRem = this.add.text(640, 55 , 'Enemies: ', {
+        fontSize : '20px',
+        color : '#ffffff',
+        backgroundColor: '#000000aa',
+      }).setVisible(true);
+
+      this.livesRem = this.add.text(640, 85 , 'Lives Left: ', {
+        fontSize : '20px',
+        color : '#ff0303',
+        backgroundColor: '#000000aa',
+      }).setVisible(true);
+
+      this.roundComplete = this.add.text(400, 0, 'ROUND COMPLETE!', {
+        fontSize: '32px',
+        fontStyle: 'bold',
+        color: '#e77f0f',
+        backgroundColor: '#000000bb',
+        padding: { x: 15, y: 5 }
+      }).setOrigin(0.5, 0).setDepth(100).setAlpha(0.95).setVisible(false);
+
+      this.nextRound = this.add.text(400, 40, '', {
+        fontSize: '22px',
+        fontStyle: 'bold',
+        color: '#a51cd7',
+        backgroundColor: '#000000bb',
+        padding: { x: 15, y: 5 }
+      }).setOrigin(0.5, 0).setDepth(100).setAlpha(0.95).setVisible(false);
+    }
+    
+    this.socket.on("updatePVE", (data) => {
+      this.curRound.text = `ROUND ${data.roundNum}`;
+      this.enemiesRem.text = `Enemies: ${data.enemiesRem}`;
+      this.livesRem.text = `Lives Left: ${data.lives}`;
+    });
+
+    this.socket.on("newRound", (data) => {
+      this.roundComplete.setVisible(true);
+      this.nextRound.setVisible(true);
+      this.nextRound.text = `Next Round in: ${Math.floor(data.cooldown / 1000)}`
+
+    });
+    this.socket.on("startRound", () => {
+      this.roundComplete.setVisible(false);
+      this.nextRound.setVisible(false);
+    });
 
     // Aesthetics
     this.sounds = { shoot : this.sound.add('shoot', { volume: 0.4 }),

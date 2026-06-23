@@ -22,6 +22,7 @@ class Room {
         }
     };
     this.capacity = 5; // 5 or 10 based on gamemode
+    this.countdownInterval = null;
 
     // Pre-game player info (name, team, ready state)
     // Separate from in-game player representation

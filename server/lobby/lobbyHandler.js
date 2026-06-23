@@ -138,30 +138,28 @@ function checkAllReady(io, room) {
   startCountdown(io, room);
 }
 
-let countdownInterval = null;
-
 function startCountdown(io, room) {
-  if (countdownInterval) clearInterval(countdownInterval);
+  if (room.countdownInterval) clearInterval(room.countdownInterval);
   
   let timeLeft = 3;
   room.io.to(room.code).emit('countdownStart', { timeLeft });
 
-  countdownInterval = setInterval(() => {
+  room.countdownInterval = setInterval(() => {
     timeLeft--;
     room.io.to(room.code).emit('countdownTick', { timeLeft });
 
     if (timeLeft <= 0) {
-      clearInterval(countdownInterval);
-      countdownInterval = null;
+      clearInterval(room.countdownInterval);
+      room.countdownInterval = null;
       startGame(io, room);
     }
   }, 1000);
 }
 
 function cancelCountdown(room) {
-  if (countdownInterval) {
-    clearInterval(countdownInterval);
-    countdownInterval = null;
+  if (room.countdownInterval) {
+    clearInterval(room.countdownInterval);
+    room.countdownInterval = null;
     room.io.to(room.code).emit('countdownCancelled');
   }
 }

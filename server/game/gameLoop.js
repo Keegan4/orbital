@@ -99,6 +99,15 @@ function startGameLoop(room) {
       lastSpawn = now;
     }
 
+    if (room.gameConfig.current.gameMode === 'PVE') {
+        const data = {
+          roundNum: room.roundNum,
+          enemiesRem: room.enemiesRem,
+          lives: room.lives
+        };
+      room.io.emit('updatePVE', data);
+    }
+
 
     // To simulate difficulty, we will have a chance for Bots to missfire, meaning they 
     // Could see you and shoot, but missfired. This puts them on a cooldown before they 

@@ -119,6 +119,7 @@ function initialiseLobby(io, socket) {
     } else {
       room.capacity = 10;
     }
+
     broadcastLobbyUpdate(room);
   })
 }
@@ -175,6 +176,12 @@ function startGame(io, room) {
     player.team = lobbyPlayer.team;
     player.name = lobbyPlayer.name;
   });
+
+  if (room.gameConfig.current.gameMode == "PVE") {
+    room.lives = Object.values(room.players).length * CONSTANTS.LIVES_PLAYER;
+    room.roundNum = 0;
+    room.enemiesRem = CONSTANTS.STARTING_ENEMIES;
+  }
 
   // Tell all clients to start the game
   room.io.to(room.code).emit('gameStart', {

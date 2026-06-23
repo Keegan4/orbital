@@ -8,6 +8,8 @@ const CONSTANTS = {
 
     RED_TEAM: 'red',
     BLUE_TEAM: 'blue',
+    LIVES_PLAYER: 3,
+    STARTING_ENEMIES: 3,
 
     // Tank atributes
     FRIENDLY_TEAM: "blue",

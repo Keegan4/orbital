@@ -102,8 +102,17 @@ function initialiseCollisions(room) {
 
         if (player.playerId.startsWith("BOT-")) {
           destroyPlayer(player.playerId, room);
+          room.enemiesRem--;
+          if (room.enemiesRem === 0) {
+            room.roundNum++;
+            room.enemiesRem = CONSTANTS.STARTING_ENEMIES + room.roundNum;
+          }
           room.io.to(room.code).emit('playerDisconnect', player.playerId); 
         } else {
+          room.lives--; 
+          if (room.lives === 0) {
+            room.io.emit('endGame', {});
+          }
           player.isAlive = false;
           Matter.Body.setVelocity(player.body, { x: 0, y: 0 });
           Matter.Body.setAngularVelocity(player.body, 0);

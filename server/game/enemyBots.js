@@ -120,7 +120,7 @@ function reqPath(bot, coord, botCoords) {
       easystar.avoidAdditionalPoint(bot.x, bot.y);
     });
   }
-  const {x: startx, y: starty} = pixelToTile(bot.body.position);
+  const {x: startx, y: starty} = closestValid(pixelToTile(bot.body.position));
   easystar.findPath(startx, starty, coord.x, coord.y, path => {
     if (path) {
       bot.path = path;
@@ -163,10 +163,13 @@ function botFacing(bot, target) {
   return Math.abs(diff) < 0.20;
 }
 
+function isOpen(x, y) {
+  return grid[y] !== undefined && grid[y][x] !== undefined && grid[y][x] !== 0;
+}
+
 function closestValid(tile) {
-  // The ? is a optional chainer thingy
-  // So if it is undefined it dosent explode
-  if (grid[tile.y]?.[tile.x] !== 0) {
+
+  if (isOpen(tile.x, tile.y)) {
     return tile;
   } 
   const around = [
@@ -176,7 +179,7 @@ function closestValid(tile) {
   for (const i of around) {
     const nearX = tile.x + i.x;
     const nearY = tile.y + i.y;
-    if (grid[nearY]?.[nearX] !== 0) {
+    if (isOpen(nearX, nearY)) {
       return {x: nearX, y: nearY};
     }
   }

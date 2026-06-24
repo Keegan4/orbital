@@ -51,9 +51,10 @@ export default class PostHitScene extends Phaser.Scene {
         fontStyle : 'bold'
       }).setOrigin(0.5);
     }
-    this.socket.on('endGame', (data) => {
+    this.socket.once('endGame', (data) => {
       console.log(`Game ended: ${data.winner} won!`);
       // off all listeners
+      this.scene.stop('GameScene');
       this.scene.start('EndGameScene', data);
     })
 
@@ -179,4 +180,6 @@ export default class PostHitScene extends Phaser.Scene {
     })
     
   }
+
+
 }

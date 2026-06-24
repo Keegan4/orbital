@@ -6,7 +6,8 @@ export default class WaitingRoomScene extends Phaser.Scene {
   init(data) {
     this.winner = data.winner;
     this.mode = data.mode;
-    this.round = data.round
+    this.round = data.round;
+    this.waitingRoomSceneData = data.waitingRoomSceneData;
     
   }
 
@@ -38,6 +39,11 @@ export default class WaitingRoomScene extends Phaser.Scene {
     returnToLobbyButton.on('pointerdown', () => {
       this.socket.off('lobbyUpdate');
       this.scene.start('WaitingRoomScene', this.waitingRoomSceneData);
+    })
+
+    this.socket.on('lobbyUpdate', (data) => {
+      this.waitingRoomSceneData.lobbyPlayers = data.lobbyPlayers;
+      this.waitingRoomSceneData.gameConfig = data.gameConfig;
     })
 
     

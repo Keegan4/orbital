@@ -34,7 +34,7 @@ export default class GameScene extends Phaser.Scene {
 
   create() {
     this.socket = this.registry.get('socket');
-    this.tank;
+    this.tank = null;
     this.cursors = this.input.keyboard.createCursorKeys();
     this.wasd = {
       up : this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
@@ -316,6 +316,9 @@ export default class GameScene extends Phaser.Scene {
 
     this.socket.on('newPlayer', (playerInfo) => {
       console.log('New player joined:', playerInfo.playerId);
+      if (this.otherPlayers[playerInfo.playerId]) {
+        this.otherPlayers[playerInfo.playerId].destroy();
+      }
       this.otherPlayers[playerInfo.playerId] = this.add.sprite(playerInfo.x, playerInfo.y, playerInfo.team)
                                                 .setOrigin(0.5, 0.5);
     });
@@ -351,5 +354,20 @@ export default class GameScene extends Phaser.Scene {
       this.socket.emit('playerInput', input);
       this.lastInput = input;
     }
+  }
+
+  // This happens every time we transition away and weird things happen
+  shutdown() {
+    if (!this.socket) return;
+    this.socket.off('updatePVE');
+    this.socket.off('newRound');
+    this.socket.off('startRound');
+    this.socket.off('sfx');
+    this.socket.off('respawnSuccess');
+    this.socket.off('scoreUpdate');
+    this.socket.off('gameState');
+    this.socket.off('newPlayer');
+    this.socket.off('playerDisconnect');
+    this.socket.off('endGame');
   }
 }

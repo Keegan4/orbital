@@ -109,7 +109,7 @@ function initialiseCollisions(room) {
           room.lives--; 
           if (room.lives === 0) {
             room.stop();
-            room.io.emit('endGame', {
+            room.io.to(room.code).emit('endGame', {
               mode: "PVE",
               round: room.roundNum
             });

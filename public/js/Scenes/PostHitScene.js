@@ -44,8 +44,8 @@ export default class PostHitScene extends Phaser.Scene {
 
     if (!this.powerups) {
       this.add.text(width / 2, height / 2, 
-        `YOU SHOT YOURSELF!`, {
-        fontSize : '50px',
+        `YOU WERE KILLED BY YOURSELF\n OR A TEAM MATE!`, {
+        fontSize : '40px',
         color : '#ff4444',
         align : 'center',
         fontStyle : 'bold'

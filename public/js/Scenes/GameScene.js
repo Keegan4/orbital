@@ -123,21 +123,24 @@ export default class GameScene extends Phaser.Scene {
         backgroundColor: '#000000aa',
       }).setOrigin(0.5).setVisible(true).setDepth(100);
 
-      this.roundComplete = this.add.text(400, 0, 'ROUND COMPLETE!', {
+
+      // For the round complete
+      this.roundPanel = this.add.graphics().setDepth(99).setVisible(false);
+      this.roundPanel.fillStyle(0x000000, 0.75);
+      this.roundPanel.fillRoundedRect(220, 245, 359, 90, 12);
+
+      this.roundComplete = this.add.text(400, 250, 'ROUND COMPLETE!', {
+        fontFamily: 'Arial Black',
         fontSize: '32px',
         fontStyle: 'bold',
-        color: '#e77f0f',
-        backgroundColor: '#000000bb',
-        padding: { x: 15, y: 5 }
-      }).setOrigin(0.5, 0).setDepth(100).setAlpha(0.95).setVisible(false);
+        color: '#ffd700',
+      }).setOrigin(0.5, 0).setDepth(100).setVisible(false);
 
-      this.nextRound = this.add.text(400, 40, '', {
+      this.nextRound = this.add.text(400, 300, '', {
+        fontFamily: 'Arial Black',
         fontSize: '22px',
-        fontStyle: 'bold',
-        color: '#a51cd7',
-        backgroundColor: '#000000bb',
-        padding: { x: 15, y: 5 }
-      }).setOrigin(0.5, 0).setDepth(100).setAlpha(0.95).setVisible(false);
+        color: '#ffffff',
+      }).setOrigin(0.5, 0).setDepth(100).setVisible(false);
     }
     
     this.socket.on("updatePVE", (data) => {
@@ -149,12 +152,14 @@ export default class GameScene extends Phaser.Scene {
     this.socket.on("newRound", (data) => {
       this.roundComplete.setVisible(true);
       this.nextRound.setVisible(true);
+      this.roundPanel.setVisible(true);
       this.nextRound.text = `Next Round in: ${Math.floor(data.cooldown / 1000)}`
 
     });
     this.socket.on("startRound", () => {
       this.roundComplete.setVisible(false);
       this.nextRound.setVisible(false);
+      this.roundPanel.setVisible(false);
     });
 
     // Aesthetics

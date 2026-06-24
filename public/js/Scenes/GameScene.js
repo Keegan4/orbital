@@ -105,23 +105,23 @@ export default class GameScene extends Phaser.Scene {
       }).setOrigin(0.5, 0).setDepth(100).setAlpha(0.95);
   }
     if (this.gameMode === 'PVE') {
-      this.curRound = this.add.text(700, 20, 'ROUND 1', {
+      this.curRound = this.add.text(400, 20, 'ROUND 1', {
         fontSize : '34px',
         color : '#ffffff',
         backgroundColor: '#000000aa',
-      }).setOrigin(0.5);
+      }).setOrigin(0.5).setDepth(100);
 
-      this.enemiesRem = this.add.text(640, 55 , 'Enemies: ', {
+      this.enemiesRem = this.add.text(280, 55 , 'Enemies: ', {
         fontSize : '20px',
         color : '#ffffff',
         backgroundColor: '#000000aa',
-      }).setVisible(true);
+      }).setOrigin(0.5).setVisible(true).setDepth(100);
 
-      this.livesRem = this.add.text(640, 85 , 'Lives Left: ', {
+      this.livesRem = this.add.text(520, 55 , 'Lives Left: ', {
         fontSize : '20px',
         color : '#ff0303',
         backgroundColor: '#000000aa',
-      }).setVisible(true);
+      }).setOrigin(0.5).setVisible(true).setDepth(100);
 
       this.roundComplete = this.add.text(400, 0, 'ROUND COMPLETE!', {
         fontSize: '32px',

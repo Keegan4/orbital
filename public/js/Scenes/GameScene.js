@@ -63,6 +63,16 @@ export default class GameScene extends Phaser.Scene {
 
     this.socket.on('returnToLobby', (data) => {
       // remove everything on client side
+      this.socket.off('updatePVE');
+      this.socket.off('newRound');
+      this.socket.off('startRound');
+      this.socket.off('sfx');
+      this.socket.off('respawnSuccess');
+      this.socket.off('scoreUpdate');
+      this.socket.off('gameState');
+      this.socket.off('newPlayer');
+      this.socket.off('playerDisconnect');
+      this.socket.off('endGame');
       this.scene.start('WaitingRoomScene', data);
     })
 

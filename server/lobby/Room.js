@@ -73,6 +73,7 @@ class Room {
     this.players = {};
     this.bullets = {};
     this.status = 'waiting';
+    console.log('game closed');
   }
 }
 

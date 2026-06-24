@@ -48,6 +48,24 @@ export default class GameScene extends Phaser.Scene {
     this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, "background").setOrigin(0.5, 0.5);
     this.wallGroup = this.add.group();
 
+    this.leaveButton = this.add.text(730, 30, 'LEAVE', { 
+			fontSize: '18px', 
+			fill: '#ffffff', 
+			fontStyle: 'bold',
+			backgroundColor: '#772222', 
+			padding: { x: 12, y: 8 },
+			shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 4, fill: true }
+		}).setOrigin(0.5, 0.5).setInteractive({ useHandCursor: true }).setDepth(100).setAlpha(0.85);
+
+    this.leaveButton.on('pointerdown', () => {
+      this.socket.emit('leaveGame');
+    })
+
+    this.socket.on('returnToLobby', (data) => {
+      // remove everything on client side
+      this.scene.start('WaitingRoomScene', data);
+    })
+
     this.add.text(70, 10, 'SCOREBOARD', {
       fontSize : '24px',
       color : '#ffffff',

@@ -18,7 +18,7 @@ function updateScore(shooterId, room) {
                                 waitingRoomSceneData: { 
                                   lobbyPlayers: Object.values(room.lobbyPlayers), 
                                   gameConfig: room.gameConfig, 
-                                  code: room.code 
+                                  code: room.code
                                 }});
       // update history
       room.history.push({ gameModeConfig: room.gameConfig.current,

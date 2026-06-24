@@ -42,6 +42,28 @@ function initialiseConnections(io) {
       socket.emit('scoreUpdate', getScoreboard(room));
     }); 
 
+    // Player leave game
+    socket.on('leaveGame', function () {
+      console.log('user ' + socket.id + ': leaving game');
+      const room = getRoom(socket.roomCode);
+      if (!room) return;
+
+      if (room.status === 'playing') {
+        destroyPlayer(socket.id, room);
+        room.io.to(room.code).emit('playerDisconnect', socket.id);
+        room.io.to(room.code).emit('scoreUpdate', getScoreboard(room));
+        socket.emit('returnToLobby', 
+                                { lobbyPlayers: Object.values(room.lobbyPlayers), 
+                                  gameConfig: room.gameConfig, 
+                                  code: room.code });
+
+        if (Object.keys(room.players).length === 0) {
+          room.stop();
+        }
+      }
+      
+    });
+
     // Disconnect
     socket.on('disconnect', function () {
       console.log('user ' + socket.id + ': disconnected');

@@ -111,7 +111,11 @@ function initialiseCollisions(room) {
             room.stop();
             room.io.to(room.code).emit('endGame', {
               mode: "PVE",
-              round: room.roundNum
+              round: room.roundNum,
+              waitingRoomSceneData: { 
+                                  lobbyPlayers: Object.values(room.lobbyPlayers), 
+                                  gameConfig: room.gameConfig, 
+                                  code: room.code}
             });
           }
           player.isAlive = false;

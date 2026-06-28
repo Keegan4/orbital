@@ -140,7 +140,12 @@ function startGameLoop(room) {
     }
 
 
-    if (room.enemiesRem === 0 && currentBots === 0) {
+    const aliveBots = Object.values(room.players).filter(
+      p => p.playerId.startsWith("BOT-") && p.isAlive
+    ).length;
+
+
+    if (room.enemiesRem === 0 && aliveBots === 0) {
 
       if (room.waveCountDown == 0) {
        room.waveCountDown = WAVE_COOLDOWN + now;

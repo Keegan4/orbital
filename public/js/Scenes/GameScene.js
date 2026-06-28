@@ -126,7 +126,7 @@ export default class GameScene extends Phaser.Scene {
         color: '#ff4d4d'
       }).setDepth(100);
     }
-    
+
     if (this.gameMode === 'PVE') {
       this.curRound = this.add.text(400, 20, 'ROUND 1', {
         fontSize : '34px',
@@ -281,7 +281,8 @@ export default class GameScene extends Phaser.Scene {
         if (this.gameMode === 'PVP') {
           const blueTotal = scores.filter(p => p.team === CONSTANTS.BLUE_TEAM).reduce((sum, p) => sum + p.score, 0);
           const redTotal = scores.filter(p => p.team === CONSTANTS.RED_TEAM).reduce((sum, p) => sum + p.score, 0);
-          this.teamScoreTally.setText(`BLUE: ${blueTotal}  |  RED: ${redTotal}`);
+          this.blueScoreText.setText(`BLUE: ${blueTotal}`);
+          this.redScoreText.setText(`RED: ${redTotal}`);
         }
 
         for (let i = 0; i < scores.length; i++) {

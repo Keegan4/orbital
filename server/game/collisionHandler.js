@@ -63,7 +63,7 @@ function initialiseCollisions(room) {
                          : bodyB.label === 'tank' 
                          ? bodyB 
                          : null;
-        const wallBody = bodyA.label === 'wall' 
+        const wallBody = bodyA.label === 'wall' || bodyA.label === 'Boundary'
                          ? bodyA 
                          : bodyB.label === 'wall' 
                          ? bodyB 

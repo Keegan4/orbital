@@ -76,25 +76,32 @@ export default class GameScene extends Phaser.Scene {
       this.scene.start('WaitingRoomScene', data);
     })
 
-    this.add.text(70, 10, 'SCOREBOARD', {
-      fontSize : '24px',
-      color : '#ffffff',
-      backgroundColor: '#000000aa',
+    const sbBg = this.add.graphics().setDepth(99); 
+    sbBg.fillStyle(0x1a1a1a, 0.55);
+    sbBg.lineStyle(2, 0xffcc00, 1);
+    sbBg.fillRoundedRect(10, 10, 180, 290, 8);
+    sbBg.strokeRoundedRect(10, 10, 180, 290, 8).setAlpha(0.55);
+    this.add.text(100, 25, 'LEADERBOARD', {
+      fontFamily: 'Arial, sans-serif',
+      fontSize: '18px',
+      fontWeight: 'bold',
+      color: '#ffcc00', 
     }).setOrigin(0.5).setDepth(100);
 
     this.scoreSlots = [];
 
     // create 10 places that are revealed later
     for (let i = 0; i < 10; i++) {
-      // The weird position is so that each score will be
-      // lower than the next
-      const text = this.add.text(10, 45 + i * 24, '', {
-        fontSize : '24px',
-        color : '#ffffff',
-        backgroundColor: '#000000aa',
+      const text = this.add.text(25, 55 + i * 23, '', {
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '14px',
+        fontWeight: 'bold',
+        color: '#ffffff', 
       }).setVisible(false).setDepth(100);
+      
       this.scoreSlots.push(text);
     }
+    
     if (this.gameMode === 'PVP') {
       this.teamScoreTally = this.add.text(400, 0, 'BLUE: 0  |  RED: 0', {
         fontSize: '32px',
@@ -264,7 +271,7 @@ export default class GameScene extends Phaser.Scene {
         for (let i = 0; i < scores.length; i++) {
           this.scoreSlots[i].setText(`${scores[i].name}: ${scores[i].score}`);
           if (this.gameMode === 'PVP') {
-            this.scoreSlots[i].setFill(scores[i].team === CONSTANTS.RED_TEAM ? '#ff0000' : '#0000ff');
+            this.scoreSlots[i].setFill(scores[i].team === CONSTANTS.RED_TEAM ? '#ff4d4d' : '#4da6ff');
           }
           this.scoreSlots[i].setVisible(true);
         }

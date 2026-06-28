@@ -78,10 +78,10 @@ export default class GameScene extends Phaser.Scene {
 
     const sbBg = this.add.graphics().setDepth(99); 
     sbBg.fillStyle(0x1a1a1a, 0.55);
-    sbBg.lineStyle(2, 0xffcc00, 1);
+    sbBg.lineStyle(2, 0xffcc00, 0.55);
     sbBg.fillRoundedRect(10, 10, 180, 290, 8);
-    sbBg.strokeRoundedRect(10, 10, 180, 290, 8).setAlpha(0.55);
-    this.add.text(100, 25, 'LEADERBOARD', {
+    sbBg.strokeRoundedRect(10, 10, 180, 290, 8);
+    this.add.text(100, 25, 'SCOREBOARD', {
       fontFamily: 'Arial, sans-serif',
       fontSize: '18px',
       fontWeight: 'bold',
@@ -101,16 +101,32 @@ export default class GameScene extends Phaser.Scene {
       
       this.scoreSlots.push(text);
     }
-    
     if (this.gameMode === 'PVP') {
-      this.teamScoreTally = this.add.text(400, 0, 'BLUE: 0  |  RED: 0', {
-        fontSize: '32px',
-        fontStyle: 'bold',
-        color: '#ffffff',
-        backgroundColor: '#000000bb',
-        padding: { x: 15, y: 5 }
-      }).setOrigin(0.5, 0).setDepth(100).setAlpha(0.95);
-  }
+      const tallyBg = this.add.graphics().setDepth(99);
+      tallyBg.fillStyle(0x1a1a1a, 0.55);
+      tallyBg.lineStyle(2, 0xffcc00, 0.55);
+      tallyBg.fillRoundedRect(280, 10, 240, 45, 6);
+      tallyBg.strokeRoundedRect(280, 10, 240, 45, 6);
+
+      const tallyFontStyle = {
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '20px',
+        fontWeight: 'bold'
+      };
+      this.blueScoreText = this.add.text(300, 22, 'BLUE: 0', {
+        ...tallyFontStyle,
+        color: '#4da6ff'
+      }).setDepth(100);
+      this.scoreDivider = this.add.text(400, 22, '|', {
+        ...tallyFontStyle,
+        color: '#ffcc00'
+      }).setOrigin(0.5, 0).setDepth(100);
+      this.redScoreText = this.add.text(430, 22, 'RED: 0', {
+        ...tallyFontStyle,
+        color: '#ff4d4d'
+      }).setDepth(100);
+    }
+    
     if (this.gameMode === 'PVE') {
       this.curRound = this.add.text(400, 20, 'ROUND 1', {
         fontSize : '34px',

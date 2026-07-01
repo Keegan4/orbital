@@ -14,13 +14,13 @@ export default class WaitingRoomScene extends Phaser.Scene {
   create() {
     this.socket = this.registry.get('socket');
     if (this.mode === "PVE") {
-       this.add.text(400, 100, `Game ended!`, {
-        fontSize: '32px',
+       this.add.text(400, 100, `GAME OVER`, {
+        fontSize: '38px',
         fontStyle: 'bold',
         color: '#0fe7e7',
        }).setOrigin(0.5, 0.5);
 
-       this.add.text(400, 250, `You are out of lives!`, {
+       this.add.text(400, 250, `You Are Out Of Lives!`, {
         fontSize: '42px',
         fontStyle: 'bold',
         color: '#ff0000',

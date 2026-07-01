@@ -123,6 +123,19 @@ function powerupsRound(round) {
   return Math.floor(round / 1.5);
 }
 
+function adjustBot(bot, quantity, upgrade, downgrade) {
+  if (quantity > 0) {
+    for (let i = 0; i < quantity; i++) {
+    bot.powerups.push(upgrade);
+    }
+  } else if (quantity < 0) {
+    quantity = quantity * -1
+    for (let i = 0; i < quantity; i++) {
+      bot.powerups.push(downgrade);
+    }
+  }
+}
+
 function startGameLoop(room) {
   const interval = setInterval(() => {
     const now = Date.now();
@@ -140,16 +153,16 @@ function startGameLoop(room) {
       var type;
       if (roll < 0.1) {
         type = botTypes.exploder;
-      }else if (roll < 0.1) {
+      }else if (roll < 0.5) {
         type = botTypes.berserker;
       } else {
         type = botTypes.chaser;
       }
       const bot = createBot(room, type);
+      adjustBot(bot, type.speedUps, POWERUPS.speedBoost, POWERUPS.cursedSpeed);
+      adjustBot(bot, type.turnBoost, POWERUPS.turnBoost, POWERUPS.cursedTurn);
+      adjustBot(bot, type.bulletLife, POWERUPS.bulletLife, POWERUPS.cursedLife);
 
-      for (let i = 0; i < type.speedUps; i++) {
-        bot.powerups.push(POWERUPS.speedBoost);
-      }
       botPowers(powerupsRound(room.roundNum), bot);
 
       lastSpawn = now;
@@ -161,8 +174,10 @@ function startGameLoop(room) {
       p => p.playerId.startsWith("BOT-") && p.isAlive
     ).length;
 
+    const bulletCount = Object.values(room.bullets).length;
+
     // Control the waves/rounds of bots
-    if (room.enemiesRem === 0 && aliveBots === 0) {
+    if (room.enemiesRem === 0 && aliveBots === 0 && bulletCount === 0) {
 
       if (room.waveCountDown == 0) {
        room.waveCountDown = WAVE_COOLDOWN + now;
@@ -286,7 +301,7 @@ function startGameLoop(room) {
 
     // Remove expired bullets
     Object.values(room.bullets).forEach(bullet => {
-      if (Date.now() - bullet.createdAt > BULLET_LIFESPAN + bullet.stats.bulletLife) {
+      if (Date.now() - bullet.createdAt > BULLET_LIFESPAN * bullet.stats.bulletLife) {
         destroyBullet(bullet.id, room);
       }
     });

@@ -1,7 +1,39 @@
 const POWERUPS = {
+    // Curses
+    cursedTurn: {
+        id: "cursedTurn",
+        display: "Lower Turning Speed",
+        rarity: "curse",
+        disc: "-15% turning speed",
+        stats: {angularVelo: 0.85}
+    },
+
+    cursedSpeed: {
+        id: "cursedSpeed",
+        display: "Lower Speed",
+        rarity: "curse",
+        disc: "-15% speed",
+        stats: {velocity: 0.85}
+    },
+
+    cursedLife: {
+        id: "cursedLife",
+        display: "Lower bullet Life",
+        rarity: "curse",
+        disc: "-15% bullet lifespan",
+        stats: {bulletLife: 0.85}
+    },
+
+    cursedBulletSpeed: {
+        id: "cursedBulletSpeed",
+        display: "Lower bullet speed",
+        rarity: "curse",
+        disc: "-15% bullet speed",
+        stats: {bulletVelo: 0.85}
+    },
+
 
     // Common Powerups
-
     turnBoost: {
         id: "turnBoost",
         display: "Increase Turning Speed",
@@ -110,7 +142,7 @@ const POWERUPS = {
 
     bulletPhase: {
         id: "bulletPhase",
-        display: "Phase through walls",
+        display: "Bullets phase through walls",
         rarity: "legendary",
         disc: "Bullets are no longer stopped by walls",
         flag: {bulletPhase: true}

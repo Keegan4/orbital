@@ -55,8 +55,8 @@ function spawnBullet(room, x, y, angle, stats, ownerId) {
 
 function createBullet(player, room, stats, angleOffset) {
   const angle = player.body.angle + angleOffset + Math.PI / 2;
-  const spawnX = player.body.position.x + Math.cos(angle) * 40;
-  const spawnY = player.body.position.y + Math.sin(angle) * 40; 
+  const spawnX = player.body.position.x;
+  const spawnY = player.body.position.y;
 
   return spawnBullet(room, spawnX, spawnY, angle, stats, player.playerId);
 }

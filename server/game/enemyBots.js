@@ -27,13 +27,17 @@ var botNum = 0;
 const botTypes = {
   chaser: {
     speedUps: 0, 
+    turnBoost: 0,
+    bulletLife: 0,
     canShoot: true, 
     contactDamage: false, 
     explode: false,
     color: "black"
   },
   berserker: {
-    speedUps: 4, 
+    speedUps: 6, 
+    turnBoost: 3,
+    bulletLife: 0,
     canShoot: false, 
     contactDamage: true, 
     explode: false,
@@ -41,7 +45,9 @@ const botTypes = {
   },
 
   exploder: {
-    speedUps: 0, 
+    speedUps: -8, 
+    turnBoost: 0,
+    bulletLife: -10,
     canShoot: false, 
     contactDamage: true, 
     explode: true,

@@ -42,6 +42,7 @@ const CONSTANTS = {
     NEW_TARGET: 2000,
     FIRE_CHANCE: 0.2,
     WALL_BUFFER: 1,
+    EXPLODE_COUNT: 10,
 
     // Powerup configs
     RARE_CHANCE: 0.3,

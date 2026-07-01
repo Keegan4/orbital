@@ -4,6 +4,7 @@ const { POWERUPS, powerupsRarity, RARITIES } = require('../../public/js/powerups
 const { destroyBullet } = require('./bulletManager.js');
 const { destroyPlayer } = require('./playerManager.js');
 const { updateScore, getScoreboard } = require('./scoreManager.js');
+const { spawnBullet } = require('./bulletManager.js');
 
 const {
   BULLET_SPEED,
@@ -16,7 +17,8 @@ const {
   TICK_RATE,
   TICK_DELTA,
   LEGEND_CHANCE,
-  RARE_CHANCE
+  RARE_CHANCE,
+  EXPLODE_COUNT
 } = CONSTANTS;
 
 // Simple function to select powerups to display
@@ -48,6 +50,92 @@ function choosePowerup() {
   return powerups;
 }
 
+function handleContact(bodyA, bodyB, room) {
+  
+  var bot;
+  var player;
+
+  // Turn matterjs bodies into player objects
+  const tankA = Object.values(room.players).find(p => p.body === bodyA);
+  const tankB = Object.values(room.players).find(p => p.body === bodyB);
+
+  // Dont kill other bots
+  if (tankA.playerId.startsWith("BOT-") && tankB.playerId.startsWith("BOT-")) {
+    return;
+  } else if (tankA.playerId.startsWith("BOT-") && tankA.botType.contactDamage) {
+    bot = tankA;
+    player = tankB;
+  } else if (tankB.playerId.startsWith("BOT-") && tankB.botType.contactDamage) {
+    bot = tankB;
+    player = tankA;
+  } else {
+    return;
+  }
+  if (!player.isAlive) return;
+  killPlayer(player, room, bot);
+  killBot(bot, room);
+}
+
+function killBot(bot, room) {
+  const shouldExplode = bot.botType.explode && room.world;
+  const pos = { x: bot.body.position.x, y: bot.body.position.y };
+
+  destroyPlayer(bot.playerId, room);
+  room.io.to(room.code).emit('playerDisconnect', bot.playerId); 
+  room.io.to(room.code).emit('sfx', {
+    type: 'tankHit',
+    x: bot.body.position.x,
+    y: bot.body.position.y,
+    playerId: bot.playerId,
+    score: bot.score,
+    timeAlive: Date.now() - bot.createdAt,
+    powerups: choosePowerup(),
+    killerName: "BOT"
+  });
+
+  if (shouldExplode) {
+    const inc = (Math.PI * 2) / EXPLODE_COUNT;
+    var angle = 0;
+    for (let i = 0; i < EXPLODE_COUNT; i++) {
+      spawnBullet(room, pos.x, pos.y, angle, bot.stats, "Explosion!");
+      angle += inc;
+    }
+  }
+}
+
+function killPlayer(player, room, killer) {
+  room.lives--; 
+  if (room.lives === 0) {
+    room.stop();
+    room.io.to(room.code).emit('endGame', {
+      mode: "PVE",
+      round: room.roundNum,
+      waitingRoomSceneData: { 
+                          lobbyPlayers: Object.values(room.lobbyPlayers), 
+                          gameConfig: room.gameConfig, 
+                          code: room.code}
+    });
+  }
+  room.io.to(room.code).emit('sfx', {
+    type: 'tankHit',
+    x: player.body.position.x,
+    y: player.body.position.y,
+    playerId: player.playerId,
+    score: player.score,
+    timeAlive: Date.now() - player.createdAt,
+    powerups: killer && killer.team === player.team ? null : choosePowerup(),
+
+    // Just a ton of fancy ternarys to make it accept a null killer
+    killerName:  killer && killer.playerId.startsWith("BOT-") ? 'BOT' : (killer ? killer.name : 'BOT')
+  });
+
+
+  player.isAlive = false;
+  Matter.Body.setVelocity(player.body, { x: 0, y: 0 });
+  Matter.Body.setAngularVelocity(player.body, 0);
+  player.body.isSensor = true;
+}
+
 function initialiseCollisions(room) {
   Matter.Events.on(room.engine, 'collisionStart', function(event) {
     event.pairs.forEach(pair => {
@@ -69,7 +157,14 @@ function initialiseCollisions(room) {
                          ? bodyB 
                          : null;
 
-      if (!bulletBody) return;
+      if (!bulletBody) {
+        const tankA = bodyA.label === 'tank' ? bodyA: null;
+        const tankB = bodyB.label === 'tank' ? bodyB: null;
+        if (tankA && tankB) {
+          handleContact(tankA, tankB, room);
+        }
+        return;
+      }
 
       const bullet = Object.values(room.bullets).find(b => b.body === bulletBody);
       if (!bullet) return;
@@ -89,11 +184,16 @@ function initialiseCollisions(room) {
       if (tankBody) {
         const player = Object.values(room.players).find(p => p.body === tankBody);
         const killer = Object.values(room.players).find(p => p.playerId === bullet.ownerId);
-        const info = {team: killer.team, name: killer.name, playerId: killer.playerId}
-
-        if (!player || !player.isAlive) return;
-        
         destroyBullet(bullet.id, room);
+        if (!killer) {
+          if (!player || !player.isAlive) return;
+          if (!player.playerId.startsWith("BOT")) {
+            killPlayer(player, room, null);
+          } else {
+            killBot(player, room);
+          }
+          return;
+        }
 
         // Preventing selfHarm if powerup is enabled
         if (player.stats.selfHarmImmune && bullet.ownerId === player.playerId) {
@@ -101,48 +201,19 @@ function initialiseCollisions(room) {
         }
 
         if (player.playerId.startsWith("BOT-")) {
-          destroyPlayer(player.playerId, room);
-          
-
-          room.io.to(room.code).emit('playerDisconnect', player.playerId); 
+          killBot(player, room);
         } else {
-          room.lives--; 
-          if (room.lives === 0) {
-            room.stop();
-            room.io.to(room.code).emit('endGame', {
-              mode: "PVE",
-              round: room.roundNum,
-              waitingRoomSceneData: { 
-                                  lobbyPlayers: Object.values(room.lobbyPlayers), 
-                                  gameConfig: room.gameConfig, 
-                                  code: room.code}
-            });
-          }
-          player.isAlive = false;
-          Matter.Body.setVelocity(player.body, { x: 0, y: 0 });
-          Matter.Body.setAngularVelocity(player.body, 0);
-          player.body.isSensor = true;
-        }
-
-        room.io.to(room.code).emit('sfx', {
-          type: 'tankHit',
-          x: player.body.position.x,
-          y: player.body.position.y,
-          playerId: player.playerId,
-          score: player.score,
-          timeAlive: Date.now() - player.createdAt,
-          powerups: killer.team === player.team ? null : choosePowerup(),
-          killerName: killer.playerId.startsWith("BOT-") ? 'BOT' : killer.name
-        });
-
+          killPlayer(player, room, killer);
         // Players cant shoot themselves for more points
-        if (bullet.ownerId !== player.playerId && killer.team !== player.team) {
-          updateScore(bullet.ownerId, room);
+          if (bullet.ownerId !== player.playerId && killer.team !== player.team) {
+            updateScore(bullet.ownerId, room);
+          }
         }
       }
-    });
+    })
   });
 }
+
 
 
 

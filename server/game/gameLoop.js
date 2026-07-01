@@ -11,7 +11,8 @@ const { createBot,
   calculatePaths,
   tankSighted,
   botFacing,
-  closestValid
+  closestValid,
+  botTypes
 } = require('./enemyBots.js');
 
 
@@ -127,12 +128,28 @@ function startGameLoop(room) {
     const now = Date.now();
     calculatePaths();
 
+    // Bot spawning 
+
     const currentBots = Object.values(room.players).filter(p => p.playerId.startsWith("BOT-")).length;
     if (now - lastSpawn > SPAWN_COOLDOWN && 
         currentBots < BOT_LIMIT + Math.floor(Math.pow(1.2, room.roundNum)) && 
         room.gameConfig.current.gameMode === 'PVE' &&
         room.enemiesRem > 0) {
-      const bot = createBot(room);
+      
+      const roll = Math.random();
+      var type;
+      if (roll < 0.1) {
+        type = botTypes.exploder;
+      }else if (roll < 0.1) {
+        type = botTypes.berserker;
+      } else {
+        type = botTypes.chaser;
+      }
+      const bot = createBot(room, type);
+
+      for (let i = 0; i < type.speedUps; i++) {
+        bot.powerups.push(POWERUPS.speedBoost);
+      }
       botPowers(powerupsRound(room.roundNum), bot);
 
       lastSpawn = now;
@@ -144,7 +161,7 @@ function startGameLoop(room) {
       p => p.playerId.startsWith("BOT-") && p.isAlive
     ).length;
 
-
+    // Control the waves/rounds of bots
     if (room.enemiesRem === 0 && aliveBots === 0) {
 
       if (room.waveCountDown == 0) {
@@ -157,7 +174,7 @@ function startGameLoop(room) {
           cooldown: room.waveCountDown - now
         });
       } else {
-        room.enemiesRem = STARTING_ENEMIES + Math.floor(Math.pow(1.2, room.roundNum));
+        room.enemiesRem = STARTING_ENEMIES + Math.ceil(Math.pow(1.2, room.roundNum));
         room.roundNum++;
         room.waveCountDown = 0;
         room.io.to(room.code).emit("startRound");
@@ -188,7 +205,7 @@ function startGameLoop(room) {
         // This checks if a target is in sight then it shoots 
         // every time it moves
         const targ = botTarget(player, room);
-        if (targ && tankSighted(player, targ, room) && botFacing(player, targ)) {
+        if (targ && tankSighted(player, targ, room) && botFacing(player, targ) && player.botType.canShoot) {
             const randFire = Math.random();
             if (randFire >= missFireChance[room.gameConfig.current.difficulty]) {
               player.input.fire = true;

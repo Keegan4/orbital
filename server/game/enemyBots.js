@@ -29,6 +29,7 @@ const botTypes = {
     speedUps: 0, 
     turnBoost: 0,
     bulletLife: 0,
+    debuf: true,
     canShoot: true, 
     contactDamage: false, 
     explode: false,
@@ -38,6 +39,7 @@ const botTypes = {
     speedUps: 6, 
     turnBoost: 3,
     bulletLife: 0,
+    debuf: true,
     canShoot: false, 
     contactDamage: true, 
     explode: false,
@@ -48,10 +50,22 @@ const botTypes = {
     speedUps: -8, 
     turnBoost: 0,
     bulletLife: -10,
+    debuf: true,
     canShoot: false, 
     contactDamage: true, 
     explode: true,
     color: "green"
+  },
+
+  downgrader: {
+    speedUps: 0, 
+    turnBoost: 0,
+    bulletLife: 0,
+    canShoot: true, 
+    debuf: true,
+    contactDamage: false, 
+    explode: false,
+    color: "bigRed"
   },
 }
 

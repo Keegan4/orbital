@@ -80,7 +80,7 @@ function initialiseCollisions(room) {
         if (bullet.bounces >= MAX_BOUNCES + bullet.stats.bulletBounce) {
           destroyBullet(bullet.id, room);
         } else {
-          room.io.emit('sfx', { type: 'bulletBounce', x: bullet.body.position.x, y: bullet.body.position.y });
+          room.io.to(room.code).emit('sfx', { type: 'bulletBounce', x: bullet.body.position.x, y: bullet.body.position.y });
         }
         return;
       }

@@ -57,7 +57,7 @@ function initialiseConnections(io) {
                                   gameConfig: room.gameConfig, 
                                   code: room.code });
 
-        if (Object.keys(room.players).length === 0) {
+        if (Object.values(room.players).filter(p => !p.playerId.startsWith("BOT-")).length === 0) {
           room.stop();
         }
       }

@@ -22,6 +22,12 @@ export default class WaitingRoomScene extends Phaser.Scene {
   	this.selectedDifficulty = this.gameConfig.current.difficulty;
   	this.selectedRounds = this.gameConfig.current.round;
 
+    this.cleanups = [];
+
+    
+    this.instanceId = Math.random().toString(36).slice(2, 7);
+    console.log(`[WaitingRoomScene ${this.instanceId}] created`);
+
     this.createRoomCodeText();
     this.createLeaveButton();
     this.createSetNameButton();
@@ -31,10 +37,33 @@ export default class WaitingRoomScene extends Phaser.Scene {
     this.createPvpStaticPlayerList();
     this.createCountDown();
 
-    this.socket.on('lobbyUpdate', (data) => this.handleLobbyUpdate(data));
-    this.socket.on('gameStart', (gameData) => this.handleGameStart(gameData));
-    
+    // Track socket listeners so clean up is easier with this.cleanup()
+    this.trackSocket('lobbyUpdate', data => this.handleLobbyUpdate(data));
+    this.trackSocket('gameStart', gameData => this.handleGameStart(gameData));
+    this.trackSocket('countdownStart', data => this.handleCountdownStart(data));
+    this.trackSocket('countdownTick', data => this.handleCountdownTick(data));
+    this.trackSocket('countdownCancelled', () => this.handleCountdownCancelled());
+
+    // Update once when player sees the scene
     this.handleLobbyUpdate({ lobbyPlayers: this.lobbyPlayers, gameConfig: this.gameConfig });
+
+    // Cleanup when scene closes
+    this.events.once('shutdown', () => {
+      this.cleanup();
+    });
+  }
+
+  trackSocket(event, handler) {
+    this.socket.on(event, handler);
+    this.cleanups.push(() => {
+      this.socket.off(event, handler);
+    });
+  }
+
+  cleanup() {
+    console.log(`[WaitingRoomScene ${this.instanceId}] cleanup`);
+    this.cleanups.forEach(cleanup => cleanup());
+    this.cleanups = [];
   }
 
   handleLobbyUpdate(data) {
@@ -59,21 +88,11 @@ export default class WaitingRoomScene extends Phaser.Scene {
   }
 
   handleGameStart(gameData) {
-    this.removeListeners();
     this.scene.start('GameScene', gameData);
   }
 
   handleLobbyLeave() {
-    this.removeListeners();
     this.scene.start('LobbyMenuScene');
-  }
-
-  removeListeners() {
-    this.socket.off('lobbyUpdate');
-    this.socket.off('gameStart');
-    this.socket.off('countdownStart');
-    this.socket.off('countdownTick');
-    this.socket.off('countdownCancelled');
   }
 
   addButtonHover(target, scaleUp = 1.08) {
@@ -573,7 +592,7 @@ export default class WaitingRoomScene extends Phaser.Scene {
   createCountDown() {
     this.countDownContainer = this.add.container(400, 300).setVisible(false);
     const countDownBg = this.add.rectangle(0, 0, 800, 600, 0x111111, 0.5);
-    const countDownText = this.add.text(0, 0, '', {
+    this.countDownText = this.add.text(0, 0, '', {
       fontSize: '96px',
       fill: '#ff3333',
       fontStyle: 'bold',
@@ -583,55 +602,54 @@ export default class WaitingRoomScene extends Phaser.Scene {
       fill: '#ffffff',
       fontStyle: 'bold',
     }).setOrigin(0.5);
-    this.countDownContainer.add([countDownBg, countDownLabel, countDownText]);
+    this.countDownContainer.add([countDownBg, countDownLabel, this.countDownText]);
+  }
 
-    // Helper for animation
-    const playCountdownAnimation = (newText) => {
-      countDownText.setText(newText);
-      countDownText.setScale(2);
-      countDownText.setAlpha(0);
-      this.tweens.killTweensOf(countDownText);
-      this.tweens.add({
-        targets: countDownText,
-        scaleX: 1,
-        scaleY: 1,
-        alpha: 1,
-        duration: 250,
-        ease: 'Back.easeOut',
-        onComplete: () => {
-          this.tweens.add({
-            targets: countDownText,
-            scaleX: 0.85,
-            scaleY: 0.85,
-            alpha: 0.7,
-            duration: 700,
-            ease: 'Linear'
-          });
-        }
-      });
-    };
-
-    this.socket.on('countdownStart', (data) => {
-      this.countDownContainer.setVisible(true).setAlpha(1);
-      playCountdownAnimation(data.timeLeft);
+  playCountdownAnimation(newText) {
+    this.countDownText.setText(newText);
+    this.countDownText.setScale(2);
+    this.countDownText.setAlpha(0);
+    this.tweens.killTweensOf(this.countDownText);
+    this.tweens.add({
+      targets: this.countDownText,
+      scaleX: 1,
+      scaleY: 1,
+      alpha: 1,
+      duration: 250,
+      ease: 'Back.easeOut',
+      onComplete: () => {
+        this.tweens.add({
+          targets: this.countDownText,
+          scaleX: 0.85,
+          scaleY: 0.85,
+          alpha: 0.7,
+          duration: 700,
+          ease: 'Linear'
+        });
+      }
     });
+  }
 
-    this.socket.on('countdownTick', (data) => {
-      playCountdownAnimation(data.timeLeft);
-    });
+  handleCountdownStart(data) {
+    this.countDownContainer.setVisible(true).setAlpha(1);
+    this.playCountdownAnimation(data.timeLeft);
+  }
 
-    this.socket.on('countdownCancelled', () => {
-      this.tweens.killTweensOf(this.countDownContainer);
-      this.tweens.add({
-        targets: this.countDownContainer,
-        alpha: 0,
-        duration: 200,
-        ease: 'Power2.easeOut',
-        onComplete: () => {
-          this.countDownContainer.setVisible(false);
-          countDownText.setText('');
-        }
-      });
+  handleCountdownTick(data) {
+    this.playCountdownAnimation(data.timeLeft);
+  }
+
+  handleCountdownCancelled() {
+    this.tweens.killTweensOf(this.countDownContainer);
+    this.tweens.add({
+      targets: this.countDownContainer,
+      alpha: 0,
+      duration: 200,
+      ease: 'Power2.easeOut',
+      onComplete: () => {
+        this.countDownContainer.setVisible(false);
+        this.countDownText.setText('');
+      }
     });
   }
 

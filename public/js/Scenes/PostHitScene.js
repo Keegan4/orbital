@@ -51,12 +51,6 @@ export default class PostHitScene extends Phaser.Scene {
         fontStyle : 'bold'
       }).setOrigin(0.5);
     }
-    this.socket.once('endGame', (data) => {
-      console.log(`Game ended: ${data.winner} won!`);
-      // off all listeners
-      this.scene.stop('GameScene');
-      this.scene.start('EndGameScene', data);
-    })
 
     const cardW = 150;
     const cardH = 200;

@@ -48,6 +48,23 @@ export default class GameScene extends Phaser.Scene {
     this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, "background").setOrigin(0.5, 0.5);
     this.wallGroup = this.add.group();
 
+    this.instanceId = Math.random().toString(36).slice(2, 7);
+    console.log(`[GameScene ${this.instanceId}] created`);
+
+    // Track socket listeners so clean up is easier with this.cleanup()
+    this.cleanups = [];
+    this.trackSocket('returnToLobby', data => this.handleReturnToLobby(data));
+    this.trackSocket("updatePVE", data => this.handleUpdatePVE(data));
+    this.trackSocket("newRound", data => this.handleNewRound(data));
+    this.trackSocket("startRound", () => this.handleStartRound());
+    this.trackSocket('sfx', data => this.handleSfx(data));
+    this.trackSocket("respawnSuccess", () => this.handleRespawnSuccess());
+    this.trackSocket("scoreUpdate", scores => this.handleScoreUpdate(scores));
+    this.trackSocket('gameState', state => this.handleGameState(state));
+    this.trackSocket('newPlayer', playerInfo => this.handleNewPlayer(playerInfo));
+    this.trackSocket('playerDisconnect', id => this.handlePlayerDisconnect(id));
+    this.trackSocket('endGame', data => this.handleEndGame(data));
+
     this.leaveButton = this.add.text(730, 30, 'LEAVE', { 
 			fontSize: '18px', 
 			fill: '#ffffff', 
@@ -59,21 +76,6 @@ export default class GameScene extends Phaser.Scene {
 
     this.leaveButton.on('pointerdown', () => {
       this.socket.emit('leaveGame');
-    })
-
-    this.socket.on('returnToLobby', (data) => {
-      // remove everything on client side
-      this.socket.off('updatePVE');
-      this.socket.off('newRound');
-      this.socket.off('startRound');
-      this.socket.off('sfx');
-      this.socket.off('respawnSuccess');
-      this.socket.off('scoreUpdate');
-      this.socket.off('gameState');
-      this.socket.off('newPlayer');
-      this.socket.off('playerDisconnect');
-      this.socket.off('endGame');
-      this.scene.start('WaitingRoomScene', data);
     })
 
     const sbBg = this.add.graphics().setDepth(99); 
@@ -166,76 +168,19 @@ export default class GameScene extends Phaser.Scene {
       }).setOrigin(0.5, 0).setDepth(100).setVisible(false);
     }
     
-    this.socket.on("updatePVE", (data) => {
-      this.curRound.text = `ROUND ${data.roundNum}`;
-      this.enemiesRem.text = `Enemies: ${data.enemiesRem}`;
-      this.livesRem.text = `Lives Left: ${data.lives}`;
-    });
-
-    this.socket.on("newRound", (data) => {
-      this.roundComplete.setVisible(true);
-      this.nextRound.setVisible(true);
-      this.roundPanel.setVisible(true);
-      this.nextRound.text = `Next Round in: ${Math.floor(data.cooldown / 1000)}`
-
-    });
-    this.socket.on("startRound", () => {
-      this.roundComplete.setVisible(false);
-      this.nextRound.setVisible(false);
-      this.roundPanel.setVisible(false);
-    });
-
     // Aesthetics
     this.sounds = { shoot : this.sound.add('shoot', { volume: 0.4 }),
                     bulletBounce : this.sound.add('bulletBounce', { volume: 0.3 }),
                     tankHit : this.sound.add('tankHit', { volume: 0.6 }) };
-    
-    this.anims.create({
-      key: 'explode',
-      frames: Array.from({ length: 5 }, (_, i) => ({ key: `exp${i + 1}` })),
-      frameRate: 15,
-      repeat: 0
-    });
+    if (!this.anims.exists('explode')) {
+      this.anims.create({
+        key: 'explode',
+        frames: Array.from({ length: 5 }, (_, i) => ({ key: `exp${i + 1}` })),
+        frameRate: 15,
+        repeat: 0
+      });
+    }
 
-    this.socket.on('sfx', (data) => {
-      if (data.type === 'tankHit') {
-        // Explosion animation
-        const explosion = this.add.sprite(data.x, data.y, 'exp1')
-          .setDepth(30)
-          .play('explode');
-        if (data.playerId === this.socket.id) {
-          explosion.on('animationcomplete', () => {
-            explosion.destroy();
-            this.scene.pause('GameScene');
-            this.scene.launch('PostHitScene', {
-              socket: this.socket,
-              score: data.score,
-              timeAlive: data.timeAlive,
-              powerups: data.powerups,
-              killerName: data.killerName
-            });
-          });
-        } else {
-          explosion.on('animationcomplete', () => explosion.destroy());
-        }
-      }
-
-      const sound = this.sounds[data.type];
-      if (!sound) return;
-      if (!data.x || !data.y || !this.tank) {
-        sound.play();
-        return;
-      }
-      // Modulate sound by dist from this tank
-      const dx = data.x - this.tank.x;
-      const dy = data.y - this.tank.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const maxDist = 600;
-      const volume = Math.max(0, 1 - dist / maxDist);
-      sound.play({ volume });
-    });
-
-    
     this.walls.forEach(w => {
       const sprite = this.add.tileSprite(
         w.x + w.w/2,
@@ -265,118 +210,197 @@ export default class GameScene extends Phaser.Scene {
       }
     })
 
-    // Respawn logic
-    this.socket.on("respawnSuccess", () => {
-      this.tankDead = false;
-    });
-
     // Show scoreboard on gameScene start
     this.socket.emit("getScore");
 
-    // Scoreboard update
-    this.socket.on("scoreUpdate", scores => {
-        this.scoreSlots.forEach(x => {
-          x.setVisible(false);
+    this.events.once('shutdown', () => {
+      this.cleanup();
+    })
+  }
+
+  trackSocket(event, handler) {
+    this.socket.on(event, handler);
+    this.cleanups.push(() => {
+      this.socket.off(event, handler);
+    });
+  }
+
+  cleanup() {
+    console.log(`[GameScene ${this.instanceId}] cleanup`);
+    this.cleanups.forEach(cleanup => cleanup());
+    this.cleanups = [];
+  }
+
+  handleReturnToLobby(data) {
+    this.scene.start('WaitingRoomScene', data);
+  }
+
+  handleUpdatePVE(data) {
+    this.curRound.text = `ROUND ${data.roundNum}`;
+    this.enemiesRem.text = `Enemies: ${data.enemiesRem}`;
+    this.livesRem.text = `Lives Left: ${data.lives}`;
+  }
+
+  handleNewRound(data) {
+    this.roundComplete.setVisible(true);
+    this.nextRound.setVisible(true);
+    this.roundPanel.setVisible(true);
+    this.nextRound.text = `Next Round in: ${Math.floor(data.cooldown / 1000)}`
+  }
+
+  handleStartRound() {
+    this.roundComplete.setVisible(false);
+    this.nextRound.setVisible(false);
+    this.roundPanel.setVisible(false);
+  }
+
+  handleSfx(data) {
+    if (data.type === 'tankHit') {
+      // Explosion animation
+      const explosion = this.add.sprite(data.x, data.y, 'exp1')
+        .setDepth(30)
+        .play('explode');
+      if (data.playerId === this.socket.id) {
+        explosion.on('animationcomplete', () => {
+          explosion.destroy();
+          this.scene.pause('GameScene');
+          this.scene.launch('PostHitScene', {
+            socket: this.socket,
+            score: data.score,
+            timeAlive: data.timeAlive,
+            powerups: data.powerups,
+            killerName: data.killerName
+          });
         });
-        if (this.gameMode === 'PVP') {
-          const blueTotal = scores.filter(p => p.team === CONSTANTS.BLUE_TEAM).reduce((sum, p) => sum + p.score, 0);
-          const redTotal = scores.filter(p => p.team === CONSTANTS.RED_TEAM).reduce((sum, p) => sum + p.score, 0);
-          this.blueScoreText.setText(`BLUE: ${blueTotal}`);
-          this.redScoreText.setText(`RED: ${redTotal}`);
-        }
-
-        for (let i = 0; i < scores.length; i++) {
-          this.scoreSlots[i].setText(`${scores[i].name}: ${scores[i].score}`);
-          if (this.gameMode === 'PVP') {
-            this.scoreSlots[i].setFill(scores[i].team === CONSTANTS.RED_TEAM ? '#ff4d4d' : '#4da6ff');
-          }
-          this.scoreSlots[i].setVisible(true);
-        }
-    });
-
-    this.socket.on('gameState', (state) => {
-      if (!this.tank) return;
-
-
-      state.players.forEach(p => {
-        if (p.playerId === this.socket.id) {
-          this.tank.x = p.x;
-          this.tank.y = p.y;
-          this.tank.rotation = p.rotation;
-          this.tankDead = !p.isAlive;
-          p.isAlive ? this.tank.clearTint() : this.tank.setTint(0x808080);
-        } else {
-            if (!this.otherPlayers[p.playerId]) {
-              this.otherPlayers[p.playerId] = this.add.sprite(p.x, p.y, p.team)
-                .setOrigin(0.5, 0.5);
-            }
-            this.otherPlayers[p.playerId].x = p.x;
-            this.otherPlayers[p.playerId].y = p.y;
-            this.otherPlayers[p.playerId].rotation = p.rotation;
-            p.isAlive 
-              ? this.otherPlayers[p.playerId].clearTint() 
-              : this.otherPlayers[p.playerId].setTint(0x808080);
-          }
-      });
-      
-      // presentTanks gives the players that exist in the gameState sent by the server
-      // we assume that the server correctly creates/destroys entities accordingly
-      const presentTanks = new Set(state.players.map(x => x.playerId));
-      
-      Object.keys(this.otherPlayers).forEach(id => {
-        if (!presentTanks.has(id)) {
-          this.otherPlayers[id].destroy();
-          delete this.otherPlayers[id];
-        }
-      });
-
-
-      // Update bullets — create new, remove destroyed
-      const activeBulletIds = new Set(state.bullets.map(b => b.id));
-      state.bullets.forEach(b => {
-        if (!this.bullets[b.id]) {
-          this.bullets[b.id] = this.add.sprite(b.x, b.y, 'bullet')
-            .setOrigin(0.5, 0.5);
-        }
-        // Update position
-        this.bullets[b.id].x = b.x;
-        this.bullets[b.id].y = b.y;
-        this.bullets[b.id].rotation = Math.atan2(b.vy, b.vx) + Math.PI / 2; // + pi/2 since bullet faces south initially
-      });
-
-      // Remove expired bullets
-      Object.keys(this.bullets).forEach(id => {
-        if (!activeBulletIds.has(Number(id))) {
-          this.bullets[id].destroy();
-          delete this.bullets[id];
-        }
-      });
-    });
-
-    this.socket.on('newPlayer', (playerInfo) => {
-      console.log('New player joined:', playerInfo.playerId);
-      if (this.otherPlayers[playerInfo.playerId]) {
-        this.otherPlayers[playerInfo.playerId].destroy();
+      } else {
+        explosion.on('animationcomplete', () => explosion.destroy());
       }
-      this.otherPlayers[playerInfo.playerId] = this.add.sprite(playerInfo.x, playerInfo.y, playerInfo.team)
-                                                .setOrigin(0.5, 0.5);
-    });
+    }
 
-    this.socket.on('playerDisconnect', (id) => {
-      console.log('Player left:', id);
-      if (this.otherPlayers[id]) {
+    const sound = this.sounds[data.type];
+    if (!sound) return;
+    if (!data.x || !data.y || !this.tank) {
+      sound.play();
+      return;
+    }
+    // Modulate sound by dist from this tank
+    const dx = data.x - this.tank.x;
+    const dy = data.y - this.tank.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const maxDist = 600;
+    const volume = Math.max(0, 1 - dist / maxDist);
+    sound.play({ volume });
+  }
+
+  handleRespawnSuccess() {
+    this.tankDead = false;
+  }
+
+  handleScoreUpdate(scores) {
+    this.scoreSlots.forEach(x => {
+      x.setVisible(false);
+    });
+    if (this.gameMode === 'PVP') {
+      const blueTotal = scores.filter(p => p.team === CONSTANTS.BLUE_TEAM).reduce((sum, p) => sum + p.score, 0);
+      const redTotal = scores.filter(p => p.team === CONSTANTS.RED_TEAM).reduce((sum, p) => sum + p.score, 0);
+      this.blueScoreText.setText(`BLUE: ${blueTotal}`);
+      this.redScoreText.setText(`RED: ${redTotal}`);
+    }
+
+    for (let i = 0; i < scores.length; i++) {
+      this.scoreSlots[i].setText(`${scores[i].name}: ${scores[i].score}`);
+      if (this.gameMode === 'PVP') {
+        this.scoreSlots[i].setFill(scores[i].team === CONSTANTS.RED_TEAM ? '#ff4d4d' : '#4da6ff');
+      }
+      this.scoreSlots[i].setVisible(true);
+    }
+  }
+
+  handleGameState(state) {
+    if (!this.tank) return;
+
+
+    state.players.forEach(p => {
+      if (p.playerId === this.socket.id) {
+        this.tank.x = p.x;
+        this.tank.y = p.y;
+        this.tank.rotation = p.rotation;
+        this.tankDead = !p.isAlive;
+        p.isAlive ? this.tank.clearTint() : this.tank.setTint(0x808080);
+      } else {
+          if (!this.otherPlayers[p.playerId]) {
+            this.otherPlayers[p.playerId] = this.add.sprite(p.x, p.y, p.team)
+              .setOrigin(0.5, 0.5);
+          }
+          this.otherPlayers[p.playerId].x = p.x;
+          this.otherPlayers[p.playerId].y = p.y;
+          this.otherPlayers[p.playerId].rotation = p.rotation;
+          p.isAlive 
+            ? this.otherPlayers[p.playerId].clearTint() 
+            : this.otherPlayers[p.playerId].setTint(0x808080);
+        }
+    });
+    
+    // presentTanks gives the players that exist in the gameState sent by the server
+    // we assume that the server correctly creates/destroys entities accordingly
+    const presentTanks = new Set(state.players.map(x => x.playerId));
+    
+    Object.keys(this.otherPlayers).forEach(id => {
+      if (!presentTanks.has(id)) {
         this.otherPlayers[id].destroy();
         delete this.otherPlayers[id];
       }
     });
 
-    this.socket.on('endGame', (data) => {
-      console.log(`Game ended: ${data.winner} won!`);
-      // off all listeners
-      this.scene.start('EndGameScene', data);
-    })
+
+    // Update bullets - create new, remove destroyed
+    const activeBulletIds = new Set(state.bullets.map(b => b.id));
+    state.bullets.forEach(b => {
+      if (!this.bullets[b.id]) {
+        this.bullets[b.id] = this.add.sprite(b.x, b.y, 'bullet')
+          .setOrigin(0.5, 0.5);
+      }
+      // Update position
+      this.bullets[b.id].x = b.x;
+      this.bullets[b.id].y = b.y;
+      this.bullets[b.id].rotation = Math.atan2(b.vy, b.vx) + Math.PI / 2; // + pi/2 since bullet faces south initially
+    });
+
+    // Remove expired bullets
+    Object.keys(this.bullets).forEach(id => {
+      if (!activeBulletIds.has(Number(id))) {
+        this.bullets[id].destroy();
+        delete this.bullets[id];
+      }
+    });
   }
 
+  handleNewPlayer(playerInfo) {
+    console.log('New player joined:', playerInfo.playerId);
+    if (this.otherPlayers[playerInfo.playerId]) {
+      this.otherPlayers[playerInfo.playerId].destroy();
+    }
+    this.otherPlayers[playerInfo.playerId] = this.add.sprite(playerInfo.x, playerInfo.y, playerInfo.team)
+                                              .setOrigin(0.5, 0.5);
+  }
+
+  handlePlayerDisconnect(id) {
+    console.log('Player left:', id);
+    if (this.otherPlayers[id]) {
+      this.otherPlayers[id].destroy();
+      delete this.otherPlayers[id];
+    }
+  }
+
+  handleEndGame(data) {
+    console.log(`Game ended: ${data.winner} won!`);
+    // off all listeners
+    if (this.scene.isActive('PostHitScene')) {
+        this.scene.stop('PostHitScene');
+    }
+    this.scene.start('EndGameScene', data);
+  }
+  
   update() {
     if (!this.tank) return;
 
@@ -395,18 +419,4 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
-  // This happens every time we transition away and weird things happen
-  shutdown() {
-    if (!this.socket) return;
-    this.socket.off('updatePVE');
-    this.socket.off('newRound');
-    this.socket.off('startRound');
-    this.socket.off('sfx');
-    this.socket.off('respawnSuccess');
-    this.socket.off('scoreUpdate');
-    this.socket.off('gameState');
-    this.socket.off('newPlayer');
-    this.socket.off('playerDisconnect');
-    this.socket.off('endGame');
-  }
 }

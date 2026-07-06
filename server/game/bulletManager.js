@@ -14,16 +14,13 @@ const {
   CATEGORY_BOUNDARY
 } = CONSTANTS;
 
-function createBullet(player, room, stats, angleOffset) {
-  const angle = player.body.angle + angleOffset + Math.PI / 2;
-  const spawnX = player.body.position.x + Math.cos(angle) * 40;
-  const spawnY = player.body.position.y + Math.sin(angle) * 40; 
-
+function spawnBullet(room, x, y, angle, stats, ownerId) {
+  const spawnX = x + Math.cos(angle) * 40;
+  const spawnY = y + Math.sin(angle) * 40; 
   var collisions =  CATEGORY_WALL | CATEGORY_TANK | CATEGORY_BOUNDARY;
   if (stats.bulletPhase) {
     collisions = CATEGORY_TANK | CATEGORY_BOUNDARY;
   }
-
   const body = Matter.Bodies.circle(spawnX, spawnY, BULLET_RADIUS, {
     frictionAir: 0,
     friction: 0,
@@ -35,8 +32,7 @@ function createBullet(player, room, stats, angleOffset) {
       mask: collisions
     }
   });
-
-  // Set initial velocity
+    // Set initial velocity
   Matter.Body.setVelocity(body, {
     x: Math.cos(angle) * BULLET_SPEED * TICK_DELTA * stats.bulletVelo,
     y: Math.sin(angle) * BULLET_SPEED * TICK_DELTA * stats.bulletVelo,
@@ -46,7 +42,7 @@ function createBullet(player, room, stats, angleOffset) {
 
   const bullet = {
     id: room.bulletIdCounter++,
-    ownerId: player.playerId,
+    ownerId: ownerId,
     body,
     bounces: 0,
     createdAt: Date.now(),
@@ -57,6 +53,14 @@ function createBullet(player, room, stats, angleOffset) {
   return bullet;
 }
 
+function createBullet(player, room, stats, angleOffset) {
+  const angle = player.body.angle + angleOffset + Math.PI / 2;
+  const spawnX = player.body.position.x;
+  const spawnY = player.body.position.y;
+
+  return spawnBullet(room, spawnX, spawnY, angle, stats, player.playerId);
+}
+
 function destroyBullet(id, room) {
   if (!room.bullets[id]) return;
   Matter.Composite.remove(room.world, room.bullets[id].body);
@@ -65,5 +69,6 @@ function destroyBullet(id, room) {
 
 module.exports = {
   createBullet,
-  destroyBullet
+  destroyBullet,
+  spawnBullet
 };

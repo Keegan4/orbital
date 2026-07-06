@@ -18,6 +18,9 @@ export default class GameScene extends Phaser.Scene {
     this.load.image('red', 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_red.png');
     this.load.image('black', 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_dark.png');
     this.load.image('bullet', 'assets/kenney_topdownTanksRedux/PNG/Default size/bulletRed2.png');
+    this.load.image("green", 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_green.png');
+    this.load.image("bigRed", 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_bigRed.png');
+    this.load.image("sand", 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_sand.png');
     this.load.svg("background", "assets/tank_background.svg");
     this.load.svg("wall-tile", "assets/wall_tile.svg");
 
@@ -154,7 +157,7 @@ export default class GameScene extends Phaser.Scene {
       this.roundPanel.fillStyle(0x000000, 0.75);
       this.roundPanel.fillRoundedRect(220, 245, 359, 90, 12);
 
-      this.roundComplete = this.add.text(400, 250, 'ROUND COMPLETE!', {
+      this.roundComplete = this.add.text(400, 250, 'ROUND COMPLETE', {
         fontFamily: 'Arial Black',
         fontSize: '32px',
         fontStyle: 'bold',

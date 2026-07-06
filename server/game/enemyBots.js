@@ -23,20 +23,67 @@ const { Composite, Engine } = require('matter-js');
 var lastTarget = 0;
 var botNum = 0;
 
+// We just gonna stamp these attributes onto the different bots
+const botTypes = {
+  chaser: {
+    speedUps: 0, 
+    turnBoost: 0,
+    bulletLife: 0,
+    debuf: true,
+    canShoot: true, 
+    contactDamage: false, 
+    explode: false,
+    color: "black"
+  },
+  berserker: {
+    speedUps: 6, 
+    turnBoost: 3,
+    bulletLife: 0,
+    debuf: true,
+    canShoot: false, 
+    contactDamage: true, 
+    explode: false,
+    color: "sand"
+  },
+
+  exploder: {
+    speedUps: -8, 
+    turnBoost: 0,
+    bulletLife: -10,
+    debuf: true,
+    canShoot: false, 
+    contactDamage: true, 
+    explode: true,
+    color: "green"
+  },
+
+  downgrader: {
+    speedUps: 0, 
+    turnBoost: 0,
+    bulletLife: 0,
+    canShoot: true, 
+    debuf: true,
+    contactDamage: false, 
+    explode: false,
+    color: "bigRed"
+  },
+}
+
 // AI Bot creation, we will cheat and use the createPlayer
 
-function createBot(room) {
+function createBot(room, type) {
   const BotID = `BOT-${Date.now()}`;
 
   var bot = createPlayer(BotID, room);
 
 
-  bot.team = ENEMY_TEAM;
+  bot.team = type.color;
 
   //Bot specific attributes
   bot.path = null;
   bot.pathIdx = 0;
   bot.target = null;
+  bot.botType = type;
 
   reqPath(bot, pixelToTile({ x: Math.floor(Math.random() * 700) + 50, y: Math.floor(Math.random() * 500) + 50 }));
 
@@ -273,5 +320,6 @@ module.exports = { createBot,
   calculatePaths,
   tankSighted,
   botFacing,
-  closestValid
+  closestValid,
+  botTypes
 };

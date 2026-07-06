@@ -1,3 +1,4 @@
+const {GAME_WIDTH, GAME_HEIGHT, WALL_THICKNESS} = CONSTANTS;
 export default class LobbyMenuScene extends Phaser.Scene {
   constructor() {
     super({ key: 'LobbyMenuScene' });
@@ -6,116 +7,106 @@ export default class LobbyMenuScene extends Phaser.Scene {
   preload() {
     this.load.audio('click', 'assets/click_003.ogg');
     this.load.audio('tick', 'assets/tick_001.ogg');
-    this.load.audio('error', 'assets/error_008.ogg')
+    this.load.audio('error', 'assets/error_008.ogg');
+    this.load.svg("bg", 'assets/lobby_cartoon.svg');
+
   }
 
   create() {
     this.socket = this.registry.get('socket');
+    function makeButton(scene, x, y, label, bgColor, onClick) {
+      const w = 240, h = 64, r = 16;
+      const con = scene.add.graphics();
+
+      con.fillStyle(0x141a2b, 1);
+      con.fillRoundedRect(-w/2-4, -h/2-4, w+8, h+8, r+2);
+      con.fillStyle(bgColor, 1);
+      con.fillRoundedRect(-w/2, -h/2, w, h, r);
+
+      const txt = scene.add.text(0, 0, label, {
+        fontFamily: 'Fredoka', 
+        fontSize: '26px', 
+        fontStyle: '700', 
+        color: '#ffffff',
+        resolution: 2
+      }).setOrigin(0.5);
+
+      const btn = scene.add.container(x, y, [con, txt]);
+      btn.setSize(w, h).setInteractive({ useHandCursor: true });
+      btn.on('pointerover', () => scene.tweens.add({ targets: btn, scale: 1.06, duration: 120, ease: 'Back.easeOut' }));
+      btn.on('pointerout',  () => scene.tweens.add({ targets: btn, scale: 1.0,  duration: 100 }));
+      btn.on('pointerdown', () => { btn.setScale(0.96); scene.sound.play('click'); });
+      btn.on('pointerup',   () => { btn.setScale(1.06); onClick(); });
+      return btn;
+    }
+    const createText = () => {
+
+      const cx = GAME_WIDTH / 2;
+      const cy = GAME_HEIGHT / 2;
+      
+      this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, "bg").setOrigin(0.5, 0.5);
+      this.add.text(GAME_WIDTH / 2, 55, 'TANKS EVOLVED LOBBY', {
+        fontFamily: 'Fredoka',
+        fontSize: '40px',
+        fontStyle: '700',
+        color: '#ffffff',
+        stroke: '#141a2b',     
+        strokeThickness: 5,
+        resolution: 2
+      }).setOrigin(0.5).setShadow(0, 4, '#0d1220', 0, false, true);
+      
+      
+
+      // Error placeholder
+      this.errorText = this.add.text(400, 450, '', { fontSize: '18px', fill: '#ff0000' }).setOrigin(0.5);
+
+      // Button for create room
+      makeButton(this, cx, 180, 'Create Room', 0x4caf50, () => this.socket.emit('createRoom'));
+
+      // Join room textbox
+      this.add.text(cx, 260, 'Enter Room Code (6 characters):', { 
+        fontFamily: 'Fredoka, sans-serif',
+        fontSize: '18px', 
+        fill: '#fff',
+        resolution: 2
+      }).setOrigin(0.5);
+      this.roomInput = this.add.dom(cx - 10, 300, 'input', {
+        fontFamily: 'Fredoka, sans-serif',
+        fontSize: '20px',
+        width: '180px',
+        textAlign: 'center',
+        padding: '10px',
+        border: '4px solid #141a2b',
+        borderRadius: '14px',
+        background: '#eaf4ff',
+        outline: 'none',
+        resolution: 2
+      });
+      this.roomInput.node.maxLength = 6;
+      this.roomInput.node.placeholder = 'Room code';
+      this.roomInput.node.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            const roomCode = this.roomInput.node.value.trim().toUpperCase();
+            if (roomCode) {
+                this.socket.emit('joinRoom', { code: roomCode });
+            } else {
+                this.showError({ message: 'Please enter a room code' });
+            }
+            this.roomInput.node.blur();
+        }
+      })
+      // Join room button
+      makeButton(this, cx, 400, 'Join Room',   0x3aa0d8, () => {
+        const code = this.roomInput.node.value.trim().toUpperCase();
+        if (code) this.socket.emit('joinRoom', { code });
+        else this.showError({ message: 'Please enter a room code' });
+      });
+    };
+
 
     // Title
-    this.add.text(400, 100, 'TANKS EVOLVED LOBBY', { fontSize: '32px', fill: '#fff' }).setOrigin(0.5);
-
-    // Error placeholder
-    this.errorText = this.add.text(400, 450, '', { fontSize: '18px', fill: '#ff0000' }).setOrigin(0.5);
-
-    // Button for create room
-    const createBtn = this.add.text(400, 200, '[ Create Room ]', { fontSize: '24px', fill: '#0f0' })
-            .setOrigin(0.5)
-            .setInteractive({ useHandCursor: true });
-
-    createBtn.on('pointerover', () => {
-      this.tweens.add({
-          targets: createBtn,
-          scale: 1.1,
-          duration: 120,
-          ease: 'Back.easeOut',
-          onStart: () => createBtn.setTint(0x88ff88)
-      });
-    });
-
-    createBtn.on('pointerout', () => {
-      this.tweens.add({
-          targets: createBtn,
-          scale: 1.0,
-          duration: 100,
-          ease: 'Power1',
-          onStart: () => createBtn.clearTint()
-      });
-    });
-
-    createBtn.on('pointerdown', () => {
-      createBtn.setScale(0.95);
-      createBtn.setTint(0x00aa00);
-      this.sound.play('click');
-    });
-
-    createBtn.on('pointerup', () => {
-      createBtn.setScale(1.1);
-      createBtn.setTint(0x88ff88);
-      this.socket.emit('createRoom');
-    });
-
-    // Join room textbox
-    this.add.text(400, 280, 'Enter Room Code(6 characters):', { fontSize: '18px', fill: '#fff' }).setOrigin(0.5);
-    this.roomInput = this.add.dom(400, 320, 'input', {
-            type: 'text',
-            style: 'font-size: 20px; width: 150px; text-align: center; padding: 5px;'
-        });
-    this.roomInput.node.maxLength = 6;
-    this.roomInput.node.placeholder = 'Room code';
-    this.roomInput.node.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') {
-          const roomCode = this.roomInput.node.value.trim().toUpperCase();
-          if (roomCode) {
-              this.socket.emit('joinRoom', { code: roomCode });
-          } else {
-              this.showError({ message: 'Please enter a room code' });
-          }
-          this.roomInput.node.blur();
-      }
-    })
-
-    // Join room button
-    const joinBtn = this.add.text(400, 380, '[ Join Room ]', { fontSize: '24px', fill: '#0cf' })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
-
-    joinBtn.on('pointerover', () => {
-      this.tweens.add({
-          targets: joinBtn,
-          scale: 1.1,
-          duration: 120,
-          ease: 'Back.easeOut',
-          onStart: () => joinBtn.setTint(0x88ffff)
-      });
-    });
-
-    joinBtn.on('pointerout', () => {
-      this.tweens.add({
-          targets: joinBtn,
-          scale: 1.0,
-          duration: 100,
-          ease: 'Power1',
-          onStart: () => joinBtn.clearTint()
-      });
-    });
-
-    joinBtn.on('pointerdown', () => {
-      joinBtn.setScale(0.95);
-      joinBtn.setTint(0x0088cc);
-      this.sound.play('click');
-    });
-
-    joinBtn.on('pointerup', () => {
-      this.sound.play('click');
-      joinBtn.setScale(1.1);
-      joinBtn.setTint(0x88ffff);
-      const code = this.roomInput.node.value.trim().toUpperCase();
-      if (code) {
-        this.socket.emit('joinRoom', { code: code });
-      } else {
-          this.showError({ message: 'Please enter a room code' });
-      }
+    document.fonts.load('700 40px "Fredoka"').then(() => {
+      createText(this);  
     });
 
     // Event listeners

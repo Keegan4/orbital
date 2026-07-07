@@ -1,3 +1,4 @@
+const {GAME_WIDTH, GAME_HEIGHT, WALL_THICKNESS} = CONSTANTS;
 export default class WaitingRoomScene extends Phaser.Scene {
   constructor() {
     super({ key: 'WaitingRoomScene' });
@@ -10,6 +11,7 @@ export default class WaitingRoomScene extends Phaser.Scene {
   }
 
   preload() {
+    this.load.svg("backg", 'assets/versus_bg.svg');
 
   }
 
@@ -23,6 +25,7 @@ export default class WaitingRoomScene extends Phaser.Scene {
   	this.selectedRounds = this.gameConfig.current.round;
 
     this.cleanups = [];
+    this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, "backg").setOrigin(0.5, 0.5);
 
     
     this.instanceId = Math.random().toString(36).slice(2, 7);
@@ -100,16 +103,32 @@ export default class WaitingRoomScene extends Phaser.Scene {
     target.on('pointerout', () => this.tweens.add({ targets: target, scale: 1.0, duration: 100 }));
   }
 
-  createRoomCodeText(x = 400, y = 50) {
+  createRoomCodeText(x = 480, y = 50) {
+    this.roomCodeText = makeButton(this, x, y, `ROOM CODE: ${this.roomCode}`, '#ffff00', () => {
+      this.sound.play('click');
+      const rawCode = this.roomCode; 
+      navigator.clipboard.writeText(rawCode)
+        .then(() => {
+          hintText.setText('Copied to Clipboard!');
+        })
+        .catch(err => {
+          hintText.setText('Failed to copy');
+          console.error('Clipboard error:', err);
+        });
+    }, 280);
+    /*
     this.roomCodeText = this.add.text(x, y, `ROOM CODE: ${this.roomCode}`, { 
       fontSize: '36px', 
-      fill: '#ffff00'
+      fill: '#ffff00',
+      fontFamily: 'Fredoka', resolution: 2,
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    */
 
     const hintText = this.add.text(x, y - 36, 'Click to copy code', { 
         fontSize: '14px', 
         fill: '#ffffff',
         backgroundColor: '#222222',
+        fontFamily: 'Fredoka', resolution: 2,
         padding: { x: 8, y: 4 }
     }).setOrigin(0.5);
 
@@ -139,7 +158,8 @@ export default class WaitingRoomScene extends Phaser.Scene {
       });
       this.tweens.add({ targets: this.roomCodeText, scale: 1.0, duration: 100 });
     });
-
+  }
+    /*
     this.roomCodeText.on('pointerdown', () => {
       this.sound.play('click');
       const rawCode = this.roomCode; 
@@ -152,7 +172,7 @@ export default class WaitingRoomScene extends Phaser.Scene {
           console.error('Clipboard error:', err);
         });
     });
-  }
+  } */
 
   createLeaveButton(x = 730, y = 30) {
     this.leaveBtn = this.add.text(x, y, 'LEAVE', { 
@@ -161,6 +181,7 @@ export default class WaitingRoomScene extends Phaser.Scene {
 			fontStyle: 'bold',
 			backgroundColor: '#772222', 
 			padding: { x: 12, y: 8 },
+      fontFamily: 'Fredoka', resolution: 2,
 			shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 4, fill: true }
 		})
 		.setOrigin(0.5)
@@ -183,25 +204,34 @@ export default class WaitingRoomScene extends Phaser.Scene {
 		});
   }
 
-  createSetNameButton(x = 400, y = 90) {
+  createSetNameButton(x = 220, y = 50) {
     // Set name button to container screen
-    const setNameButton = this.add.text(x, y, 'Set Name')
-        .setOrigin(0.5)
+    const setNameButton = makeButton(this, x, y, "Set Name", 0x4caf50, () => {
+      setNameContainer.setVisible(true);
+      setNameButton.setVisible(false);
+      setTimeout(() => { inputNode.focus(); }, 10); 
+    }, 180, 50)
+    /*
+    this.add.text(x, y, 'Set Name', {
+      fontFamily: 'Fredoka', resolution: 2,
+      }).setOrigin(0.5)
         .setInteractive({ useHandCursor: true });
+        */
     const setNameContainer = this.add.container(400, 300);
     const clickBlocker = this.add.rectangle(0, 0, 800, 600, 0x000000, 0).setInteractive(); // blocks entire screen
     const setNameBackground = this.add.rectangle(0, 0, 650, 450, 0x111111, 0.95);
     setNameBackground.setStrokeStyle(1, 0x4a4a4a);
     this.addButtonHover(setNameButton);
-    const setNameTitle = this.add.text(0, -80, 'Type Name(max 16 characters) & Press Enter:', {
+    const setNameTitle = this.add.text(0, -80, 'Type Name (max 16 characters) & Press Enter:', {
         fontSize: '20px', 
-        fill: '#cccccc' 
+        fill: '#cccccc',
+        fontFamily: 'Fredoka', resolution: 2, 
     }).setOrigin(0.5);
 
     const setNameInputHtml = `
-      <input type="text" id="lobbyNameInput" 
-      style="font-size: 20px; width: 160px; text-align: center; padding: 5px; border-radius: 4px; border: none;" />
-    `;
+      <input type="text" id="lobbyNameInput"
+      style="font-family: 'Fredoka', sans-serif; font-size: 20px; width: 160px; text-align: center; 
+      padding: 5px; border-radius: 4px; border: none;" />`;
     this.nameInput = this.add.dom(0, -10).createFromHTML(setNameInputHtml);
 
     const inputNode = this.nameInput.getChildByID('lobbyNameInput');
@@ -211,7 +241,9 @@ export default class WaitingRoomScene extends Phaser.Scene {
 
     const setNameSubmitButton = this.add.text(0, 60, '[ SUBMIT ]', {
         fontSize: '22px',
-        fill: '#ff9f43'
+        fill: '#ff9f43',
+        fontFamily: 'Fredoka', 
+        resolution: 2
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
     setNameContainer.add([clickBlocker, setNameBackground, setNameTitle, this.nameInput, setNameSubmitButton]);
     setNameContainer.setDepth(100);
@@ -251,11 +283,13 @@ export default class WaitingRoomScene extends Phaser.Scene {
 
   createGameModeSelector(x = 400, y = 130) {
     // Gamemode selection button
+
   	this.modeSelectButton = this.add.text(x, y, '[ MODE: CHOOSE GAME MODE ]', {
   		fontSize: '22px',
   		fill: '#888888',
   		backgroundColor: '#111111',
-  		padding: 8
+  		padding: 8,
+      fontFamily: 'Fredoka', resolution: 2,
   	}).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
   	const modeContainer = this.add.container(400, 300);
@@ -265,29 +299,29 @@ export default class WaitingRoomScene extends Phaser.Scene {
   	const modeBg = this.add.rectangle(0, 0, 650, 450, 0x111111, 0.95);
   	modeBg.setStrokeStyle(1, 0x4a4a4a);
 
-  	const modeTitle = this.add.text(0, -180, 'CONFIG GAME SETUP', { fontSize: '24px', fill: '#ffffff' }).setOrigin(0.5);
+  	const modeTitle = this.add.text(0, -180, 'CONFIG GAME SETUP', { fontSize: '24px', fill: '#ffffff', fontFamily: 'Fredoka', resolution: 2,}).setOrigin(0.5);
 
     // Left PVE side
-  	const pveTitle = this.add.text(-160, -110, 'PVE', { fontSize: '20px', fill: '#cccccc' }).setOrigin(0.5);
-  	const pveSubTitle = this.add.text(-160, -50, 'Select Difficulty:', { fontSize: '15px', fill: '#888888' }).setOrigin(0.5);
+  	const pveTitle = this.add.text(-160, -110, 'PVE', { fontSize: '20px', fill: '#cccccc', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5);
+  	const pveSubTitle = this.add.text(-160, -50, 'Select Difficulty:', { fontSize: '15px', fill: '#888888', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5);
 
   	// Difficulty choice buttons
-  	const btnEasy = this.add.text(-250, 10, '[ EASY ]', { fontSize: '16px', fill: '#888888' }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-  	const btnMed  = this.add.text(-160, 10, '[ MEDIUM ]',  { fontSize: '16px', fill: '#888888' }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-  	const btnHard = this.add.text(-70, 10, '[ HARD ]', { fontSize: '16px', fill: '#888888' }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+  	const btnEasy = this.add.text(-250, 10, '[ EASY ]', { fontSize: '16px', fill: '#888888', fontFamily: 'Fredoka', resolution: 2,}).setOrigin(0.5).setInteractive({ useHandCursor: true });
+  	const btnMed  = this.add.text(-160, 10, '[ MEDIUM ]',  { fontSize: '16px', fill: '#888888', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+  	const btnHard = this.add.text(-70, 10, '[ HARD ]', { fontSize: '16px', fill: '#888888', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
     // Right PVP side
-  	const pvpTitle = this.add.text(160, -110, 'PVP', { fontSize: '20px', fill: '#cccccc' }).setOrigin(0.5);
-  	const pvpSubTitle = this.add.text(160, -50, 'Select Rounds:', { fontSize: '15px', fill: '#888888' }).setOrigin(0.5);
+  	const pvpTitle = this.add.text(160, -110, 'PVP', { fontSize: '20px', fill: '#cccccc', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5);
+  	const pvpSubTitle = this.add.text(160, -50, 'Select Rounds:', { fontSize: '15px', fill: '#888888', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5);
 
   	// Round choice buttons
-  	const btnRnd5  = this.add.text(70, 10, '[ 5 ]',  { fontSize: '16px', fill: '#888888' }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-  	const btnRnd10 = this.add.text(160, 10, '[ 10 ]', { fontSize: '16px', fill: '#888888' }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-  	const btnRnd15 = this.add.text(250, 10, '[ 15 ]', { fontSize: '16px', fill: '#888888' }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+  	const btnRnd5  = this.add.text(70, 10, '[ 5 ]',  { fontSize: '16px', fill: '#888888', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+  	const btnRnd10 = this.add.text(160, 10, '[ 10 ]', { fontSize: '16px', fill: '#888888', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+  	const btnRnd15 = this.add.text(250, 10, '[ 15 ]', { fontSize: '16px', fill: '#888888', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
     // Bottom confirm button
   	const btnConfirm = this.add.text(0, 160, 'CONFIRM SELECTION', {
-  		fontSize: '22px', fill: '#888888', padding: 8
+  		fontSize: '22px', fill: '#888888', padding: 8, fontFamily: 'Fredoka', resolution: 2,
   	}).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
   	modeContainer.add([
@@ -401,7 +435,8 @@ export default class WaitingRoomScene extends Phaser.Scene {
       fontSize: '20px', 
       fill: '#000000', 
       backgroundColor: '#ffcc00',
-      padding: { x: 15, y: 8 }
+      padding: { x: 15, y: 8 },
+      fontFamily: 'Fredoka', resolution: 2,
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
     this.addButtonHover(this.readyBtn);
@@ -436,12 +471,13 @@ export default class WaitingRoomScene extends Phaser.Scene {
   	const width = 650;
   	const height = 400;
 
-  	const bg = this.add.rectangle(0, 0, width, height, 0x000000, 1);
+  	//const bg = this.add.rectangle(0, 0, width, height, 0x000000, 1);
   	const divider = this.add.rectangle(0, 0, 2, height - 40, 0xCCCCCC, 1);
-  	const playerHeader = this.add.text(-160, -160, 'PLAYERS', { fontSize: '20px', fontWeight: 'bold' }).setOrigin(0.5);
-  	const enemyHeader = this.add.text(160, -160, 'ENEMY', { fontSize: '20px', fontWeight: 'bold' }).setOrigin(0.5);
+  	const playerHeader = this.add.text(-160, -160, 'PLAYERS', { fontSize: '20px', fontWeight: 'bold', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5);
+  	const enemyHeader = this.add.text(160, -160, 'ENEMY', { fontSize: '20px', fontWeight: 'bold', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5);
 
-  	this.pvePlayerList.add([bg, divider, playerHeader, enemyHeader]);
+  	//this.pvePlayerList.add([bg, divider, playerHeader, enemyHeader]);
+  	this.pvePlayerList.add([divider, playerHeader, enemyHeader]);
 
   	// Array for player slots
   	this.pveSlots = [];
@@ -453,19 +489,19 @@ export default class WaitingRoomScene extends Phaser.Scene {
   		const slotY = startY + (i * spacingY);
 
   		// Placeholders for each slot
-  		const slotBg = this.add.rectangle(-160, slotY, 260, 45, 0xEEEEEE, 1).setOrigin(0.5);
-  		const emptyTxt = this.add.text(-160, slotY, '[ Open Slot ]', { fontSize: '14px', fill: '#BBBBBB', fontStyle: 'italic' }).setOrigin(0.5);
-  		const slotText = this.add.text(-280, slotY, '', { fontSize: '16px', fill: '#333333' }).setOrigin(0, 0.5);
-  		const slotStatus = this.add.text(-50, slotY, '', { fontSize: '14px' }).setOrigin(1, 0.5);
+  		const slotBg = this.add.rectangle(-160, slotY, 260, 45, 0x141a2b, 0.55).setOrigin(0.5).setStrokeStyle(3, 0x141a2b, 1); ;
+  		const emptyTxt = this.add.text(-160, slotY, '[ Open Slot ]', { fontSize: '14px', fill: '#BBBBBB', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5);
+  		const slotText = this.add.text(-280, slotY, '', { fontSize: '16px', fill: '#fff',fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0, 0.5);
+  		const slotStatus = this.add.text(-50, slotY, '', { fontSize: '14px', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(1, 0.5);
 
   		this.pvePlayerList.add([slotBg, emptyTxt, slotText, slotStatus]);
   		this.pveSlots.push({ slotBg, emptyTxt, slotText, slotStatus });
   	}
 
   	const enemyBg = this.add.rectangle(160, 0, 260, 220, 0xF9F2F2, 1).setOrigin(0.5).setStrokeStyle(2, 0xFF4444, 0.5);
-  	const enemyText = this.add.text(160, -40, 'AI BOT', { fontSize: '22px', fill: '#ff4444', fontWeight: 'bold' }).setOrigin(0.5);
+  	const enemyText = this.add.text(160, -40, 'AI BOT', { fontSize: '22px', fill: '#ff4444', fontWeight: 'bold', fontFamily: 'Fredoka', resolution: 2,}).setOrigin(0.5);
   
-  	this.enemySubtext = this.add.text(160, 10, `Mode: ${this.selectedDifficulty.toUpperCase()}`, { fontSize: '14px', fill: '#666666' }).setOrigin(0.5);
+  	this.enemySubtext = this.add.text(160, 10, `Mode: ${this.selectedDifficulty.toUpperCase()}`, { fontSize: '14px', fill: '#666666', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5);
   
   	this.pvePlayerList.add([enemyBg, enemyText, this.enemySubtext]);
   }
@@ -476,12 +512,13 @@ export default class WaitingRoomScene extends Phaser.Scene {
   	const width = 800;
   	const height = 400;
 
-  	const bg = this.add.rectangle(0, 0, width, height, 0x000000, 1);
+  	//const bg = this.add.rectangle(0, 0, width, height, 0x000000, 1);
   	const divider = this.add.rectangle(0, 0, 2, height - 40, 0xCCCCCC, 1);
-  	const redHeader = this.add.text(-200, -160, 'RED TEAM', { fontSize: '20px', fill: '#ff4444', fontWeight: 'bold' }).setOrigin(0.5);
-  	const blueHeader = this.add.text(200, -160, 'BLUE TEAM', { fontSize: '20px', fill: '#4444ff', fontWeight: 'bold' }).setOrigin(0.5);
+  	const redHeader = this.add.text(-200, -160, 'RED TEAM', { fontSize: '20px', fill: '#ff5a52', fontWeight: 'bold', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5);
+  	const blueHeader = this.add.text(200, -160, 'BLUE TEAM', { fontSize: '20px', fill: '#0004f9', fontWeight: 'bold', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5);
 
-  	this.pvpPlayerList.add([bg, divider, redHeader, blueHeader]);
+  	//this.pvpPlayerList.add([bg, divider, redHeader, blueHeader]);
+  	this.pvpPlayerList.add([divider, redHeader, blueHeader]);
 
   	// Array for player slots
   	this.redSlots = [];
@@ -510,24 +547,27 @@ export default class WaitingRoomScene extends Phaser.Scene {
     const leftEdge = xOffset - halfWidth;
     const rightEdge = xOffset + halfWidth;
 
-  	const rowBg = this.add.rectangle(xOffset, y, slotWidth, 45, bgColor, 1).setOrigin(0.5);
-  	const emptyBg = this.add.rectangle(xOffset, y, slotWidth, 45, 0xFBFBFB, 1).setOrigin(0.5).setStrokeStyle(1, 0xDDDDDD, 0.5);
-  	const emptyTxt = this.add.text(xOffset, y, '[ Empty Slot ]', { fontSize: '14px', fill: '#BBBBBB', fontStyle: 'italic' }).setOrigin(0.5);
+  	const rowBg = this.add.rectangle(xOffset, y, slotWidth, 45, 0x141a2b, 0.55).setOrigin(0.5).setStrokeStyle(3, 0x141a2b, 1); 
+  	const emptyBg = this.add.rectangle(xOffset, y, slotWidth, 45, 0x141a2b, 0.55).setOrigin(0.5).setStrokeStyle(3, 0x141a2b, 1); 
+  	const emptyTxt = this.add.text(xOffset, y, '[ Empty Slot ]', { fontSize: '14px', fill: '#BBBBBB', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5);
   
-    const hostIcon = this.add.text(leftEdge + 15, y, '[ 👑 ]', { fill: '#000000'}).setOrigin(0, 0.5).setVisible(false);
+    const hostIcon = this.add.text(leftEdge + 15, y, '[ 👑 ]', { fill: '#000000', fontFamily: 'Fredoka', resolution: 2,}).setOrigin(0, 0.5).setVisible(false);
   	const nameTxt = this.add.text(xOffset - 10, y, '', { 
       fontSize: '14px', 
-      fill: '#333333',
-      fontWeight: 'bold'
+      fill: '#ffffff',
+      fontWeight: 'bold',
+      fontFamily: 'Fredoka', resolution: 2,
     }).setOrigin(0.5, 0.5);
     const statusTxt = this.add.text(rightEdge - 50, y, '', { 
       fontSize: '12px',
-      fontWeight: 'bold'
+      fontWeight: 'bold',
+      fontFamily: 'Fredoka', resolution: 2,
     }).setOrigin(1, 0.5);
     const switchBtn = this.add.text(rightEdge - 15, y, buttonText, { 
       fontSize: '16px', 
       fill: '#333333',
-      padding: { x: 5, y: 4 } 
+      padding: { x: 5, y: 4 },
+      fontFamily: 'Fredoka', resolution: 2,
     }).setOrigin(1, 0.5);
     
   	this.pvpPlayerList.add([rowBg, emptyBg, emptyTxt, hostIcon, nameTxt, statusTxt, switchBtn]);
@@ -596,11 +636,13 @@ export default class WaitingRoomScene extends Phaser.Scene {
       fontSize: '96px',
       fill: '#ff3333',
       fontStyle: 'bold',
+      fontFamily: 'Fredoka', resolution: 2,
     }).setOrigin(0.5);
     const countDownLabel = this.add.text(0, -100, 'GAME STARTING IN', {
       fontSize: '24px',
       fill: '#ffffff',
       fontStyle: 'bold',
+      fontFamily: 'Fredoka', resolution: 2,
     }).setOrigin(0.5);
     this.countDownContainer.add([countDownBg, countDownLabel, this.countDownText]);
   }

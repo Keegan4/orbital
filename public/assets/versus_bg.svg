@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid slice">
+  <!--
+    TANKS EVOLVED ~ Kaigan  |  Versus / battle background  |  CARTOON style
+    Two chunky tanks face off head-to-head across the center, barrels pointed at
+    each other, bullets flying, comic clash burst in the middle.
+    Sky/upper-center kept clearer for a title or "VS" overlay.
+  -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0"    stop-color="#6fc7f2"/>
+      <stop offset="0.6"  stop-color="#8fd6f5"/>
+      <stop offset="1"    stop-color="#bfeaf7"/>
+    </linearGradient>
+    <linearGradient id="hillFront" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7ec24a"/><stop offset="1" stop-color="#5da336"/>
+    </linearGradient>
+    <linearGradient id="hillBack" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a4d76a"/><stop offset="1" stop-color="#88c650"/>
+    </linearGradient>
+    <radialGradient id="clash" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff2b0"/>
+      <stop offset="0.5" stop-color="#ffcf3f"/>
+      <stop offset="1" stop-color="#ff8a3a"/>
+    </radialGradient>
+
+    <!-- Chunky cartoon tank, faces UP by default; recolor via parent group fill -->
+    <g id="ctank">
+      <ellipse cx="0" cy="46" rx="60" ry="14" fill="#000" opacity="0.15"/>
+      <rect x="-56" y="-6" width="112" height="52" rx="18" fill="#3a3f45" stroke="#20242a" stroke-width="6"/>
+      <g fill="#20242a">
+        <rect x="-46" y="6" width="10" height="34" rx="3"/><rect x="-28" y="6" width="10" height="34" rx="3"/>
+        <rect x="-10" y="6" width="10" height="34" rx="3"/><rect x="8" y="6" width="10" height="34" rx="3"/>
+        <rect x="26" y="6" width="10" height="34" rx="3"/><rect x="40" y="6" width="10" height="34" rx="3"/>
+      </g>
+      <rect x="-44" y="-34" width="88" height="46" rx="16" class="body" stroke="#20242a" stroke-width="6"/>
+      <circle cx="0" cy="-14" r="26" class="body" stroke="#20242a" stroke-width="6"/>
+      <rect x="-9" y="-72" width="18" height="46" rx="8" class="body" stroke="#20242a" stroke-width="6"/>
+      <circle cx="-9" cy="-22" r="6" fill="#fff" opacity="0.65"/>
+    </g>
+
+    <g id="cloud">
+      <g fill="#ffffff" stroke="#dcefff" stroke-width="4">
+        <circle cx="0" cy="0" r="26"/><circle cx="30" cy="-8" r="32"/><circle cx="64" cy="2" r="24"/>
+        <rect x="-6" y="8" width="80" height="24" rx="12" stroke="none"/>
+      </g>
+    </g>
+
+    <g id="pow">
+      <circle r="11" fill="#ffd24a" stroke="#20242a" stroke-width="4"/>
+    </g>
+  </defs>
+
+  <!-- sky -->
+  <rect width="1280" height="720" fill="url(#sky)"/>
+
+  <!-- clouds high up, out of the way -->
+  <use href="#cloud" transform="translate(180,90) scale(0.9)"/>
+  <use href="#cloud" transform="translate(1030,110) scale(0.85)"/>
+  <use href="#cloud" transform="translate(640,60) scale(0.7)"/>
+
+  <!-- hills -->
+  <path d="M0,540 Q320,460 640,525 T1280,505 L1280,720 L0,720 Z" fill="url(#hillBack)" stroke="#6fae42" stroke-width="6"/>
+  <path d="M0,610 Q360,535 700,600 T1280,590 L1280,720 L0,720 Z" fill="url(#hillFront)" stroke="#4e9130" stroke-width="6"/>
+  <g fill="#6fb43e" opacity="0.7">
+    <circle cx="150" cy="665" r="8"/><circle cx="400" cy="688" r="7"/><circle cx="880" cy="670" r="8"/><circle cx="1140" cy="686" r="7"/>
+  </g>
+
+  <!-- LEFT tank (red), facing RIGHT: rotate the up-facing tank +90deg -->
+  <g transform="translate(260,340) rotate(45) scale(1.1)">
+    <g fill="#e2504a"><use href="#ctank"/></g>
+  </g>
+
+  <!-- RIGHT tank (blue), facing LEFT: rotate -90deg -->
+  <g transform="translate(1010,340) rotate(-45) scale(1.1)">
+    <g fill="#4fb0e0"><use href="#ctank"/></g>
+  </g>
+
+  <!-- bullets streaking toward the center from both sides -->
+  <use href="#pow" transform="translate(340,240)"/>
+  <use href="#pow" transform="translate(510,310) scale(0.85)"/>
+  <use href="#pow" transform="translate(850,240)"/>
+  <use href="#pow" transform="translate(770,310) scale(0.85)"/>
+  <g stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.7">
+    <line x1="390" y1="505" x2="340" y2="508"/>
+    <line x1="890" y1="505" x2="940" y2="508"/>
+  </g>
+
+  <!-- CENTER comic clash burst (where the shots meet) -->
+  <g transform="translate(640,245)">
+    <g fill="#ff6b4a" stroke="#20242a" stroke-width="5">
+      <!-- jagged star -->
+      <path d="M0,-70 L16,-24 64,-30 30,6 46,52 0,26 -46,52 -30,6 -64,-30 -16,-24 Z"/>
+    </g>
+    <circle r="34" fill="url(#clash)" stroke="#20242a" stroke-width="4"/>
+    <!-- little debris dots -->
+    <g fill="#ffd24a" stroke="#20242a" stroke-width="3">
+      <circle cx="-70" cy="-40" r="7"/><circle cx="72" cy="-46" r="6"/>
+      <circle cx="-60" cy="46" r="6"/><circle cx="66" cy="44" r="7"/>
+    </g>
+  </g>
+
+  <!--
+    Upper-center is kept clear (just sky + a cloud): overlay a "VS" or title here.
+    The clash sits at (640,505); tanks face off from x=250 and x=1030.
+  -->
+</svg>

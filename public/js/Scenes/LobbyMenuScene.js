@@ -14,31 +14,7 @@ export default class LobbyMenuScene extends Phaser.Scene {
 
   create() {
     this.socket = this.registry.get('socket');
-    function makeButton(scene, x, y, label, bgColor, onClick) {
-      const w = 240, h = 64, r = 16;
-      const con = scene.add.graphics();
 
-      con.fillStyle(0x141a2b, 1);
-      con.fillRoundedRect(-w/2-4, -h/2-4, w+8, h+8, r+2);
-      con.fillStyle(bgColor, 1);
-      con.fillRoundedRect(-w/2, -h/2, w, h, r);
-
-      const txt = scene.add.text(0, 0, label, {
-        fontFamily: 'Fredoka', 
-        fontSize: '26px', 
-        fontStyle: '700', 
-        color: '#ffffff',
-        resolution: 2
-      }).setOrigin(0.5);
-
-      const btn = scene.add.container(x, y, [con, txt]);
-      btn.setSize(w, h).setInteractive({ useHandCursor: true });
-      btn.on('pointerover', () => scene.tweens.add({ targets: btn, scale: 1.06, duration: 120, ease: 'Back.easeOut' }));
-      btn.on('pointerout',  () => scene.tweens.add({ targets: btn, scale: 1.0,  duration: 100 }));
-      btn.on('pointerdown', () => { btn.setScale(0.96); scene.sound.play('click'); });
-      btn.on('pointerup',   () => { btn.setScale(1.06); onClick(); });
-      return btn;
-    }
     const createText = () => {
 
       const cx = GAME_WIDTH / 2;
@@ -58,7 +34,7 @@ export default class LobbyMenuScene extends Phaser.Scene {
       
 
       // Error placeholder
-      this.errorText = this.add.text(400, 450, '', { fontSize: '18px', fill: '#ff0000' }).setOrigin(0.5);
+      this.errorText = this.add.text(400, 450, '', { fontSize: '18px', fill: '#ff0000', fontFamily: 'Fredoka', resolution: 2}).setOrigin(0.5);
 
       // Button for create room
       makeButton(this, cx, 180, 'Create Room', 0x4caf50, () => this.socket.emit('createRoom'));

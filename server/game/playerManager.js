@@ -72,7 +72,9 @@ function createPlayer(socketId, room) {
     score: 0,
     createdAt: Date.now(),
     powerups: [],
-    stats: {}
+    stats: {},
+    hp: 3,
+    starting_hp: 3,
   };
   room.players[socketId] = player;
   return player;

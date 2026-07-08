@@ -67,6 +67,7 @@ export default class GameScene extends Phaser.Scene {
     this.trackSocket('newPlayer', playerInfo => this.handleNewPlayer(playerInfo));
     this.trackSocket('playerDisconnect', id => this.handlePlayerDisconnect(id));
     this.trackSocket('endGame', data => this.handleEndGame(data));
+    this.trackSocket('tankHit', data => this.handleTankHit(data));
 
     this.leaveButton = this.add.text(730, 30, 'LEAVE', { 
 			fontSize: '18px', 
@@ -297,6 +298,7 @@ export default class GameScene extends Phaser.Scene {
 
   handleRespawnSuccess() {
     this.tankDead = false;
+    
   }
 
   handleScoreUpdate(scores) {
@@ -329,7 +331,9 @@ export default class GameScene extends Phaser.Scene {
         this.tank.y = p.y;
         this.tank.rotation = p.rotation;
         this.tankDead = !p.isAlive;
-        p.isAlive ? this.tank.clearTint() : this.tank.setTint(0x808080);
+        if (!this.tank.isFlashing) {
+          p.isAlive ? this.tank.clearTint() : this.tank.setTint(0x808080);
+        }
       } else {
           if (!this.otherPlayers[p.playerId]) {
             this.otherPlayers[p.playerId] = this.add.sprite(p.x, p.y, p.team)
@@ -338,9 +342,11 @@ export default class GameScene extends Phaser.Scene {
           this.otherPlayers[p.playerId].x = p.x;
           this.otherPlayers[p.playerId].y = p.y;
           this.otherPlayers[p.playerId].rotation = p.rotation;
-          p.isAlive 
-            ? this.otherPlayers[p.playerId].clearTint() 
-            : this.otherPlayers[p.playerId].setTint(0x808080);
+          if (!this.otherPlayers[p.playerId].isFlashing) {
+            p.isAlive 
+              ? this.otherPlayers[p.playerId].clearTint() 
+              : this.otherPlayers[p.playerId].setTint(0x808080);
+          }
         }
     });
     
@@ -393,6 +399,21 @@ export default class GameScene extends Phaser.Scene {
       this.otherPlayers[id].destroy();
       delete this.otherPlayers[id];
     }
+  }
+  handleTankHit(data) {
+    const sprite = (data.playerId === this.socket.id)
+      ? this.tank
+      : this.otherPlayers[data.playerId]
+    console.log(sprite);
+    if (!sprite) {
+      return;
+    }
+    sprite.isFlashing = true;
+    sprite.setTintFill(0xff0000);
+    this.time.delayedCall(100, () => {
+      sprite.clearTint();
+      sprite.isFlashing = false;
+    });
   }
 
   handleEndGame(data) {

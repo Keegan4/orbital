@@ -72,6 +72,7 @@ function handleContact(bodyA, bodyB, room) {
     return;
   }
   if (!player.isAlive) return;
+  // TODO: Change to damage instead
   killPlayer(player, room, bot);
   killBot(bot, room);
 }
@@ -185,35 +186,43 @@ function initialiseCollisions(room) {
         const player = Object.values(room.players).find(p => p.body === tankBody);
         if (!player || !player.isAlive) return;
 
+        player.hp -= 1;
         const killer = Object.values(room.players).find(p => p.playerId === bullet.ownerId);
         destroyBullet(bullet.id, room);
-        if (!killer) {
-          if (!player.playerId.startsWith("BOT")) {
-            killPlayer(player, room, null);
-          } else {
-            killBot(player, room);
+        room.io.to(room.code).emit('tankHit', { playerId: player.playerId });
+        
+        if (player.hp <= 0) {
+          if (!killer) {
+            if (!player.playerId.startsWith("BOT")) {
+              killPlayer(player, room, null);
+            } else {
+              killBot(player, room);
+            }
+            return;
           }
-          return;
-        }
 
         // Preventing selfHarm if powerup is enabled
-        if (player.stats.selfHarmImmune && bullet.ownerId === player.playerId) {
-          return;
-        }
+          if (player.stats.selfHarmImmune && bullet.ownerId === player.playerId) {
+            return;
+          }
 
-        if (player.playerId.startsWith("BOT-")) {
-          killBot(player, room);
-        } else {
-          /*
-          if (killer.botType.debuf) {
-            killPlayer(player, room, killer, "curse");
-          } */
-          killPlayer(player, room, killer);
-        // Players cant shoot themselves for more points
-          if (bullet.ownerId !== player.playerId && killer.team !== player.team) {
-            updateScore(bullet.ownerId, room);
+          if (player.playerId.startsWith("BOT-")) {
+            killBot(player, room);
+          } else {
+            /*
+            if (killer.botType.debuf) {
+              killPlayer(player, room, killer, "curse");
+            } */
+            killPlayer(player, room, killer);
+          // Players cant shoot themselves for more points
+            if (bullet.ownerId !== player.playerId && killer.team !== player.team) {
+              updateScore(bullet.ownerId, room);
+            }
           }
         }
+
+        
+
       }
     })
   });

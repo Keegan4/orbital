@@ -12,7 +12,7 @@ export default class WaitingRoomScene extends Phaser.Scene {
 
   preload() {
     this.load.svg("backg", 'assets/versus_bg.svg');
-
+    this.load.image("dark", "assets/kenney_topdownTanksRedux/PNG/Default size/tank_dark.png")
   }
 
   create() {
@@ -78,6 +78,10 @@ export default class WaitingRoomScene extends Phaser.Scene {
     if (this.selectedMode === 'PVE') {
   			this.modeSelectButton.setText(`MODE: PVE - ${this.selectedDifficulty.toUpperCase()}`);
         this.pvePlayerList.setVisible(true);
+        const diffColor = this.selectedDifficulty.toLowerCase() === 'hard' ? 0xe74c3c 
+        : this.selectedDifficulty.toLowerCase() === 'medium' ? 0xe67e22 
+        : 0x2ecc71;
+        this.badgeBg.setFillStyle(diffColor);
         this.pvpPlayerList.setVisible(false);
         this.enemySubtext.setText(`Mode: ${this.selectedDifficulty.toUpperCase()}`);
         this.renderPvePlayerList();
@@ -116,13 +120,6 @@ export default class WaitingRoomScene extends Phaser.Scene {
           console.error('Clipboard error:', err);
         });
     }, 280);
-    /*
-    this.roomCodeText = this.add.text(x, y, `ROOM CODE: ${this.roomCode}`, { 
-      fontSize: '36px', 
-      fill: '#ffff00',
-      fontFamily: 'Fredoka', resolution: 2,
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-    */
 
     const hintText = this.add.text(x, y - 36, 'Click to copy code', { 
         fontSize: '14px', 
@@ -159,20 +156,6 @@ export default class WaitingRoomScene extends Phaser.Scene {
       this.tweens.add({ targets: this.roomCodeText, scale: 1.0, duration: 100 });
     });
   }
-    /*
-    this.roomCodeText.on('pointerdown', () => {
-      this.sound.play('click');
-      const rawCode = this.roomCode; 
-      navigator.clipboard.writeText(rawCode)
-        .then(() => {
-          hintText.setText('Copied to Clipboard! ✅');
-        })
-        .catch(err => {
-          hintText.setText('Failed to copy ❌');
-          console.error('Clipboard error:', err);
-        });
-    });
-  } */
 
   createLeaveButton(x = 730, y = 30) {
     this.leaveBtn = this.add.text(x, y, 'LEAVE', { 
@@ -211,12 +194,7 @@ export default class WaitingRoomScene extends Phaser.Scene {
       setNameButton.setVisible(false);
       setTimeout(() => { inputNode.focus(); }, 10); 
     }, 180, 50)
-    /*
-    this.add.text(x, y, 'Set Name', {
-      fontFamily: 'Fredoka', resolution: 2,
-      }).setOrigin(0.5)
-        .setInteractive({ useHandCursor: true });
-        */
+
     const setNameContainer = this.add.container(400, 300);
     const clickBlocker = this.add.rectangle(0, 0, 800, 600, 0x000000, 0).setInteractive(); // blocks entire screen
     const setNameBackground = this.add.rectangle(0, 0, 650, 450, 0x111111, 0.95);
@@ -498,12 +476,40 @@ export default class WaitingRoomScene extends Phaser.Scene {
   		this.pveSlots.push({ slotBg, emptyTxt, slotText, slotStatus });
   	}
 
-  	const enemyBg = this.add.rectangle(160, 0, 260, 220, 0xF9F2F2, 1).setOrigin(0.5).setStrokeStyle(2, 0xFF4444, 0.5);
-  	const enemyText = this.add.text(160, -40, 'AI BOT', { fontSize: '22px', fill: '#ff4444', fontWeight: 'bold', fontFamily: 'Fredoka', resolution: 2,}).setOrigin(0.5);
+    // Just making things prettier
+    const enemyShadow = this.add.rectangle(163, 3, 260, 220, 0x000000, 0.08).setOrigin(0.5);
+  	const enemyBg = this.add.rectangle(160, 0, 260, 220, 0xF9F2F2, 1).setOrigin(0.5)
+    const enemyHeaderBg = this.add.rectangle(160, -88, 260, 44, 0x2a2a3e, 1).setOrigin(0.5);
+  	const enemyText = this.add.text(160, -88, 'ENEMY BOT', { 
+      fontSize: '22px', 
+      fill: '#ff4444', 
+      fontWeight: 'bold', 
+      fontFamily: 'Fredoka', 
+      resolution: 2,
+    }).setOrigin(0.5);
+
+    const diffColor = this.selectedDifficulty.toLowerCase() === 'hard' ? 0xe74c3c 
+      : this.selectedDifficulty.toLowerCase() === 'medium' ? 0xe67e22 
+      : 0x2ecc71;
+
+    this.badgeBg = this.add.rectangle(160, 55, 120, 32, diffColor, 1)
+      .setOrigin(0.5)
+      .setStrokeStyle(0);
+
+    const badgeText = this.add.image(160, -10, "dark")
+      .setOrigin(0.5)
+      .setScale(1.5)
+      .setRotation(-Math.PI / 2);
+
+  	this.enemySubtext = this.add.text(160, 55, ``, { 
+      fontSize: '14px', 
+      fill: '#666666', 
+      fontFamily: 'Fredoka', 
+      resolution: 2, 
+      fontStyle: "bold"
+    }).setOrigin(0.5);
   
-  	this.enemySubtext = this.add.text(160, 10, `Mode: ${this.selectedDifficulty.toUpperCase()}`, { fontSize: '14px', fill: '#666666', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5);
-  
-  	this.pvePlayerList.add([enemyBg, enemyText, this.enemySubtext]);
+  	this.pvePlayerList.add([enemyShadow, enemyBg, enemyHeaderBg, enemyText, this.badgeBg, badgeText, this.enemySubtext]);
   }
 
   createPvpStaticPlayerList() {

@@ -72,7 +72,7 @@ export default class LobbyMenuScene extends Phaser.Scene {
         }
       })
       // Join room button
-      makeButton(this, cx, 400, 'Join Room',   0x3aa0d8, () => {
+      makeButton(this, cx, 400, 'Join Room', 0x3aa0d8, () => {
         const code = this.roomInput.node.value.trim().toUpperCase();
         if (code) this.socket.emit('joinRoom', { code });
         else this.showError({ message: 'Please enter a room code' });

@@ -185,10 +185,14 @@ function initialiseCollisions(room) {
       if (tankBody) {
         const player = Object.values(room.players).find(p => p.body === tankBody);
         if (!player || !player.isAlive) return;
-
-        player.hitsTaken += 1
         const killer = Object.values(room.players).find(p => p.playerId === bullet.ownerId);
         destroyBullet(bullet.id, room);
+        if (player.stats.selfHarmImmune && bullet.ownerId === player.playerId) {
+            return;
+        }
+
+        player.hitsTaken += 1
+
         room.io.to(room.code).emit('tankHit', { playerId: player.playerId });
         
         if (player.hitsTaken >= player.startingHp + player.stats.hpUp) {
@@ -202,9 +206,7 @@ function initialiseCollisions(room) {
           }
 
         // Preventing selfHarm if powerup is enabled
-          if (player.stats.selfHarmImmune && bullet.ownerId === player.playerId) {
-            return;
-          }
+
 
           if (player.playerId.startsWith("BOT-")) {
             killBot(player, room);

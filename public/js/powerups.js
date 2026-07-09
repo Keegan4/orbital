@@ -1,5 +1,14 @@
 const POWERUPS = {
     // Curses
+
+    cursedHp: {
+        id: "cursedHp",
+        display: "Lower Hp",
+        rarity: "curse",
+        disc: "-1 Hit Point",
+        stats: {hpUp: -1}
+    },
+
     cursedTurn: {
         id: "cursedTurn",
         display: "Lower Turning Speed",
@@ -71,6 +80,14 @@ const POWERUPS = {
         stats: {bulletLife: 1.15}
     },
 
+    hpUp: {
+        id: "hpUp",
+        display: "Hp Up",
+        rarity: "common",
+        disc: "You can take another hit",
+        stats: {hpUp: 1}
+    },
+
     // Rare Powerups
     backShot: {
         id: "backShot",
@@ -96,6 +113,14 @@ const POWERUPS = {
         rarity: "rare",
         disc: "Your bullets gain speed on bounce (Stacks). +2 bullet bounces",
         stats: {bulletAccelerate: 1.1, bulletBounce: 2}
+    },
+
+    tankUp: {
+        id: "tankUp",
+        display: "Tank Up",
+        rarity: "rare",
+        disc: "Massively increased Hp, lose speed",
+        stats: {hpUp: 2, velocity: 0.5}
     },
     /*
     skullShot: {

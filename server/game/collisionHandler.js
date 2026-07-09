@@ -186,12 +186,12 @@ function initialiseCollisions(room) {
         const player = Object.values(room.players).find(p => p.body === tankBody);
         if (!player || !player.isAlive) return;
 
-        player.hp -= 1;
+        player.hitsTaken += 1
         const killer = Object.values(room.players).find(p => p.playerId === bullet.ownerId);
         destroyBullet(bullet.id, room);
         room.io.to(room.code).emit('tankHit', { playerId: player.playerId });
         
-        if (player.hp <= 0) {
+        if (player.hitsTaken >= player.startingHp + player.stats.hpUp) {
           if (!killer) {
             if (!player.playerId.startsWith("BOT")) {
               killPlayer(player, room, null);

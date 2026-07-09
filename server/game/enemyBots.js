@@ -29,15 +29,18 @@ const botTypes = {
     speedUps: 0, 
     turnBoost: 0,
     bulletLife: 0,
+    hpUp: 0,
     debuf: true,
     canShoot: true, 
     contactDamage: false, 
     explode: false,
     color: "black"
   },
+
   berserker: {
-    speedUps: 6, 
+    speedUps: 4, 
     turnBoost: 3,
+    hpUp: 1,
     bulletLife: 0,
     debuf: true,
     canShoot: false, 
@@ -50,6 +53,7 @@ const botTypes = {
     speedUps: -8, 
     turnBoost: 0,
     bulletLife: -10,
+    hpUp: 2,
     debuf: true,
     canShoot: false, 
     contactDamage: true, 

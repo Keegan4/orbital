@@ -27,8 +27,8 @@ function initialiseConnections(io) {
       if (!room || !room.players[socket.id]) return;
       const player = room.players[socket.id];
       player.isAlive = true;
-      player.hp = player.starting_hp;
       player.body.isSensor = false;
+      player.hitsTaken = 0;
       player.createdAt = Date.now();
       player.powerups.push(data.powerup);
       console.log(player.powerups);

@@ -46,7 +46,7 @@ function spawn(body, room) {
   return {x: x, y: y};
 }
 
-function createPlayer(socketId, room) {
+function createPlayer(socketId, room, hp = 1) {
 
   // Using spawn makes sure it wont spawn too close to things
   const { x, y } = spawn(null, room);
@@ -73,8 +73,10 @@ function createPlayer(socketId, room) {
     createdAt: Date.now(),
     powerups: [],
     stats: {},
-    hp: 3,
-    starting_hp: 3,
+    hitsTaken: 0,
+    startingHp: hp,
+    // Interesting idea, should write this in the readme, why we decided
+    // To use hitsTaken instead of just minusing the Hp
   };
   room.players[socketId] = player;
   return player;

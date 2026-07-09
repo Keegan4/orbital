@@ -53,6 +53,7 @@ function effectiveStats(player) {
     // Additive
     bulletBounce: 0,
     frontBullets: 0,
+    hpUp: 0,
 
     // Flags
     backShot: false,
@@ -68,7 +69,7 @@ function effectiveStats(player) {
   };
 
   const additive = [
-    "bulletBounce", "frontBullets"
+    "bulletBounce", "frontBullets", "hpUp"
   ];
 
   player.powerups.forEach(powerup => {
@@ -124,6 +125,12 @@ function powerupsRound(round) {
 }
 
 function adjustBot(bot, quantity, upgrade, downgrade) {
+  // This turns the data from the bot's Type into actual stats 
+  // Through powerups. The curses are made specifically to 
+  // decrease the stats for the bots should
+  // quantity be negative. Of course, if quantity is 0, 
+  // You shouldnt apply anything
+
   if (quantity > 0) {
     for (let i = 0; i < quantity; i++) {
     bot.powerups.push(upgrade);
@@ -159,9 +166,12 @@ function startGameLoop(room) {
         type = botTypes.chaser;
       }
       const bot = createBot(room, type);
+
+      // Adjust stats for bots
       adjustBot(bot, type.speedUps, POWERUPS.speedBoost, POWERUPS.cursedSpeed);
       adjustBot(bot, type.turnBoost, POWERUPS.turnBoost, POWERUPS.cursedTurn);
       adjustBot(bot, type.bulletLife, POWERUPS.bulletLife, POWERUPS.cursedLife);
+      adjustBot(bot, type.hpUp, POWERUPS.hpUp, POWERUPS.cursedHp);
 
       botPowers(powerupsRound(room.roundNum), bot);
 

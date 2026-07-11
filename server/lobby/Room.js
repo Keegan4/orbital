@@ -1,6 +1,8 @@
 const { createPhysics } = require('../game/physics.js');
 const { startGameLoop } = require('../game/gameLoop.js');
 const { initialiseCollisions } = require('../game/collisionHandler.js');
+const { Node, buildMap } = require('../../public/js/Node.js');
+const { CONSTANTS } = require('../../public/js/constants.js');
 
 class Room {
   constructor(code, host, io) {
@@ -38,6 +40,12 @@ class Room {
     this.engine = null;
     this.world = null;
     this.gameLoopInterval = null;
+    
+    // Map
+    this.totalPlayableSpaces = null;
+    this.bspDungeons = null;
+    this.bspCorridors = null;
+    this.wallGrid = null;
 
     // PVE settings
     this.roundNum = 0;
@@ -46,14 +54,37 @@ class Room {
     this.waveCountDown = 0;
   }
 
-  start(walls) {
+  start() {
     if (this.status === 'playing') return;
     this.status = 'playing';
 
+    const { MAP_CONFIG } = CONSTANTS;
+    const rootX = MAP_CONFIG.GLOBAL_PADDING;
+    const rootY = MAP_CONFIG.GLOBAL_PADDING;
+    const rootW = MAP_CONFIG.MAP_WIDTH - (MAP_CONFIG.GLOBAL_PADDING * 2);
+    const rootH = MAP_CONFIG.MAP_HEIGHT - (MAP_CONFIG.GLOBAL_PADDING * 2)
+    
+    const rootNode = new Node(rootX, rootY, rootW, rootH);
+    const generatedTree = buildMap(rootNode, 
+      MAP_CONFIG.NO_PARTITIONS,
+      MAP_CONFIG.PADDING,
+      MAP_CONFIG.MIN_PARTITION_SIZE,
+      MAP_CONFIG.CORRIDOR_SIZE,
+      MAP_CONFIG.MIN_DUNGEON_WIDTH,
+      MAP_CONFIG.MIN_DUNGEON_HEIGHT);
+    const bspDungeons = generatedTree.getDungeons();
+    const bspCorridors = generatedTree.getCorridors();
+    const totalPlayableSpaces = [...bspDungeons, ...bspCorridors];
+
+    this.totalPlayableSpaces = totalPlayableSpaces;
+    this.bspDungeons = bspDungeons;
+    this.bspCorridors = bspCorridors;
+
     // Create isolated physics world for this room
-    const { engine, world } = createPhysics(walls);
+    const { engine, world, wallGrid } = createPhysics(MAP_CONFIG.MAP_WIDTH, MAP_CONFIG.MAP_HEIGHT, MAP_CONFIG.CELL_SIZE, this.totalPlayableSpaces);
     this.engine = engine;
     this.world = world;
+    this.wallGrid = wallGrid;
 
     // Wire collision events to this room's engine and state
     initialiseCollisions(this);
@@ -72,6 +103,10 @@ class Room {
     this.world = null;
     this.players = {};
     this.bullets = {};
+    this.totalPlayableSpaces = null;
+    this.bspDungeons = null;
+    this.bspCorridors = null;
+    this.wallGrid = null;
     this.status = 'waiting';
     console.log('game closed');
   }

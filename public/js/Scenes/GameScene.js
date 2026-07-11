@@ -1,4 +1,4 @@
-const {GAME_WIDTH, GAME_HEIGHT, WALL_THICKNESS} = CONSTANTS;
+const {GAME_WIDTH, GAME_HEIGHT, WALL_THICKNESS, MAP_CONFIG} = CONSTANTS;
 export default class GameScene extends Phaser.Scene {
   constructor() {
     super({ key: 'GameScene' });
@@ -6,10 +6,10 @@ export default class GameScene extends Phaser.Scene {
 
   init(data) {
     this.players = data.players;
-    this.walls = data.walls;
     // A simple array of numbers, then the numbers represent the number of enemies
     this.roundInfo = data.roundInfo;
     this.gameMode = data.gameConfig.current.gameMode;
+    this.wallGrid = data.wallGrid;
   }
 
   preload() {
@@ -18,8 +18,7 @@ export default class GameScene extends Phaser.Scene {
     this.load.image('red', 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_red.png');
     this.load.image('black', 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_dark.png');
     this.load.image('bullet', 'assets/kenney_topdownTanksRedux/PNG/Default size/bulletRed2.png');
-    this.load.svg("background", "assets/tank_background.svg");
-    this.load.svg("wall-tile", "assets/wall_tile.svg");
+    this.load.image('floor-tile', 'assets/kenney_topdownTanksRedux/PNG/Default size/tileGrass1.png');
 
     // Load audio
     this.load.audio('shoot',       'assets/shoot.ogg');
@@ -44,9 +43,13 @@ export default class GameScene extends Phaser.Scene {
     }
     this.lastInput = {};
     this.otherPlayers = {};
-    this.bullets = {}; 
-    this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, "background").setOrigin(0.5, 0.5);
-    this.wallGroup = this.add.group();
+    this.bullets = {};
+
+    // To manage the scoreboard, pvp, pve, leave button
+    this.uiContainer = this.add.container(0, 0);
+    this.uiContainer.setScrollFactor(0);
+    this.uiContainer.setDepth(100);
+    const elementsToAdd = [];
 
     this.instanceId = Math.random().toString(36).slice(2, 7);
     console.log(`[GameScene ${this.instanceId}] created`);
@@ -83,7 +86,7 @@ export default class GameScene extends Phaser.Scene {
     sbBg.lineStyle(2, 0xffcc00, 0.55);
     sbBg.fillRoundedRect(10, 10, 180, 290, 8);
     sbBg.strokeRoundedRect(10, 10, 180, 290, 8);
-    this.add.text(100, 25, 'SCOREBOARD', {
+    const sbText = this.add.text(100, 25, 'SCOREBOARD', {
       fontFamily: 'Arial, sans-serif',
       fontSize: '18px',
       fontWeight: 'bold',
@@ -103,6 +106,9 @@ export default class GameScene extends Phaser.Scene {
       
       this.scoreSlots.push(text);
     }
+    this.scoreboardContainer = this.add.container(0, 0);
+    this.scoreboardContainer.add([sbBg, sbText, ...this.scoreSlots]);
+
     if (this.gameMode === 'PVP') {
       const tallyBg = this.add.graphics().setDepth(99);
       tallyBg.fillStyle(0x1a1a1a, 0.55);
@@ -127,6 +133,10 @@ export default class GameScene extends Phaser.Scene {
         ...tallyFontStyle,
         color: '#ff4d4d'
       }).setDepth(100);
+
+      this.pvpContainer = this.add.container(0, 0);
+      this.pvpContainer.add([tallyBg, this.blueScoreText, this.scoreDivider, this.redScoreText]);
+      elementsToAdd.push(this.pvpContainer);
     }
 
     if (this.gameMode === 'PVE') {
@@ -166,7 +176,13 @@ export default class GameScene extends Phaser.Scene {
         fontSize: '22px',
         color: '#ffffff',
       }).setOrigin(0.5, 0).setDepth(100).setVisible(false);
+
+      this.pveContainer = this.add.container(0, 0);
+      this.pveContainer.add([this.curRound, this.enemiesRem, this.livesRem, this.roundPanel, this.roundComplete, this.nextRound]);
+      elementsToAdd.push(this.pveContainer);
     }
+    elementsToAdd.push(this.scoreboardContainer, this.leaveButton);
+    this.uiContainer.add(elementsToAdd);
     
     // Aesthetics
     this.sounds = { shoot : this.sound.add('shoot', { volume: 0.4 }),
@@ -181,34 +197,44 @@ export default class GameScene extends Phaser.Scene {
       });
     }
 
-    this.walls.forEach(w => {
-      const sprite = this.add.tileSprite(
-        w.x + w.w/2,
-        w.y + w.h / 2,
-        w.w,
-        w.h,
-        'wall-tile'
-      );
-      sprite.setDepth(20);
-      this.wallGroup.add(sprite);
+    const mapTileWidth = this.wallGrid.length;
+    const mapTileHeight = this.wallGrid[0].length;
+    const map = this.make.tilemap({
+      tileWidth: MAP_CONFIG.CELL_SIZE,
+      tileHeight: MAP_CONFIG.CELL_SIZE,
+      width: mapTileWidth,
+      height: mapTileHeight
     });
+    const floorTileSet = map.addTilesetImage('floor-tile', null, MAP_CONFIG.CELL_SIZE, MAP_CONFIG.CELL_SIZE);
+    const floorLayer = map.createBlankLayer('floor', floorTileSet).setDepth(90);
+    for (let r = 0; r < mapTileHeight; r++) {
+      for (let c = 0; c < mapTileWidth; c++) {
+        if (this.wallGrid[r][c] === 0) {
+          floorLayer.putTileAt(1, c, r);
+        }
+      }
+    }
 
     // Debug, you click then you know
     this.input.on('pointerdown', (pointer) => {
-      console.log(`Click: x=${Math.round(pointer.x)}, y=${Math.round(pointer.y)}`);
+      console.log(`Click: x=${Math.round(pointer.worldX)}, y=${Math.round(pointer.worldY)}`);
     });
 
     // Spawn players onto the screen for the first time
     Object.keys(this.players).forEach((id) => {
       if (this.players[id].playerId === this.socket.id) {
         this.tank = this.add.sprite(this.players[id].x, this.players[id].y, this.players[id].team)
-                      .setOrigin(0.5, 0.5);
+                      .setOrigin(0.5, 0.5)
+                      .setDepth(100);
         console.log('My tank spawned at:', this.players[id].x, this.players[id].y);
       } else {
         this.otherPlayers[this.players[id].playerId] = this.add.sprite(this.players[id].x, this.players[id].y, this.players[id].team)
-                                                    .setOrigin(0.5, 0.5);
+                                                    .setOrigin(0.5, 0.5)
+                                                    .setDepth(100);
       }
     })
+
+    this.cameras.main.startFollow(this.tank);
 
     // Show scoreboard on gameScene start
     this.socket.emit("getScore");
@@ -258,7 +284,7 @@ export default class GameScene extends Phaser.Scene {
     if (data.type === 'tankHit') {
       // Explosion animation
       const explosion = this.add.sprite(data.x, data.y, 'exp1')
-        .setDepth(30)
+        .setDepth(100)
         .play('explode');
       if (data.playerId === this.socket.id) {
         explosion.on('animationcomplete', () => {
@@ -330,7 +356,8 @@ export default class GameScene extends Phaser.Scene {
       } else {
           if (!this.otherPlayers[p.playerId]) {
             this.otherPlayers[p.playerId] = this.add.sprite(p.x, p.y, p.team)
-              .setOrigin(0.5, 0.5);
+              .setOrigin(0.5, 0.5)
+              .setDepth(100);
           }
           this.otherPlayers[p.playerId].x = p.x;
           this.otherPlayers[p.playerId].y = p.y;
@@ -358,7 +385,8 @@ export default class GameScene extends Phaser.Scene {
     state.bullets.forEach(b => {
       if (!this.bullets[b.id]) {
         this.bullets[b.id] = this.add.sprite(b.x, b.y, 'bullet')
-          .setOrigin(0.5, 0.5);
+          .setOrigin(0.5, 0.5)
+          .setDepth(100);
       }
       // Update position
       this.bullets[b.id].x = b.x;
@@ -381,7 +409,8 @@ export default class GameScene extends Phaser.Scene {
       this.otherPlayers[playerInfo.playerId].destroy();
     }
     this.otherPlayers[playerInfo.playerId] = this.add.sprite(playerInfo.x, playerInfo.y, playerInfo.team)
-                                              .setOrigin(0.5, 0.5);
+                                              .setOrigin(0.5, 0.5)
+                                              .setDepth(100);
   }
 
   handlePlayerDisconnect(id) {

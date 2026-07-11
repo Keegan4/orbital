@@ -1,7 +1,7 @@
 const { createRoom, getRoom, destroyRoom } = require('./roomManager.js');
 const { createPlayer } = require('../game/playerManager.js');
 const { getScoreboard } = require('../game/scoreManager.js');
-const { WALL_POS, CONSTANTS } = require('../../public/js/constants.js');
+const { CONSTANTS } = require('../../public/js/constants.js');
 
 function initialiseLobby(io, socket) {
   // Create a new room
@@ -166,7 +166,7 @@ function cancelCountdown(room) {
 }
 
 function startGame(io, room) {
-  room.start(WALL_POS);
+  room.start();
 
   // Create/Transfer lobby people to the players {}
   Object.values(room.lobbyPlayers).forEach(lobbyPlayer => {
@@ -191,8 +191,8 @@ function startGame(io, room) {
       y: p.body.position.y,
       rotation: p.body.angle,
     })),
-    walls: WALL_POS,
-    gameConfig: room.gameConfig
+    gameConfig: room.gameConfig,
+    wallGrid: room.wallGrid
   });
 
   // Set all to notReady for lobby representation

@@ -1,10 +1,7 @@
 const Matter = require('matter-js');
-const { CONSTANTS, WALL_POS } = require('../../public/js/constants.js');
+const { CONSTANTS } = require('../../public/js/constants.js');
 
 const {
-  GAME_WIDTH,
-  GAME_HEIGHT,
-  WALL_THICKNESS,
   CATEGORY_WALL,
   CATEGORY_BULLET,
   CATEGORY_TANK,
@@ -20,39 +17,75 @@ const wallOptions = {
   }
 };
 
-function createPhysics(walls = WALL_POS) {
+function createPhysics(mapWidth, mapHeight, cellSize, totalPlayableSpaces) {
   const engine = Matter.Engine.create();
   engine.gravity.y = 0;
   const world = engine.world;
 
-  // Boundary walls
-  const topWall = Matter.Bodies.rectangle(GAME_WIDTH / 2, -WALL_THICKNESS / 2, GAME_WIDTH, WALL_THICKNESS, wallOptions);
-  const bottomWall = Matter.Bodies.rectangle(GAME_WIDTH / 2, GAME_HEIGHT + WALL_THICKNESS / 2, GAME_WIDTH, WALL_THICKNESS, wallOptions);
-  const leftWall = Matter.Bodies.rectangle(-WALL_THICKNESS / 2, GAME_HEIGHT / 2, WALL_THICKNESS, GAME_HEIGHT, wallOptions);
-  const rightWall = Matter.Bodies.rectangle(GAME_WIDTH + WALL_THICKNESS / 2, GAME_HEIGHT / 2, WALL_THICKNESS, GAME_HEIGHT, wallOptions);
-
   const interiorWallOptions = {
-  isStatic: true,
-  label: 'wall',
-  collisionFilter: {
-    category: CATEGORY_WALL,
-    mask: CATEGORY_BULLET | CATEGORY_TANK
+    isStatic: true,
+    label: 'wall',
+    collisionFilter: {
+      category: CATEGORY_WALL,
+      mask: CATEGORY_BULLET | CATEGORY_TANK
+    }
+  };
+
+  const cols = Math.ceil(mapWidth / cellSize);
+  const rows = Math.ceil(mapHeight / cellSize);
+  
+  // wall 1, floor 0
+  const wallGrid = Array.from({ length: rows }, () => Array(cols).fill(1));
+  totalPlayableSpaces.forEach(space => {
+      const startCol = Math.floor(space.x / cellSize);
+      const endCol = Math.floor((space.x + space.w) / cellSize);
+      const startRow = Math.floor(space.y / cellSize);
+      const endRow = Math.floor((space.y + space.h) / cellSize);
+      for (let r = startRow; r < endRow; r++) {
+          for (let c = startCol; c < endCol; c++) {
+              if (r >= 0 && r < rows && c >= 0 && c < cols) {
+                  wallGrid[r][c] = 0; 
+              }
+          }
+      }
+  });
+
+  const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
+  for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+          if (wallGrid[r][c] === 1 && !visited[r][c]) {
+              let widthCells = 0;
+              while ((c + widthCells) < cols && wallGrid[r][c + widthCells] === 1 && !visited[r][c + widthCells]) {
+                  widthCells++;
+              }
+              let heightCells = 1;
+              let canStretchDown = true;
+              while ((r + heightCells) < rows && canStretchDown) {
+                  for (let k = 0; k < widthCells; k++) {
+                      if (wallGrid[r + heightCells][c + k] !== 1 || visited[r + heightCells][c + k]) {
+                          canStretchDown = false;
+                          break;
+                      }
+                  }
+                  if (canStretchDown) {
+                      heightCells++;
+                  }
+              }
+              for (let h = 0; h < heightCells; h++) {
+                  for (let w = 0; w < widthCells; w++) {
+                      visited[r + h][c + w] = true;
+                  }
+              }
+              const wallWidth = widthCells * cellSize;
+              const wallHeight = heightCells * cellSize;
+              const wallX = (c * cellSize) + (wallWidth / 2);
+              const wallY = (r * cellSize) + (wallHeight / 2);
+              const wallBody = Matter.Bodies.rectangle(wallX, wallY, wallWidth, wallHeight, interiorWallOptions);
+              Matter.Composite.add(world, wallBody);
+          }
+      }
   }
-};
-  // Map walls
-  const interiorWalls = walls.map(w =>
-    Matter.Bodies.rectangle(
-      w.x + w.w / 2,
-      w.y + w.h / 2,
-      w.w,
-      w.h,
-      interiorWallOptions
-    )
-  );
-
-  Matter.Composite.add(world, [topWall, bottomWall, leftWall, rightWall, ...interiorWalls]);
-  return { engine, world };
+  return { engine, world, wallGrid };
 }
-
 
 module.exports = { createPhysics };

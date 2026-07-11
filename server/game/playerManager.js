@@ -24,12 +24,29 @@ function spawnRand() {
   };
 }
 
+function spawnInDungeon(space, tankSize = SPRITE_HEIGHT) {
+  const safetyBuffer = 16 + (tankSize / 2); 
+  const minX = space.x + safetyBuffer;
+  const maxX = space.x + space.w - safetyBuffer;
+  const minY = space.y + safetyBuffer;
+  const maxY = space.y + space.h - safetyBuffer;
+  const rawX = minX + Math.random() * (maxX - minX);
+  const rawY = minY + Math.random() * (maxY - minY);
+  return {
+    x: Math.floor(rawX / 32) * 32 + 16,
+    y: Math.floor(rawY / 32) * 32 + 16
+  };
+}
+
 // Ensure respawn is not within a certain radius of other tanks
 function spawn(body, room) {
   var tries = 0;
+  const numDungeons = room.bspDungeons.length;
 
   while (tries < RESPAWN_LIMIT) {
-    var {x, y} = spawnRand();
+    //var {x, y} = spawnRand();
+    const randDungeon = room.bspDungeons[Math.floor(Math.random() * room.bspDungeons.length)];
+    const { x, y } = spawnInDungeon(randDungeon, SPRITE_HEIGHT);
     if (Object.values(room.players).every(player => {
       if (player.body === body) return true;
       if (!player.isAlive) return true;

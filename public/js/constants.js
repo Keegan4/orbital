@@ -6,6 +6,20 @@ const CONSTANTS = {
     WALL_THICKNESS : 100,
     CELL_SIZE: 30,
 
+    // Map (EVERYTHING MULTIPLES OF 32)
+    MAP_CONFIG: {
+        MAP_WIDTH: 2016,
+        MAP_HEIGHT: 2016,
+        CELL_SIZE: 32,
+        GLOBAL_PADDING: 64,
+        PADDING: 0,
+        NO_PARTITIONS: 5,
+        MIN_PARTITION_SIZE: 256,
+        CORRIDOR_SIZE: 64,
+        MIN_DUNGEON_WIDTH: 96,
+        MIN_DUNGEON_HEIGHT: 96
+    },
+
     RED_TEAM: 'red',
     BLUE_TEAM: 'blue',
     LIVES_PLAYER: 3,

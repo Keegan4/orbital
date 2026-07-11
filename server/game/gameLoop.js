@@ -125,7 +125,7 @@ function powerupsRound(round) {
 function startGameLoop(room) {
   const interval = setInterval(() => {
     const now = Date.now();
-    calculatePaths();
+    calculatePaths(room);
 
     const currentBots = Object.values(room.players).filter(p => p.playerId.startsWith("BOT-")).length;
     if (now - lastSpawn > SPAWN_COOLDOWN && 
@@ -204,13 +204,13 @@ function startGameLoop(room) {
         if (bot.playerId.startsWith("BOT-")) {
           const targ = botTarget(bot, room);
           if (targ) {
-            const loc = closestValid(pixelToTile(targ.body.position));
+            const loc = closestValid(room, pixelToTile(targ.body.position));
             const otherBots = Object.values(room.players)
               .filter(x => x.playerId.startsWith("BOT-"))
               .filter(x => x.playerId !== bot.playerId)
               .map(x => pixelToTile(x.body.position));
 
-            reqPath(bot, loc, otherBots);
+            reqPath(room, bot, loc, otherBots);
           }
         }
       })

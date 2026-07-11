@@ -109,5 +109,6 @@ function destroyPlayer(id, room) {
 module.exports = {
   createPlayer,
   destroyPlayer,
-  spawn
+  spawn,
+  spawnInDungeon
 };

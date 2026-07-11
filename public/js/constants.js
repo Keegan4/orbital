@@ -1,10 +1,10 @@
 
 const CONSTANTS = {
     // Game config
-    GAME_WIDTH : 800,
-    GAME_HEIGHT : 600,
+    GAME_WIDTH : 2016,
+    GAME_HEIGHT : 2016,
     WALL_THICKNESS : 100,
-    CELL_SIZE: 30,
+    CELL_SIZE: 32,
 
     // Map (EVERYTHING MULTIPLES OF 32)
     MAP_CONFIG: {

@@ -1,6 +1,6 @@
 const Matter = require('matter-js');
 const { CONSTANTS, WALL_POS, coords} = require('../../public/js/constants.js');
-const { createPlayer, destroyPlayer, spawn } = require('./playerManager.js');
+const { createPlayer, destroyPlayer, spawn, spawnInDungeon } = require('./playerManager.js');
 var EasyStar = require('easystarjs');
 const { Composite, Engine } = require('matter-js');
 
@@ -22,14 +22,15 @@ const { Composite, Engine } = require('matter-js');
 // More variables 
 var lastTarget = 0;
 var botNum = 0;
+const SPRITE_HEIGHT = 46;
 
 // AI Bot creation, we will cheat and use the createPlayer
 
 function createBot(room) {
   const BotID = `BOT-${Date.now()}`;
-
+  console.log('bot create')
   var bot = createPlayer(BotID, room);
-
+  console.log('bot created')
 
   bot.team = ENEMY_TEAM;
 
@@ -38,7 +39,7 @@ function createBot(room) {
   bot.pathIdx = 0;
   bot.target = null;
 
-  reqPath(bot, pixelToTile({ x: Math.floor(Math.random() * 700) + 50, y: Math.floor(Math.random() * 500) + 50 }));
+  reqPath(bot, pixelToTile(spawnInDungeon(room.bspDungeons, SPRITE_HEIGHT)));
 
   room.io.to(room.code).emit("newPlayer", {
     playerId : room.players[BotID].playerId,
@@ -53,48 +54,17 @@ function createBot(room) {
 
 const GRID_W = GAME_WIDTH / CELL_SIZE;
 const GRID_H = GAME_HEIGHT / CELL_SIZE;
-const grid = []
-for (var i = 0; i < GRID_H; i++) {
-  grid[i] = []
-  for (var j = 0; j < GRID_W; j++) {
-    grid[i][j] = 1;
-  }
+
+function initEasyStar(room) {
+  var easystar = new EasyStar.js();
+  easystar.setGrid(room.wallGrid);
+  easystar.setAcceptableTiles(0);
+  easystar.setTileCost(2);
+  easystar.enableDiagonals();
+  easystar.enableSync();
+  return easystar;
 }
 
-coords.forEach(w => {
-
-  const x1 = Math.floor((w.x1) / CELL_SIZE);
-  const x2 = Math.ceil((w.x2) / CELL_SIZE);
-  const y1 = Math.floor((w.y1) / CELL_SIZE);
-  const y2 = Math.ceil((w.y2) / CELL_SIZE);
-
-  // Buffer
-
-  for (var y = y1 - WALL_BUFFER; y < y2 + WALL_BUFFER; y++) {
-    for (var x = x1 - WALL_BUFFER; x < x2 + WALL_BUFFER; x++) {
-      
-      if (grid[y] === undefined || grid[y][x] === undefined ) {
-        continue;
-      } else if (y < y1 || y > y2 || x < x1 || x > x2) {
-        // We set tiles close to the wall as 2
-        // And increase the cost of these tiles to 
-        // discourage tanks from being close to walls
-        grid[y][x] = 2;
-      } else {
-        // We set impassable walls to be 0
-        grid[y][x] = 0;
-      }
-    }
-  }
-});
-
-
-var easystar = new EasyStar.js();
-easystar.setGrid(grid);
-easystar.setAcceptableTiles([1, 2]);
-easystar.setTileCost(2, 5);
-easystar.enableDiagonals();
-easystar.enableSync();
 
 
 function tileToPixel(coord) {
@@ -111,26 +81,27 @@ function pixelToTile(coord) {
   }
 }
 
-function reqPath(bot, coord, botCoords) {
+function reqPath(room, bot, coord, botCoords) {
 
   // Turns out there is a super easy function that helps you create additional points
   // We want to do this so enemies stop overlapping withe each other
   if (botCoords) {
     botCoords.forEach(bot => {
-      easystar.avoidAdditionalPoint(bot.x, bot.y);
+      room.easystar.avoidAdditionalPoint(bot.x, bot.y);
     });
   }
-  const {x: startx, y: starty} = closestValid(pixelToTile(bot.body.position));
-  easystar.findPath(startx, starty, coord.x, coord.y, path => {
+  console.log(bot.body)
+  const {x: startx, y: starty} = closestValid(room, pixelToTile(bot.body.position));
+  room.easystar.findPath(startx, starty, coord.x, coord.y, path => {
     if (path) {
       bot.path = path;
       bot.pathIdx = 0;
     }else {
       bot.path = null;
     }
-    easystar.stopAvoidingAllAdditionalPoints();
+    room.easystar.stopAvoidingAllAdditionalPoints();
   });
-  easystar.calculate();
+  room.easystar.calculate();
   
 }
 
@@ -163,13 +134,13 @@ function botFacing(bot, target) {
   return Math.abs(diff) < 0.20;
 }
 
-function isOpen(x, y) {
-  return grid[y] !== undefined && grid[y][x] !== undefined && grid[y][x] !== 0;
+function isOpen(room, x, y) {
+  return room.wallGrid[y] !== undefined && room.wallGrid[y][x] !== undefined && room.wallGrid[y][x] !== 0;
 }
 
-function closestValid(tile) {
+function closestValid(room, tile) {
 
-  if (isOpen(tile.x, tile.y)) {
+  if (isOpen(room, tile.x, tile.y)) {
     return tile;
   } 
   const around = [
@@ -260,8 +231,8 @@ function moveBot(bot) {
   }
 }
 
-function calculatePaths() {
-  easystar.calculate();
+function calculatePaths(room) {
+  room.easystar.calculate();
 }
 
 module.exports = { createBot,
@@ -273,5 +244,6 @@ module.exports = { createBot,
   calculatePaths,
   tankSighted,
   botFacing,
-  closestValid
+  closestValid,
+  initEasyStar
 };

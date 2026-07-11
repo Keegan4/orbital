@@ -45,7 +45,7 @@ export default class GameScene extends Phaser.Scene {
     this.otherPlayers = {};
     this.bullets = {};
 
-    // To manage the scoreboard, pvp, pve, leave button
+    // To manage the scoreboard, pvp, pve
     this.uiContainer = this.add.container(0, 0);
     this.uiContainer.setScrollFactor(0);
     this.uiContainer.setDepth(100);
@@ -75,7 +75,7 @@ export default class GameScene extends Phaser.Scene {
 			backgroundColor: '#772222', 
 			padding: { x: 12, y: 8 },
 			shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 4, fill: true }
-		}).setOrigin(0.5, 0.5).setInteractive({ useHandCursor: true }).setDepth(100).setAlpha(0.85);
+		}).setOrigin(0.5, 0.5).setInteractive({ useHandCursor: true }).setDepth(100).setAlpha(0.85).setScrollFactor(0);
 
     this.leaveButton.on('pointerdown', () => {
       this.socket.emit('leaveGame');
@@ -181,7 +181,7 @@ export default class GameScene extends Phaser.Scene {
       this.pveContainer.add([this.curRound, this.enemiesRem, this.livesRem, this.roundPanel, this.roundComplete, this.nextRound]);
       elementsToAdd.push(this.pveContainer);
     }
-    elementsToAdd.push(this.scoreboardContainer, this.leaveButton);
+    elementsToAdd.push(this.scoreboardContainer);
     this.uiContainer.add(elementsToAdd);
     
     // Aesthetics

@@ -3,6 +3,7 @@ const { startGameLoop } = require('../game/gameLoop.js');
 const { initialiseCollisions } = require('../game/collisionHandler.js');
 const { Node, buildMap } = require('../../public/js/Node.js');
 const { CONSTANTS } = require('../../public/js/constants.js');
+const { initEasyStar } = require('../game/enemyBots.js');
 
 class Room {
   constructor(code, host, io) {
@@ -85,6 +86,8 @@ class Room {
     this.engine = engine;
     this.world = world;
     this.wallGrid = wallGrid;
+
+    this.easystar = initEasyStar(this);
 
     // Wire collision events to this room's engine and state
     initialiseCollisions(this);

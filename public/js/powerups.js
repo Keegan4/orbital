@@ -156,7 +156,7 @@ const POWERUPS = {
         disc: "You can no longer be damaged from your own bullets",
         flag: {selfHarmImmune: true}
     },
-
+    /*
     wallPhase: {
         id: "wallPhase",
         display: "Phase through walls",
@@ -164,6 +164,7 @@ const POWERUPS = {
         disc: "Walls cannot stop you",
         flag: {wallPhase: true}
     },
+    */
 
     bulletPhase: {
         id: "bulletPhase",

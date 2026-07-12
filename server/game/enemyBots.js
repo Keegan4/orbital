@@ -28,9 +28,7 @@ const SPRITE_HEIGHT = 46;
 
 function createBot(room) {
   const BotID = `BOT-${Date.now()}`;
-  console.log('bot create')
   var bot = createPlayer(BotID, room);
-  console.log('bot created')
 
   bot.team = ENEMY_TEAM;
 
@@ -38,8 +36,8 @@ function createBot(room) {
   bot.path = null;
   bot.pathIdx = 0;
   bot.target = null;
-
-  reqPath(bot, pixelToTile(spawnInDungeon(room.bspDungeons, SPRITE_HEIGHT)));
+  const x = pixelToTile(spawnInDungeon(room.bspDungeons[Math.floor(Math.random() * room.bspDungeons.length)], SPRITE_HEIGHT));
+  reqPath(room, bot, x);
 
   room.io.to(room.code).emit("newPlayer", {
     playerId : room.players[BotID].playerId,
@@ -90,7 +88,6 @@ function reqPath(room, bot, coord, botCoords) {
       room.easystar.avoidAdditionalPoint(bot.x, bot.y);
     });
   }
-  console.log(bot.body)
   const {x: startx, y: starty} = closestValid(room, pixelToTile(bot.body.position));
   room.easystar.findPath(startx, starty, coord.x, coord.y, path => {
     if (path) {
@@ -139,7 +136,6 @@ function isOpen(room, x, y) {
 }
 
 function closestValid(room, tile) {
-
   if (isOpen(room, tile.x, tile.y)) {
     return tile;
   } 
@@ -150,7 +146,7 @@ function closestValid(room, tile) {
   for (const i of around) {
     const nearX = tile.x + i.x;
     const nearY = tile.y + i.y;
-    if (isOpen(nearX, nearY)) {
+    if (isOpen(room, nearX, nearY)) {
       return {x: nearX, y: nearY};
     }
   }

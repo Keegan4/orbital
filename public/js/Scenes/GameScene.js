@@ -209,7 +209,7 @@ export default class GameScene extends Phaser.Scene {
     const floorLayer = map.createBlankLayer('floor', floorTileSet).setDepth(90);
     for (let r = 0; r < mapTileHeight; r++) {
       for (let c = 0; c < mapTileWidth; c++) {
-        if (this.wallGrid[r][c] === 0) {
+        if (this.wallGrid[r][c] !== 1) {
           floorLayer.putTileAt(1, c, r);
         }
       }

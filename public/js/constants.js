@@ -7,17 +7,18 @@ const CONSTANTS = {
     CELL_SIZE: 32,
 
     // Map (EVERYTHING MULTIPLES OF 32)
+    // maybe 2016 too big
     MAP_CONFIG: {
-        MAP_WIDTH: 2016,
-        MAP_HEIGHT: 2016,
+        MAP_WIDTH: 1024,
+        MAP_HEIGHT: 1024,
         CELL_SIZE: 32,
         GLOBAL_PADDING: 64,
         PADDING: 0,
-        NO_PARTITIONS: 5,
+        NO_PARTITIONS: 4,
         MIN_PARTITION_SIZE: 256,
-        CORRIDOR_SIZE: 64,
-        MIN_DUNGEON_WIDTH: 96,
-        MIN_DUNGEON_HEIGHT: 96
+        CORRIDOR_SIZE: 96,
+        MIN_DUNGEON_WIDTH: 160,
+        MIN_DUNGEON_HEIGHT: 160
     },
 
     RED_TEAM: 'red',

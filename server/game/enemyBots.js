@@ -56,8 +56,8 @@ const GRID_H = GAME_HEIGHT / CELL_SIZE;
 function initEasyStar(room) {
   var easystar = new EasyStar.js();
   easystar.setGrid(room.wallGrid);
-  easystar.setAcceptableTiles(0);
-  easystar.setTileCost(2);
+  easystar.setAcceptableTiles([0, 2]);
+  easystar.setTileCost(2, 5);
   easystar.enableDiagonals();
   easystar.enableSync();
   return easystar;
@@ -132,7 +132,7 @@ function botFacing(bot, target) {
 }
 
 function isOpen(room, x, y) {
-  return room.wallGrid[y] !== undefined && room.wallGrid[y][x] !== undefined && room.wallGrid[y][x] !== 0;
+  return room.wallGrid[y] !== undefined && room.wallGrid[y][x] !== undefined && room.wallGrid[y][x] !== 1;
 }
 
 function closestValid(room, tile) {

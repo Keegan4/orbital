@@ -50,6 +50,33 @@ function createPhysics(mapWidth, mapHeight, cellSize, totalPlayableSpaces) {
       }
   });
 
+  const toMark = [];
+  const dirs = [[-1, -1], [-1, 0], [-1, 1], 
+    [ 0, -1], [ 0, 1],
+    [ 1, -1], [ 1, 0], [ 1, 1],];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+        // Only wanna change fllor tiles
+        if (wallGrid[r][c] !== 0) {
+            continue;
+        }
+        // Checks if the coord is next to a wall in 8 directions
+        const touch = dirs.some(([dr, dc]) => {
+            const newR = r + dr;
+            const newC = c + dc;
+            // Dont mark outside the grid
+            if (newR < 0 || newR >= rows || newC < 0 || newC >= cols) {
+                return false;
+            }
+            return wallGrid[newR][newC] === 1;
+        });
+        if (touch) {
+            toMark.push([r, c]);
+        }
+    }
+  }
+  toMark.forEach(([r, c]) => { wallGrid[r][c] = 2; });
+
   const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
   for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {

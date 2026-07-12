@@ -11,7 +11,8 @@ const { createBot,
   calculatePaths,
   tankSighted,
   botFacing,
-  closestValid
+  closestValid,
+  botTypes
 } = require('./enemyBots.js');
 
 
@@ -52,6 +53,7 @@ function effectiveStats(player) {
     // Additive
     bulletBounce: 0,
     frontBullets: 0,
+    hpUp: 0,
 
     // Flags
     backShot: false,
@@ -67,7 +69,7 @@ function effectiveStats(player) {
   };
 
   const additive = [
-    "bulletBounce", "frontBullets"
+    "bulletBounce", "frontBullets", "hpUp"
   ];
 
   player.powerups.forEach(powerup => {
@@ -122,17 +124,55 @@ function powerupsRound(round) {
   return Math.floor(round / 1.5);
 }
 
+function adjustBot(bot, quantity, upgrade, downgrade) {
+  // This turns the data from the bot's Type into actual stats 
+  // Through powerups. The curses are made specifically to 
+  // decrease the stats for the bots should
+  // quantity be negative. Of course, if quantity is 0, 
+  // You shouldnt apply anything
+
+  if (quantity > 0) {
+    for (let i = 0; i < quantity; i++) {
+    bot.powerups.push(upgrade);
+    }
+  } else if (quantity < 0) {
+    quantity = quantity * -1
+    for (let i = 0; i < quantity; i++) {
+      bot.powerups.push(downgrade);
+    }
+  }
+}
+
 function startGameLoop(room) {
   const interval = setInterval(() => {
     const now = Date.now();
     calculatePaths(room);
+
+    // Bot spawning 
 
     const currentBots = Object.values(room.players).filter(p => p.playerId.startsWith("BOT-")).length;
     if (now - lastSpawn > SPAWN_COOLDOWN && 
         currentBots < BOT_LIMIT + Math.floor(Math.pow(1.2, room.roundNum)) && 
         room.gameConfig.current.gameMode === 'PVE' &&
         room.enemiesRem > 0) {
-      const bot = createBot(room);
+      
+      const roll = Math.random();
+      var type;
+      if (roll < 0.1) {
+        type = botTypes.exploder;
+      }else if (roll < 0.5) {
+        type = botTypes.berserker;
+      } else {
+        type = botTypes.chaser;
+      }
+      const bot = createBot(room, type);
+
+      // Adjust stats for bots
+      adjustBot(bot, type.speedUps, POWERUPS.speedBoost, POWERUPS.cursedSpeed);
+      adjustBot(bot, type.turnBoost, POWERUPS.turnBoost, POWERUPS.cursedTurn);
+      adjustBot(bot, type.bulletLife, POWERUPS.bulletLife, POWERUPS.cursedLife);
+      adjustBot(bot, type.hpUp, POWERUPS.hpUp, POWERUPS.cursedHp);
+
       botPowers(powerupsRound(room.roundNum), bot);
 
       lastSpawn = now;
@@ -144,8 +184,10 @@ function startGameLoop(room) {
       p => p.playerId.startsWith("BOT-") && p.isAlive
     ).length;
 
+    const bulletCount = Object.values(room.bullets).length;
 
-    if (room.enemiesRem === 0 && aliveBots === 0) {
+    // Control the waves/rounds of bots
+    if (room.enemiesRem === 0 && aliveBots === 0 && bulletCount === 0) {
 
       if (room.waveCountDown == 0) {
        room.waveCountDown = WAVE_COOLDOWN + now;
@@ -157,7 +199,7 @@ function startGameLoop(room) {
           cooldown: room.waveCountDown - now
         });
       } else {
-        room.enemiesRem = STARTING_ENEMIES + Math.floor(Math.pow(1.2, room.roundNum));
+        room.enemiesRem = STARTING_ENEMIES + Math.ceil(Math.pow(1.2, room.roundNum));
         room.roundNum++;
         room.waveCountDown = 0;
         room.io.to(room.code).emit("startRound");
@@ -188,7 +230,7 @@ function startGameLoop(room) {
         // This checks if a target is in sight then it shoots 
         // every time it moves
         const targ = botTarget(player, room);
-        if (targ && tankSighted(player, targ, room) && botFacing(player, targ)) {
+        if (targ && tankSighted(player, targ, room) && botFacing(player, targ) && player.botType.canShoot) {
             const randFire = Math.random();
             if (randFire >= missFireChance[room.gameConfig.current.difficulty]) {
               player.input.fire = true;
@@ -269,7 +311,7 @@ function startGameLoop(room) {
 
     // Remove expired bullets
     Object.values(room.bullets).forEach(bullet => {
-      if (Date.now() - bullet.createdAt > BULLET_LIFESPAN + bullet.stats.bulletLife) {
+      if (Date.now() - bullet.createdAt > BULLET_LIFESPAN * bullet.stats.bulletLife) {
         destroyBullet(bullet.id, room);
       }
     });

@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid slice">
+  <!--
+    TANKS EVOLVED ~ Kaigan  |  Lobby / waiting room  |  CARTOON style
+    Same cheerful sky+hills world as the title, but calmer: no burst, no combat.
+    A soft rounded panel sits center for the room code, players, difficulty, Start.
+  -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0"    stop-color="#79cdf3"/>
+      <stop offset="0.6"  stop-color="#9bdcf6"/>
+      <stop offset="1"    stop-color="#c7ecf8"/>
+    </linearGradient>
+    <linearGradient id="hillFront" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7ec24a"/>
+      <stop offset="1" stop-color="#5da336"/>
+    </linearGradient>
+    <linearGradient id="hillBack" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a4d76a"/>
+      <stop offset="1" stop-color="#88c650"/>
+    </linearGradient>
+    <!-- central UI panel -->
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b3550"/>
+      <stop offset="1" stop-color="#1f273d"/>
+    </linearGradient>
+
+    <g id="ctank">
+      <ellipse cx="0" cy="46" rx="60" ry="14" fill="#000" opacity="0.15"/>
+      <rect x="-56" y="-6" width="112" height="52" rx="18" fill="#3a3f45" stroke="#20242a" stroke-width="6"/>
+      <g fill="#20242a">
+        <rect x="-46" y="6" width="10" height="34" rx="3"/><rect x="-28" y="6" width="10" height="34" rx="3"/>
+        <rect x="-10" y="6" width="10" height="34" rx="3"/><rect x="8" y="6" width="10" height="34" rx="3"/>
+        <rect x="26" y="6" width="10" height="34" rx="3"/><rect x="40" y="6" width="10" height="34" rx="3"/>
+      </g>
+      <rect x="-44" y="-34" width="88" height="46" rx="16" class="body" stroke="#20242a" stroke-width="6"/>
+      <circle cx="0" cy="-14" r="26" class="body" stroke="#20242a" stroke-width="6"/>
+      <rect x="-9" y="-72" width="18" height="46" rx="8" class="body" stroke="#20242a" stroke-width="6"/>
+      <circle cx="-9" cy="-22" r="6" fill="#fff" opacity="0.65"/>
+    </g>
+
+    <g id="cloud">
+      <g fill="#ffffff" stroke="#dcefff" stroke-width="4">
+        <circle cx="0" cy="0" r="26"/><circle cx="30" cy="-8" r="32"/><circle cx="64" cy="2" r="24"/>
+        <rect x="-6" y="8" width="80" height="24" rx="12" stroke="none"/>
+      </g>
+    </g>
+  </defs>
+
+  <rect width="1280" height="720" fill="url(#sky)"/>
+
+  <!-- clouds, spread wide, away from center -->
+  <use href="#cloud" transform="translate(260,110) scale(1.0)"/>
+  <use href="#cloud" transform="translate(380,130) scale(0.85)"/>
+  <use href="#cloud" transform="translate(900,320) scale(0.6)"/>
+  <use href="#cloud" transform="translate(980,360) scale(0.7)"/>
+
+  <!-- hills -->
+  <path d="M0,560 Q320,480 640,545 T1280,525 L1280,720 L0,720 Z" fill="url(#hillBack)" stroke="#6fae42" stroke-width="6"/>
+  <path d="M0,625 Q360,555 700,615 T1280,605 L1280,720 L0,720 Z" fill="url(#hillFront)" stroke="#4e9130" stroke-width="6"/>
+  <g fill="#6fb43e" opacity="0.7">
+    <circle cx="150" cy="675" r="8"/><circle cx="380" cy="692" r="7"/><circle cx="1000" cy="672" r="8"/><circle cx="1180" cy="690" r="7"/>
+  </g>
+
+  <!-- two idle tanks parked at the sides, facing inward, "waiting" -->
+  <g transform="translate(300,545) rotate(20) scale(0.95)">
+    <g fill="#e2504a"><use href="#ctank"/></g>
+  </g>
+  <g transform="translate(980,560) rotate(-20) scale(0.95) scale(-1,1)">
+    <g fill="#4fb0e0"><use href="#ctank"/></g>
+  </g>
+
+  <!-- CENTER UI PANEL: chunky rounded card with cartoon outline -->
+  <g transform="translate(640,360)">
+    <!-- drop shadow -->
+    <rect x="-296" y="-286" width="592" height="576" rx="34" fill="#000" opacity="0.18" transform="translate(8,12)"/>
+    <!-- panel -->
+    <rect x="-300" y="-290" width="600" height="576" rx="34" fill="url(#panel)" stroke="#141a2b" stroke-width="8"/>
+    <!-- top accent bar -->
+    <rect x="-300" y="-290" width="600" height="70" rx="34" fill="#3a4870"/>
+    <rect x="-300" y="-256" width="600" height="36" fill="#3a4870"/>
+    <!-- inner subtle divider under the header -->
+    <rect x="-270" y="-208" width="540" height="4" rx="2" fill="#4a598a" opacity="0.6"/>
+  </g>
+
+  <!--
+    Overlay lobby UI inside the center panel (roughly x:360-920, y:80-640):
+      header bar  -> "LOBBY" or the room title
+      body        -> ROOM CODE (big), player list, difficulty toggle
+      bottom      -> START button
+    Panel is dark so white/gold text pops; the outline keeps the cartoon feel.
+  -->
+</svg>

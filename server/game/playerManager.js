@@ -60,10 +60,11 @@ function spawn(body, room) {
       tries++;
     }
   }
-  return {x: x, y: y};
+  const randDungeon = room.bspDungeons[Math.floor(Math.random() * room.bspDungeons.length)];
+  return spawnInDungeon(randDungeon, SPRITE_HEIGHT);
 }
 
-function createPlayer(socketId, room) {
+function createPlayer(socketId, room, hp = 1) {
 
   // Using spawn makes sure it wont spawn too close to things
   const { x, y } = spawn(null, room);
@@ -89,7 +90,11 @@ function createPlayer(socketId, room) {
     score: 0,
     createdAt: Date.now(),
     powerups: [],
-    stats: {}
+    stats: {},
+    hitsTaken: 0,
+    startingHp: hp,
+    // Interesting idea, should write this in the readme, why we decided
+    // To use hitsTaken instead of just minusing the Hp
   };
   room.players[socketId] = player;
   return player;

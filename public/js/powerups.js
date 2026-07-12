@@ -1,7 +1,48 @@
 const POWERUPS = {
+    // Curses
+
+    cursedHp: {
+        id: "cursedHp",
+        display: "Lower Hp",
+        rarity: "curse",
+        disc: "-1 Hit Point",
+        stats: {hpUp: -1}
+    },
+
+    cursedTurn: {
+        id: "cursedTurn",
+        display: "Lower Turning Speed",
+        rarity: "curse",
+        disc: "-15% turning speed",
+        stats: {angularVelo: 0.85}
+    },
+
+    cursedSpeed: {
+        id: "cursedSpeed",
+        display: "Lower Speed",
+        rarity: "curse",
+        disc: "-15% speed",
+        stats: {velocity: 0.85}
+    },
+
+    cursedLife: {
+        id: "cursedLife",
+        display: "Lower bullet Life",
+        rarity: "curse",
+        disc: "-15% bullet lifespan",
+        stats: {bulletLife: 0.85}
+    },
+
+    cursedBulletSpeed: {
+        id: "cursedBulletSpeed",
+        display: "Lower bullet speed",
+        rarity: "curse",
+        disc: "-15% bullet speed",
+        stats: {bulletVelo: 0.85}
+    },
+
 
     // Common Powerups
-
     turnBoost: {
         id: "turnBoost",
         display: "Increase Turning Speed",
@@ -39,6 +80,14 @@ const POWERUPS = {
         stats: {bulletLife: 1.15}
     },
 
+    hpUp: {
+        id: "hpUp",
+        display: "Hp Up",
+        rarity: "common",
+        disc: "You can take another hit",
+        stats: {hpUp: 1}
+    },
+
     // Rare Powerups
     backShot: {
         id: "backShot",
@@ -64,6 +113,14 @@ const POWERUPS = {
         rarity: "rare",
         disc: "Your bullets gain speed on bounce (Stacks). +2 bullet bounces",
         stats: {bulletAccelerate: 1.1, bulletBounce: 2}
+    },
+
+    tankUp: {
+        id: "tankUp",
+        display: "Tank Up",
+        rarity: "rare",
+        disc: "Massively increased Hp, lose speed",
+        stats: {hpUp: 2, velocity: 0.5}
     },
     /*
     skullShot: {
@@ -110,7 +167,7 @@ const POWERUPS = {
 
     bulletPhase: {
         id: "bulletPhase",
-        display: "Phase through walls",
+        display: "Bullets phase through walls",
         rarity: "legendary",
         disc: "Bullets are no longer stopped by walls",
         flag: {bulletPhase: true}

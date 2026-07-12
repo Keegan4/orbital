@@ -4,7 +4,7 @@ export default class BootScene extends Phaser.Scene {
   }
 
   preload() {
-
+    this.backG = this.load.image("backG", "assets/GIU AMA 005-08.png");
   }
 
   create() {

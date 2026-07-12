@@ -24,18 +24,68 @@ var lastTarget = 0;
 var botNum = 0;
 const SPRITE_HEIGHT = 46;
 
+// We just gonna stamp these attributes onto the different bots
+const botTypes = {
+  chaser: {
+    speedUps: 0, 
+    turnBoost: 0,
+    bulletLife: 0,
+    hpUp: 0,
+    debuf: true,
+    canShoot: true, 
+    contactDamage: false, 
+    explode: false,
+    color: "black"
+  },
+
+  berserker: {
+    speedUps: 4, 
+    turnBoost: 3,
+    hpUp: 1,
+    bulletLife: 0,
+    debuf: true,
+    canShoot: false, 
+    contactDamage: true, 
+    explode: false,
+    color: "sand"
+  },
+
+  exploder: {
+    speedUps: -8, 
+    turnBoost: 0,
+    bulletLife: -10,
+    hpUp: 2,
+    debuf: true,
+    canShoot: false, 
+    contactDamage: true, 
+    explode: true,
+    color: "green"
+  },
+
+  downgrader: {
+    speedUps: 0, 
+    turnBoost: 0,
+    bulletLife: 0,
+    canShoot: true, 
+    debuf: true,
+    contactDamage: false, 
+    explode: false,
+    color: "bigRed"
+  },
+}
+
 // AI Bot creation, we will cheat and use the createPlayer
 
-function createBot(room) {
+function createBot(room, type) {
   const BotID = `BOT-${Date.now()}`;
   var bot = createPlayer(BotID, room);
-
-  bot.team = ENEMY_TEAM;
+  bot.team = type.color;
 
   //Bot specific attributes
   bot.path = null;
   bot.pathIdx = 0;
   bot.target = null;
+  bot.botType = type;
   const x = pixelToTile(spawnInDungeon(room.bspDungeons[Math.floor(Math.random() * room.bspDungeons.length)], SPRITE_HEIGHT));
   reqPath(room, bot, x);
 
@@ -241,5 +291,6 @@ module.exports = { createBot,
   tankSighted,
   botFacing,
   closestValid,
-  initEasyStar
+  initEasyStar,
+  botTypes
 };

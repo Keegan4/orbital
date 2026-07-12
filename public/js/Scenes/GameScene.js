@@ -19,6 +19,10 @@ export default class GameScene extends Phaser.Scene {
     this.load.image('black', 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_dark.png');
     this.load.image('bullet', 'assets/kenney_topdownTanksRedux/PNG/Default size/bulletRed2.png');
     this.load.image('floor-tile', 'assets/kenney_topdownTanksRedux/PNG/Default size/tileGrass1.png');
+    this.load.image("green", 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_green.png');
+    this.load.image("bigRed", 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_bigRed.png');
+    this.load.image("sand", 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_sand.png');
+    this.load.svg("wall-tile", "assets/wall_tile.svg");
 
     // Load audio
     this.load.audio('shoot',       'assets/shoot.ogg');
@@ -67,6 +71,7 @@ export default class GameScene extends Phaser.Scene {
     this.trackSocket('newPlayer', playerInfo => this.handleNewPlayer(playerInfo));
     this.trackSocket('playerDisconnect', id => this.handlePlayerDisconnect(id));
     this.trackSocket('endGame', data => this.handleEndGame(data));
+    this.trackSocket('tankHit', data => this.handleTankHit(data));
 
     this.leaveButton = this.add.text(730, 30, 'LEAVE', { 
 			fontSize: '18px', 
@@ -164,7 +169,7 @@ export default class GameScene extends Phaser.Scene {
       this.roundPanel.fillStyle(0x000000, 0.75);
       this.roundPanel.fillRoundedRect(220, 245, 359, 90, 12);
 
-      this.roundComplete = this.add.text(400, 250, 'ROUND COMPLETE!', {
+      this.roundComplete = this.add.text(400, 250, 'ROUND COMPLETE', {
         fontFamily: 'Arial Black',
         fontSize: '32px',
         fontStyle: 'bold',
@@ -320,6 +325,7 @@ export default class GameScene extends Phaser.Scene {
 
   handleRespawnSuccess() {
     this.tankDead = false;
+    
   }
 
   handleScoreUpdate(scores) {
@@ -352,7 +358,9 @@ export default class GameScene extends Phaser.Scene {
         this.tank.y = p.y;
         this.tank.rotation = p.rotation;
         this.tankDead = !p.isAlive;
-        p.isAlive ? this.tank.clearTint() : this.tank.setTint(0x808080);
+        if (!this.tank.isFlashing) {
+          p.isAlive ? this.tank.clearTint() : this.tank.setTint(0x808080);
+        }
       } else {
           if (!this.otherPlayers[p.playerId]) {
             this.otherPlayers[p.playerId] = this.add.sprite(p.x, p.y, p.team)
@@ -362,9 +370,11 @@ export default class GameScene extends Phaser.Scene {
           this.otherPlayers[p.playerId].x = p.x;
           this.otherPlayers[p.playerId].y = p.y;
           this.otherPlayers[p.playerId].rotation = p.rotation;
-          p.isAlive 
-            ? this.otherPlayers[p.playerId].clearTint() 
-            : this.otherPlayers[p.playerId].setTint(0x808080);
+          if (!this.otherPlayers[p.playerId].isFlashing) {
+            p.isAlive 
+              ? this.otherPlayers[p.playerId].clearTint() 
+              : this.otherPlayers[p.playerId].setTint(0x808080);
+          }
         }
     });
     
@@ -419,6 +429,21 @@ export default class GameScene extends Phaser.Scene {
       this.otherPlayers[id].destroy();
       delete this.otherPlayers[id];
     }
+  }
+  handleTankHit(data) {
+    const sprite = (data.playerId === this.socket.id)
+      ? this.tank
+      : this.otherPlayers[data.playerId]
+    console.log(sprite);
+    if (!sprite) {
+      return;
+    }
+    sprite.isFlashing = true;
+    sprite.setTintFill(0xff0000);
+    this.time.delayedCall(100, () => {
+      sprite.clearTint();
+      sprite.isFlashing = false;
+    });
   }
 
   handleEndGame(data) {

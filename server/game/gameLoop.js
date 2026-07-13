@@ -171,7 +171,7 @@ function startGameLoop(room) {
       adjustBot(bot, type.speedUps, POWERUPS.speedBoost, POWERUPS.cursedSpeed);
       adjustBot(bot, type.turnBoost, POWERUPS.turnBoost, POWERUPS.cursedTurn);
       adjustBot(bot, type.bulletLife, POWERUPS.bulletLife, POWERUPS.cursedLife);
-      adjustBot(bot, type.hpUp, POWERUPS.hpUp, POWERUPS.cursedHp);
+      //adjustBot(bot, type.hpUp, POWERUPS.hpUp, POWERUPS.cursedHp);
 
       botPowers(powerupsRound(room.roundNum), bot);
 
@@ -327,7 +327,8 @@ function startGameLoop(room) {
         x: p.body.position.x,
         y: p.body.position.y,
         rotation: p.body.angle,
-        isAlive: p.isAlive
+        isAlive: p.isAlive,
+        hp: p.startingHp - p.hitsTaken + p.stats.hpUp
       })),
       bullets: Object.values(room.bullets).map(b => ({
         id: b.id,

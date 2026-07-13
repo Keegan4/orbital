@@ -52,7 +52,8 @@ export default class GameScene extends Phaser.Scene {
     Object.values(this.players).forEach(p => {
       this.playerNames[p.playerId] = p.name;   
     })
-    console.log(this.playerNames);
+    console.log(this.players);
+
 
     // To manage the scoreboard, pvp, pve
     this.uiContainer = this.add.container(0, 0);
@@ -232,6 +233,7 @@ export default class GameScene extends Phaser.Scene {
 
     // Spawn players onto the screen for the first time
     Object.keys(this.players).forEach((id) => {
+      this.playerNames[this.players[id].playerId] = this.players[id].name; 
       if (this.players[id].playerId === this.socket.id) {
         this.tank = this.add.sprite(this.players[id].x, this.players[id].y, this.players[id].team)
                       .setOrigin(0.5, 0.5)
@@ -371,7 +373,10 @@ export default class GameScene extends Phaser.Scene {
   handleGameState(state) {
     if (!this.tank) return;
 
-
+    const labeler = (id, hp) => {
+      const name = this.playerNames[id] || (id.startsWith('BOT-') ? 'BOT' : '');
+      return `${name}\nHP: ${hp}`;
+    }
     state.players.forEach(p => {
       if (p.playerId === this.socket.id) {
         this.tank.x = p.x;
@@ -380,6 +385,10 @@ export default class GameScene extends Phaser.Scene {
         if (this.tank.label) {
           this.tank.label.x = p.x;
           this.tank.label.y = p.y - 30;
+          const txt = labeler(p.playerId, p.hp);
+          if (this.tank.label.text !== txt) {
+            this.tank.label.setText(txt);
+          }
           this.tank.label.setVisible(p.isAlive);
         }
         this.tankDead = !p.isAlive;
@@ -399,6 +408,10 @@ export default class GameScene extends Phaser.Scene {
           if (this.otherPlayers[p.playerId].label) {
             this.otherPlayers[p.playerId].label.x = p.x;
             this.otherPlayers[p.playerId].label.y = p.y - 30;
+            const txt = labeler(p.playerId, p.hp);
+            if (this.otherPlayers[p.playerId].label !== txt) {
+              this.otherPlayers[p.playerId].label.setText(txt);
+            }
             this.otherPlayers[p.playerId].label.setVisible(p.isAlive);
           }
           if (!this.otherPlayers[p.playerId].isFlashing) {
@@ -448,7 +461,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   handleNewPlayer(playerInfo) {
-    console.log('New player joined:', playerInfo.playerId);
+    console.log('New player joined:', playerInfo);
     if (this.otherPlayers[playerInfo.playerId]) {
       this.otherPlayers[playerInfo.playerId].destroy();
     }

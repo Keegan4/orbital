@@ -190,6 +190,7 @@ function startGame(io, room) {
       x: p.body.position.x,
       y: p.body.position.y,
       rotation: p.body.angle,
+      hp: p.startingHp - p.hitsTaken
     })),
     gameConfig: room.gameConfig,
     wallGrid: room.wallGrid

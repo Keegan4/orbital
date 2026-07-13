@@ -82,7 +82,7 @@ class Room {
     this.bspCorridors = bspCorridors;
 
     // Create isolated physics world for this room
-    const { engine, world, wallGrid } = createPhysics(MAP_CONFIG.MAP_WIDTH, MAP_CONFIG.MAP_HEIGHT, MAP_CONFIG.CELL_SIZE, this.totalPlayableSpaces);
+    const { engine, world, wallGrid } = createPhysics(MAP_CONFIG.MAP_WIDTH, MAP_CONFIG.MAP_HEIGHT, MAP_CONFIG.CELL_SIZE, this.totalPlayableSpaces, MAP_CONFIG.GLOBAL_PADDING);
     this.engine = engine;
     this.world = world;
     this.wallGrid = wallGrid;
@@ -110,6 +110,7 @@ class Room {
     this.bspDungeons = null;
     this.bspCorridors = null;
     this.wallGrid = null;
+    this.easystar = null;
     this.status = 'waiting';
     console.log('game closed');
   }

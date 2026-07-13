@@ -13,7 +13,7 @@ const CONSTANTS = {
         MAP_HEIGHT: 1024,
         CELL_SIZE: 32,
         GLOBAL_PADDING: 64,
-        PADDING: 0,
+        PADDING: 32,
         NO_PARTITIONS: 4,
         MIN_PARTITION_SIZE: 256,
         CORRIDOR_SIZE: 96,

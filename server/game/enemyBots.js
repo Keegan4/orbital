@@ -99,10 +99,6 @@ function createBot(room, type) {
   return bot;
 }
 
-
-const GRID_W = GAME_WIDTH / CELL_SIZE;
-const GRID_H = GAME_HEIGHT / CELL_SIZE;
-
 function initEasyStar(room) {
   var easystar = new EasyStar.js();
   easystar.setGrid(room.wallGrid);

@@ -1,4 +1,4 @@
-const {GAME_WIDTH, GAME_HEIGHT, WALL_THICKNESS, MAP_CONFIG} = CONSTANTS;
+const {MAP_CONFIG} = CONSTANTS;
 export default class GameScene extends Phaser.Scene {
   constructor() {
     super({ key: 'GameScene' });
@@ -48,6 +48,16 @@ export default class GameScene extends Phaser.Scene {
     this.lastInput = {};
     this.otherPlayers = {};
     this.bullets = {};
+
+    // World boundary red line
+    const borderLine = this.add.graphics(); 
+    borderLine.lineStyle(4, 0xff0000, 1);
+    borderLine.strokeRect(
+        MAP_CONFIG.GLOBAL_PADDING, 
+        MAP_CONFIG.GLOBAL_PADDING, 
+        MAP_CONFIG.MAP_WIDTH - 2 * MAP_CONFIG.GLOBAL_PADDING, 
+        MAP_CONFIG.MAP_HEIGHT - 2 * MAP_CONFIG.GLOBAL_PADDING
+    );
 
     // To manage the scoreboard, pvp, pve
     this.uiContainer = this.add.container(0, 0);
@@ -214,7 +224,7 @@ export default class GameScene extends Phaser.Scene {
     const floorLayer = map.createBlankLayer('floor', floorTileSet).setDepth(90);
     for (let r = 0; r < mapTileHeight; r++) {
       for (let c = 0; c < mapTileWidth; c++) {
-        if (this.wallGrid[r][c] !== 1) {
+        if (this.wallGrid[r][c] === 0 || this.wallGrid[r][c] == 2) {
           floorLayer.putTileAt(1, c, r);
         }
       }

@@ -10,6 +10,7 @@ export default class GameScene extends Phaser.Scene {
     this.roundInfo = data.roundInfo;
     this.gameMode = data.gameConfig.current.gameMode;
     this.wallGrid = data.wallGrid;
+    this.hazards = data.hazards;
   }
 
   preload() {
@@ -53,6 +54,21 @@ export default class GameScene extends Phaser.Scene {
       this.playerNames[p.playerId] = p.name;   
     })
     console.log(this.players);
+
+    // Create hazards
+
+    Object.values(this.hazards).forEach(hazard => {
+      var color = 0xffffff;
+      if (hazard.type === "bounce") {
+        color = 0x005500;
+      } else if (hazard.type === "spike") {
+        color = 0x000000;
+      }
+      this.add.rectangle(hazard.x, 
+          hazard.y, 
+          hazard.size, 
+          hazard.size, color).setDepth(95);
+    });
 
 
     // To manage the scoreboard, pvp, pve
@@ -374,6 +390,7 @@ export default class GameScene extends Phaser.Scene {
     if (!this.tank) return;
 
     const labeler = (id, hp) => {
+      // Just a fallback in case somehow there are no names
       const name = this.playerNames[id] || (id.startsWith('BOT-') ? 'BOT' : '');
       return `${name}\nHP: ${hp}`;
     }

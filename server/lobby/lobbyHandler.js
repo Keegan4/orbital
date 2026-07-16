@@ -193,7 +193,14 @@ function startGame(io, room) {
       hp: p.startingHp - p.hitsTaken
     })),
     gameConfig: room.gameConfig,
-    wallGrid: room.wallGrid
+    wallGrid: room.wallGrid,
+    hazards: Object.values(room.hazards).map(h => ({
+      id: h.id,
+      x: h.x,         
+      y: h.y,
+      size: h.size,
+      type: h.type,
+    }))
   });
 
   // Set all to notReady for lobby representation

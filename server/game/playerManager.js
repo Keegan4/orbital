@@ -9,6 +9,7 @@ const {
   RESPAWN_LIMIT,
   MIN_DIST,
   CATEGORY_BOUNDARY,
+  CATEGORY_HAZARD,
   RED_TEAM,
   BLUE_TEAM
 } = CONSTANTS;
@@ -38,9 +39,32 @@ function spawnInDungeon(space, tankSize = SPRITE_HEIGHT) {
   };
 }
 
+function spawnHazardLoc(room, size) {
+  var tries = 0;
+  const MIN_HAZARD_DIST = 100;
+  while (tries < RESPAWN_LIMIT) {
+    const randDungeon = room.bspDungeons[Math.floor(Math.random() * room.bspDungeons.length)];
+    const { x, y } = spawnInDungeon(randDungeon, SPRITE_HEIGHT);
+
+    if (Object.values(room.hazards).every(h => {
+      const dx = h.body.position.x - x;
+      const dy = h.body.position.y - y;
+      return Math.sqrt(dx * dx + dy * dy) > MIN_DIST;
+    })) {
+      return { x, y };
+    }
+    tries++;
+  }
+
+  // if CMI just choose a random dungeon and dump it in
+  const randDungeon = room.bspDungeons[Math.floor(Math.random() * room.bspDungeons.length)];
+  return spawnInDungeon(randDungeon, tankSize);
+}
+
 // Ensure respawn is not within a certain radius of other tanks
 function spawn(body, room) {
   var tries = 0;
+  const MIN_HAZARD_DIST = 80;
   const numDungeons = room.bspDungeons.length;
 
   while (tries < RESPAWN_LIMIT) {
@@ -54,6 +78,10 @@ function spawn(body, room) {
       const dy = player.body.position.y - y;
 
       return Math.sqrt(dx * dx + dy * dy) > MIN_DIST;
+    }) && Object.values(room.hazards).every(h => {
+      const dx = h.body.position.x - x;
+      const dy = h.body.position.y - y;
+      return Math.sqrt(dx * dx + dy * dy) > MIN_HAZARD_DIST;
     })) {
       return {x: x, y: y};
     }else {
@@ -74,7 +102,7 @@ function createPlayer(socketId, room, hp = 1) {
     label: 'tank',
     collisionFilter: {
       category: CATEGORY_TANK,
-      mask: CATEGORY_WALL | CATEGORY_BULLET | CATEGORY_TANK | CATEGORY_BOUNDARY
+      mask: CATEGORY_WALL | CATEGORY_BULLET | CATEGORY_TANK | CATEGORY_BOUNDARY | CATEGORY_HAZARD
     }
   });
 
@@ -115,5 +143,6 @@ module.exports = {
   createPlayer,
   destroyPlayer,
   spawn,
-  spawnInDungeon
+  spawnInDungeon,
+  spawnHazardLoc
 };

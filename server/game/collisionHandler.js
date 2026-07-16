@@ -18,6 +18,7 @@ const {
   TICK_DELTA,
   LEGEND_CHANCE,
   RARE_CHANCE,
+  BOUNCE_FORCE,
   EXPLODE_COUNT
 } = CONSTANTS;
 
@@ -58,7 +59,7 @@ function handleContact(bodyA, bodyB, room) {
   // Turn matterjs bodies into player objects
   const tankA = Object.values(room.players).find(p => p.body === bodyA);
   const tankB = Object.values(room.players).find(p => p.body === bodyB);
-
+  if (!tankA || !tankB) return;
   // Dont kill other bots
   if (tankA.playerId.startsWith("BOT-") && tankB.playerId.startsWith("BOT-")) {
     return;
@@ -72,7 +73,7 @@ function handleContact(bodyA, bodyB, room) {
     return;
   }
   if (!player.isAlive) return;
-  // TODO: Change to damage instead
+
   killPlayer(player, room, bot);
   killBot(bot, room);
 }
@@ -141,22 +142,70 @@ function initialiseCollisions(room) {
   Matter.Events.on(room.engine, 'collisionStart', function(event) {
     event.pairs.forEach(pair => {
       const { bodyA, bodyB } = pair;
+      const bulletBody = bodyA.label === 'bullet' 
+                          ? bodyA 
+                          : bodyB.label === 'bullet' 
+                          ? bodyB 
+                          : null;
+      const tankBody = bodyA.label === 'tank' 
+                        ? bodyA 
+                        : bodyB.label === 'tank' 
+                        ? bodyB 
+                        : null;
+      const wallBody = bodyA.label === 'wall' || bodyA.label === 'Boundary'
+                        ? bodyA 
+                        : bodyB.label === 'wall' 
+                        ? bodyB 
+                        : null;
+      const hazardBody = bodyA.label === 'hazard' 
+                        ? bodyA 
+                        : bodyB.label === 'hazard' 
+                        ? bodyB 
+                        : null;
+      
+      
+      // handling hazard collision                  
+      if (hazardBody && tankBody) {
+        const player = Object.values(room.players).find(p => p.body === tankBody);
+        const hazard = Object.values(room.hazards).find(h => h.body === hazardBody);
 
-        const bulletBody = bodyA.label === 'bullet' 
-                           ? bodyA 
-                           : bodyB.label === 'bullet' 
-                           ? bodyB 
-                           : null;
-        const tankBody = bodyA.label === 'tank' 
-                         ? bodyA 
-                         : bodyB.label === 'tank' 
-                         ? bodyB 
-                         : null;
-        const wallBody = bodyA.label === 'wall' || bodyA.label === 'Boundary'
-                         ? bodyA 
-                         : bodyB.label === 'wall' 
-                         ? bodyB 
-                         : null;
+        if (!player || !player.isAlive || !hazard) {
+          return;
+        }
+        if (hazard.type === 'spike') {
+          player.hitsTaken += 1
+          room.io.to(room.code).emit('tankHit', { playerId: player.playerId });
+        
+          if (player.hitsTaken >= player.startingHp + (player.stats.hpUp || 0)) {
+            if (!player.playerId.startsWith("BOT")) {
+              killPlayer(player, room, null);
+            } else {
+              killBot(player, room);
+            }
+            return;
+          }
+        } else if (hazard.type === "bounce") {
+          console.log("hi");
+          let dx = player.body.position.x - hazard.body.position.x;
+          let dy = player.body.position.y - hazard.body.position.y;
+          
+          // THis nonsense is here to make sure that  the vector becomes a
+          // unit vector
+          const norm = Math.sqrt(dx * dx + dy * dy);
+          dx /= norm;
+          dy /= norm;
+          Matter.Body.setVelocity(player.body, {
+            x: dx * BOUNCE_FORCE,
+            y: dy * BOUNCE_FORCE
+          });
+          // Very interesting, since we set the velocity directly 
+          // through the inputs, this constantly gets overriden, so we
+          // need to "protect" this bounce and lock the player/bot from inputs
+          player.bounceUntil = Date.now() + 250;
+          return;
+        }
+
+      }
 
       if (!bulletBody) {
         const tankA = bodyA.label === 'tank' ? bodyA: null;
@@ -195,7 +244,7 @@ function initialiseCollisions(room) {
 
         room.io.to(room.code).emit('tankHit', { playerId: player.playerId });
         
-        if (player.hitsTaken >= player.startingHp + player.stats.hpUp) {
+        if (player.hitsTaken >= player.startingHp + (player.stats.hpUp || 0)) {
           if (!killer) {
             if (!player.playerId.startsWith("BOT")) {
               killPlayer(player, room, null);

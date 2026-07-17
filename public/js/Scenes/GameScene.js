@@ -102,18 +102,10 @@ export default class GameScene extends Phaser.Scene {
     this.trackSocket('endGame', data => this.handleEndGame(data));
     this.trackSocket('tankHit', data => this.handleTankHit(data));
 
-    this.leaveButton = this.add.text(730, 30, 'LEAVE', { 
-			fontSize: '18px', 
-			fill: '#ffffff', 
-			fontStyle: 'bold',
-			backgroundColor: '#772222', 
-			padding: { x: 12, y: 8 },
-			shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 4, fill: true }
-		}).setOrigin(0.5, 0.5).setInteractive({ useHandCursor: true }).setDepth(100).setAlpha(0.85).setScrollFactor(0);
-
-    this.leaveButton.on('pointerdown', () => {
+    this.leaveButton = makeButton(this, 725, 40, 'LEAVE', '#772222', () => {
       this.socket.emit('leaveGame');
-    })
+    }, 130);
+    this.leaveButton.setScrollFactor(0).setDepth(100).setAlpha(0.85);
 
     const sbBg = this.add.graphics().setDepth(99); 
     sbBg.fillStyle(0x1a1a1a, 0.55);

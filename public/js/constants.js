@@ -101,12 +101,13 @@ const makeButton = (scene, x, y, label, bgColor, onClick, w = 240, h = 64, r = 1
       };
       drawBackground(bgColor);
 
+      let isPressed = false;
       const btn = scene.add.container(x, y, [con, txt]);
       btn.setSize(w, h).setInteractive({ useHandCursor: true });
       btn.on('pointerover', () => scene.tweens.add({ targets: btn, scale: 1.08, duration: 120, ease: 'Back.easeOut' }));
       btn.on('pointerout',  () => scene.tweens.add({ targets: btn, scale: 1.0,  duration: 100 }));
-      btn.on('pointerdown', () => { btn.setScale(0.96); scene.sound.play('click'); onClick(); });
-      btn.on('pointerup',   () => { btn.setScale(1.06);  });
+      btn.on('pointerdown', () => { isPressed = true; btn.setScale(0.96); scene.sound.play('click'); });
+      btn.on('pointerup',   () => { if (isPressed) { isPressed = false; btn.setScale(1.06); onClick(); }});
       btn.setText = (newText) => {
         txt.setText(newText);
         txt.setOrigin(0.5); 

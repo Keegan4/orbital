@@ -46,7 +46,7 @@ export default class LobbyMenuScene extends Phaser.Scene {
         fill: '#fff',
         resolution: 2
       }).setOrigin(0.5);
-      this.roomInput = this.add.dom(cx - 10, 300, 'input', {
+      this.roomInput = this.add.dom(cx, 300, 'input', {
         fontFamily: 'Fredoka, sans-serif',
         fontSize: '20px',
         width: '180px',

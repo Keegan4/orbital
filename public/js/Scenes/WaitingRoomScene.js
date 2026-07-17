@@ -34,7 +34,7 @@ export default class WaitingRoomScene extends Phaser.Scene {
     this.createRoomCodeText();
     this.createLeaveButton();
     this.createSetNameButton();
-    this.createGameModeSelector(450, 550);
+    this.createGameModeSelector(400, 550);
     this.createReadyButton(700, 550);
     this.createPveStaticPlayerList();
     this.createPvpStaticPlayerList();
@@ -107,9 +107,8 @@ export default class WaitingRoomScene extends Phaser.Scene {
     target.on('pointerout', () => this.tweens.add({ targets: target, scale: 1.0, duration: 100 }));
   }
 
-  createRoomCodeText(x = 480, y = 50) {
-    this.roomCodeText = makeButton(this, x, y, `ROOM CODE: ${this.roomCode}`, '#ffff00', () => {
-      this.sound.play('click');
+  createRoomCodeText(x = 400, y = 50) {
+    this.roomCodeText = makeButton(this, x, y, `ROOM CODE: ${this.roomCode}`, '', () => {
       const rawCode = this.roomCode; 
       navigator.clipboard.writeText(rawCode)
         .then(() => {
@@ -157,22 +156,9 @@ export default class WaitingRoomScene extends Phaser.Scene {
     });
   }
 
-  createLeaveButton(x = 730, y = 30) {
-    this.leaveBtn = this.add.text(x, y, 'LEAVE', { 
-			fontSize: '18px', 
-			fill: '#ffffff', 
-			fontStyle: 'bold',
-			backgroundColor: '#772222', 
-			padding: { x: 12, y: 8 },
-      fontFamily: 'Fredoka', resolution: 2,
-			shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 4, fill: true }
-		})
-		.setOrigin(0.5)
-		.setInteractive({ useHandCursor: true });
-
-		this.addButtonHover(this.leaveBtn);
-		this.leaveBtn.on('pointerdown', () => {
-			this.leaveBtn.disableInteractive();
+  createLeaveButton(x = 710, y = 50) {
+    this.leaveBtn = makeButton(this, x, y, 'LEAVE', '#772222', () => {
+      this.leaveBtn.disableInteractive();
 			this.tweens.add({
 				targets: this.leaveBtn,
 				x: 900,
@@ -184,16 +170,15 @@ export default class WaitingRoomScene extends Phaser.Scene {
 					this.handleLobbyLeave();
 				}
 			});
-		});
+    }, 130);
   }
 
-  createSetNameButton(x = 220, y = 50) {
+  createSetNameButton(x = 120, y = 50) {
     // Set name button to container screen
     const setNameButton = makeButton(this, x, y, "Set Name", 0x4caf50, () => {
       setNameContainer.setVisible(true);
-      setNameButton.setVisible(false);
       setTimeout(() => { inputNode.focus(); }, 10); 
-    }, 180, 50)
+    }, 180, 64)
 
     const setNameContainer = this.add.container(400, 300);
     const clickBlocker = this.add.rectangle(0, 0, 800, 600, 0x000000, 0).setInteractive(); // blocks entire screen
@@ -217,16 +202,6 @@ export default class WaitingRoomScene extends Phaser.Scene {
     inputNode.maxLength = 16;
     inputNode.placeholder = `Default: ${this.lobbyPlayer.name}`;
 
-    const setNameSubmitButton = this.add.text(0, 60, '[ SUBMIT ]', {
-        fontSize: '22px',
-        fill: '#ff9f43',
-        fontFamily: 'Fredoka', 
-        resolution: 2
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-    setNameContainer.add([clickBlocker, setNameBackground, setNameTitle, this.nameInput, setNameSubmitButton]);
-    setNameContainer.setDepth(100);
-    setNameContainer.setVisible(false);
-
     const submitNameAction = () => {
       const finalName = inputNode.value.trim().length === 0
                       ? this.lobbyPlayer.name
@@ -237,14 +212,14 @@ export default class WaitingRoomScene extends Phaser.Scene {
       setNameButton.setVisible(true);
     };
 
+    const setNameSubmitButton = makeButton(this, 0, 60, 'SUBMIT', '#ff9f43', submitNameAction);
+    setNameContainer.add([clickBlocker, setNameBackground, setNameTitle, this.nameInput, setNameSubmitButton]);
+    setNameContainer.setDepth(100);
+    setNameContainer.setVisible(false);
+
     setNameButton.on('pointerdown', () => {
       setNameContainer.setVisible(true);
-      setNameButton.setVisible(false);
       setTimeout(() => { inputNode.focus(); }, 10); 
-    });
-
-    setNameSubmitButton.on('pointerdown', () => {
-      submitNameAction();
     });
 
     inputNode.addEventListener('keydown', (event) => {
@@ -254,21 +229,13 @@ export default class WaitingRoomScene extends Phaser.Scene {
       else if (event.key === 'Escape') {
         inputNode.blur();
         setNameContainer.setVisible(false);
-        setNameButton.setVisible(true);
       }
     });
   }
 
   createGameModeSelector(x = 400, y = 130) {
     // Gamemode selection button
-
-  	this.modeSelectButton = this.add.text(x, y, '[ MODE: CHOOSE GAME MODE ]', {
-  		fontSize: '22px',
-  		fill: '#888888',
-  		backgroundColor: '#111111',
-  		padding: 8,
-      fontFamily: 'Fredoka', resolution: 2,
-  	}).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    this.modeSelectButton = makeButton(this, x, y, 'MODE: CHOOSE GAME MODE', '', () => {modeContainer.setVisible(true)}, 300);
 
   	const modeContainer = this.add.container(400, 300);
   	modeContainer.setDepth(100);
@@ -287,6 +254,9 @@ export default class WaitingRoomScene extends Phaser.Scene {
   	const btnEasy = this.add.text(-250, 10, '[ EASY ]', { fontSize: '16px', fill: '#888888', fontFamily: 'Fredoka', resolution: 2,}).setOrigin(0.5).setInteractive({ useHandCursor: true });
   	const btnMed  = this.add.text(-160, 10, '[ MEDIUM ]',  { fontSize: '16px', fill: '#888888', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5).setInteractive({ useHandCursor: true });
   	const btnHard = this.add.text(-70, 10, '[ HARD ]', { fontSize: '16px', fill: '#888888', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    this.addButtonHover(btnEasy);
+    this.addButtonHover(btnMed);
+    this.addButtonHover(btnHard);
 
     // Right PVP side
   	const pvpTitle = this.add.text(160, -110, 'PVP', { fontSize: '20px', fill: '#cccccc', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5);
@@ -296,12 +266,16 @@ export default class WaitingRoomScene extends Phaser.Scene {
   	const btnRnd5  = this.add.text(70, 10, '[ 5 ]',  { fontSize: '16px', fill: '#888888', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5).setInteractive({ useHandCursor: true });
   	const btnRnd10 = this.add.text(160, 10, '[ 10 ]', { fontSize: '16px', fill: '#888888', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5).setInteractive({ useHandCursor: true });
   	const btnRnd15 = this.add.text(250, 10, '[ 15 ]', { fontSize: '16px', fill: '#888888', fontFamily: 'Fredoka', resolution: 2, }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    this.addButtonHover(btnRnd5);
+    this.addButtonHover(btnRnd10);
+    this.addButtonHover(btnRnd15);
 
     // Bottom confirm button
   	const btnConfirm = this.add.text(0, 160, 'CONFIRM SELECTION', {
   		fontSize: '22px', fill: '#888888', padding: 8, fontFamily: 'Fredoka', resolution: 2,
   	}).setOrigin(0.5).setInteractive({ useHandCursor: true });
-
+    this.addButtonHover(btnConfirm);
+    
   	modeContainer.add([
   		modeBlocker, modeBg, modeTitle,
   		pveTitle, pveSubTitle, btnEasy, btnMed, btnHard,
@@ -310,10 +284,6 @@ export default class WaitingRoomScene extends Phaser.Scene {
   	]);
 
   	modeContainer.setVisible(false);
-
-  	this.modeSelectButton.on('pointerdown', () => {
-  		modeContainer.setVisible(true);
-  	});
 
   	// Helper to set colours
   	const clearPvpSelections = () => {
@@ -406,19 +376,11 @@ export default class WaitingRoomScene extends Phaser.Scene {
       this.socket.emit('setGameConfig', this.gameConfig);
   	});
   }
+  
 
   createReadyButton(x = 520, y = 210) {
     // Ready button
-    this.readyBtn = this.add.text(x, y, ' NOT READY ', { 
-      fontSize: '20px', 
-      fill: '#000000', 
-      backgroundColor: '#ffcc00',
-      padding: { x: 15, y: 8 },
-      fontFamily: 'Fredoka', resolution: 2,
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-
-    this.addButtonHover(this.readyBtn);
-    this.readyBtn.on('pointerdown', () => {
+    const handleReadyBtn = () => {
     	this.isReady = !this.isReady;
     	this.tweens.add({
     		targets: this.readyBtn,
@@ -439,7 +401,8 @@ export default class WaitingRoomScene extends Phaser.Scene {
     		}
     	});
     	this.socket.emit('setReady', { isReady: this.isReady });
-    });
+    };
+    this.readyBtn = makeButton(this, x, y, 'NOT READY', '#ffcc00', handleReadyBtn, 160)
   }
 
   createPveStaticPlayerList() {

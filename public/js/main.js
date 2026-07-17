@@ -17,6 +17,9 @@ var config = {
       debug: false
     }
   },
+  fps: {
+    forceSetTimeOut: true 
+  },
   parent: 'game-container',
   scene: [ BootScene, LobbyMenuScene, WaitingRoomScene, GameScene, PostHitScene, EndGameScene ],
   dom: { createContainer: true }

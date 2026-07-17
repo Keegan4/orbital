@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!--
+    Bounce pad / bumper (top-down). Cartoon: thick dark outline, springy green,
+    radiating arrows to signal "launch". 64x64 (2 cells). Round bumper on a plate.
+  -->
+  <defs>
+    <radialGradient id="dome" cx="0.4" cy="0.35" r="0.75">
+      <stop offset="0" stop-color="#7ff08a"/>
+      <stop offset="0.6" stop-color="#3fc457"/>
+      <stop offset="1" stop-color="#2a9c40"/>
+    </radialGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffd24a"/>
+      <stop offset="1" stop-color="#e5a91f"/>
+    </linearGradient>
+  </defs>
+
+  <!-- base plate (subtle square footprint) -->
+  <rect x="4" y="4" width="56" height="56" rx="12"
+        fill="#2f3a2f" stroke="#20242a" stroke-width="4" opacity="0.55"/>
+
+  <!-- outer springy ring -->
+  <circle cx="32" cy="32" r="26" fill="url(#ring)" stroke="#20242a" stroke-width="4"/>
+  <!-- inner dome (the bouncy part) -->
+  <circle cx="32" cy="32" r="18" fill="url(#dome)" stroke="#20242a" stroke-width="4"/>
+  <!-- shine -->
+  <ellipse cx="26" cy="25" rx="7" ry="4.5" fill="#ffffff" opacity="0.55"/>
+
+  <!-- outward arrows (4 directions) to signal launch -->
+  <g fill="#ffffff" stroke="#20242a" stroke-width="2.5" stroke-linejoin="round">
+    <!-- up -->
+    <polygon points="32,6 37,15 27,15"/>
+    <!-- down -->
+    <polygon points="32,58 27,49 37,49"/>
+    <!-- left -->
+    <polygon points="6,32 15,27 15,37"/>
+    <!-- right -->
+    <polygon points="58,32 49,27 49,37"/>
+  </g>
+</svg>

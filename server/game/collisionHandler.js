@@ -185,7 +185,6 @@ function initialiseCollisions(room) {
             return;
           }
         } else if (hazard.type === "bounce") {
-          console.log("hi");
           let dx = player.body.position.x - hazard.body.position.x;
           let dy = player.body.position.y - hazard.body.position.y;
           

@@ -24,11 +24,14 @@ export default class GameScene extends Phaser.Scene {
     this.load.image("bigRed", 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_bigRed.png');
     this.load.image("sand", 'assets/kenney_topdownTanksRedux/PNG/Default size/tank_sand.png');
     this.load.svg("wall-tile", "assets/wall_tile.svg");
+    this.load.svg("spike", "assets/spike_hazard.svg");
+    this.load.svg("bounce", "assets/bounce_pad.svg");
 
     // Load audio
     this.load.audio('shoot',       'assets/shoot.ogg');
     this.load.audio('bulletBounce','assets/bounce.ogg');
     this.load.audio('tankHit',     'assets/explosion.ogg');
+
 
     // Load animations
     for (let i = 1; i <= 5; i++) {
@@ -53,21 +56,15 @@ export default class GameScene extends Phaser.Scene {
     Object.values(this.players).forEach(p => {
       this.playerNames[p.playerId] = p.name;   
     })
-    console.log(this.players);
+
+
 
     // Create hazards
 
     Object.values(this.hazards).forEach(hazard => {
-      var color = 0xffffff;
-      if (hazard.type === "bounce") {
-        color = 0x005500;
-      } else if (hazard.type === "spike") {
-        color = 0x000000;
-      }
-      this.add.rectangle(hazard.x, 
+      this.add.image(hazard.x, 
           hazard.y, 
-          hazard.size, 
-          hazard.size, color).setDepth(95);
+          hazard.type).setDepth(95).setDisplaySize(hazard.size + 1, hazard.size + 1);
     });
 
 

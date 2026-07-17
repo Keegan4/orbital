@@ -27,6 +27,9 @@ const CONSTANTS = {
     STARTING_ENEMIES: 3,
     WAVE_COOLDOWN: 5000,
 
+    // Hazard stuff
+    BOUNCE_FORCE: 20,
+
     // Tank atributes
     FRIENDLY_TEAM: "blue",
     TICK_RATE : 60,
@@ -45,6 +48,7 @@ const CONSTANTS = {
     CATEGORY_BULLET : 0x0002,
     CATEGORY_TANK: 0x0004,
     CATEGORY_BOUNDARY: 0x0008,
+    CATEGORY_HAZARD: 0x0010,
     RESPAWN_LIMIT: 300,
     MIN_DIST: 300,
     TICK_DELTA : 1 / 60,

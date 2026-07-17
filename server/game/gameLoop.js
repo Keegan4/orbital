@@ -171,7 +171,7 @@ function startGameLoop(room) {
       adjustBot(bot, type.speedUps, POWERUPS.speedBoost, POWERUPS.cursedSpeed);
       adjustBot(bot, type.turnBoost, POWERUPS.turnBoost, POWERUPS.cursedTurn);
       adjustBot(bot, type.bulletLife, POWERUPS.bulletLife, POWERUPS.cursedLife);
-      adjustBot(bot, type.hpUp, POWERUPS.hpUp, POWERUPS.cursedHp);
+      //adjustBot(bot, type.hpUp, POWERUPS.hpUp, POWERUPS.cursedHp);
 
       botPowers(powerupsRound(room.roundNum), bot);
 
@@ -281,15 +281,20 @@ function startGameLoop(room) {
       Matter.Body.setAngularVelocity(body, TANK_ANGULAR_SPEED * TICK_DELTA * turnDirection * stats.angularVelo);
 
       // Movement
-      let moveDirection = 0;
-      const angle = body.angle - Math.PI / 2;
-      if (input.up) moveDirection -= 1;
-      if (input.down) moveDirection += 1;
-      Matter.Body.setVelocity(body, {
-        x: Math.cos(angle) * TANK_SPEED * TICK_DELTA * stats.velocity * moveDirection,
-        y: Math.sin(angle) * TANK_SPEED * TICK_DELTA * stats.velocity * moveDirection
-      });
 
+      if (player.bounceUntil && Date.now() < player.bounceUntil) {
+        // Just dont do anything, this is to protect the bounce
+      } else {
+         let moveDirection = 0;
+        const angle = body.angle - Math.PI / 2;
+        if (input.up) moveDirection -= 1;
+        if (input.down) moveDirection += 1;
+        Matter.Body.setVelocity(body, {
+          x: Math.cos(angle) * TANK_SPEED * TICK_DELTA * stats.velocity * moveDirection,
+          y: Math.sin(angle) * TANK_SPEED * TICK_DELTA * stats.velocity * moveDirection
+        });
+      }
+     
       // Firing
       if (input.fire && now - player.lastFired > FIRE_COOLDOWN) {
         player.lastFired = now;
@@ -327,7 +332,8 @@ function startGameLoop(room) {
         x: p.body.position.x,
         y: p.body.position.y,
         rotation: p.body.angle,
-        isAlive: p.isAlive
+        isAlive: p.isAlive,
+        hp: p.startingHp - p.hitsTaken + p.stats.hpUp
       })),
       bullets: Object.values(room.bullets).map(b => ({
         id: b.id,

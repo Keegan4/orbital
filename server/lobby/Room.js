@@ -1,9 +1,11 @@
 const { createPhysics } = require('../game/physics.js');
+const Matter = require('matter-js');
 const { startGameLoop } = require('../game/gameLoop.js');
 const { initialiseCollisions } = require('../game/collisionHandler.js');
 const { Node, buildMap } = require('../../public/js/Node.js');
 const { CONSTANTS } = require('../../public/js/constants.js');
 const { initEasyStar } = require('../game/enemyBots.js');
+const { spawnInDungeon, spawnHazardLoc } = require('../game/playerManager.js');
 
 class Room {
   constructor(code, host, io) {
@@ -47,6 +49,8 @@ class Room {
     this.bspDungeons = null;
     this.bspCorridors = null;
     this.wallGrid = null;
+    this.hazards = {};
+    this.hazardId = 0;
 
     // PVE settings
     this.roundNum = 0;
@@ -87,6 +91,9 @@ class Room {
     this.world = world;
     this.wallGrid = wallGrid;
 
+    this.spawnHazards();
+    console.log(Object.keys(this.hazards).length);
+
     this.easystar = initEasyStar(this);
 
     // Wire collision events to this room's engine and state
@@ -94,6 +101,39 @@ class Room {
 
     // Start the game loop for this room
     this.gameLoopInterval = startGameLoop(this);
+  }
+
+  spawnHazards() {
+    const { MAP_CONFIG } = CONSTANTS;
+    const HAZARD_SIZE = MAP_CONFIG.CELL_SIZE;
+
+    for (let i = 0; i < this.bspDungeons.length; i ++) {
+      const { x, y } = spawnHazardLoc(this, HAZARD_SIZE);
+      const type = Math.random() < 0.5 ? 'spike' : 'bounce';
+      this.createHazard(x, y, HAZARD_SIZE, type);
+    }
+  }
+
+  createHazard(x, y, size, type) {
+    const body = Matter.Bodies.rectangle(x, y, size, size, {
+      isStatic: true,
+      isSensor: true,
+      label: "hazard",
+      collisionFilter: {
+        category: CONSTANTS.CATEGORY_HAZARD,
+        mask: CONSTANTS.CATEGORY_TANK
+      }
+    });
+    Matter.Composite.add(this.world, body);
+
+    const hazard = {
+      id: this.hazardId++,
+      body,
+      type, 
+      x, y, size
+    };
+    this.hazards[this.hazardId] = hazard;
+    return hazard;
   }
 
   // Called when room is empty or game ends
@@ -111,6 +151,8 @@ class Room {
     this.bspCorridors = null;
     this.wallGrid = null;
     this.easystar = null;
+    this.hazards = {};
+    this.hazardId = 0;
     this.status = 'waiting';
     console.log('game closed');
   }

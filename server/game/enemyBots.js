@@ -27,6 +27,7 @@ const SPRITE_HEIGHT = 46;
 // We just gonna stamp these attributes onto the different bots
 const botTypes = {
   chaser: {
+    name: "chaser",
     speedUps: 0, 
     turnBoost: 0,
     bulletLife: 0,
@@ -39,6 +40,7 @@ const botTypes = {
   },
 
   berserker: {
+    name: "berserker",
     speedUps: 4, 
     turnBoost: 3,
     hpUp: 1,
@@ -51,6 +53,7 @@ const botTypes = {
   },
 
   exploder: {
+    name: "exploder",
     speedUps: -8, 
     turnBoost: 0,
     bulletLife: -10,
@@ -78,7 +81,7 @@ const botTypes = {
 
 function createBot(room, type) {
   const BotID = `BOT-${Date.now()}`;
-  var bot = createPlayer(BotID, room);
+  var bot = createPlayer(BotID, room, 1 + (type.hpUp || 0));
   bot.team = type.color;
 
   //Bot specific attributes
@@ -91,6 +94,7 @@ function createBot(room, type) {
 
   room.io.to(room.code).emit("newPlayer", {
     playerId : room.players[BotID].playerId,
+    name: type.name,
     team : room.players[BotID].team,
     x : room.players[BotID].body.position.x,
     y : room.players[BotID].body.position.y,

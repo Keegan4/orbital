@@ -10,6 +10,7 @@ export default class GameScene extends Phaser.Scene {
     this.roundInfo = data.roundInfo;
     this.gameMode = data.gameConfig.current.gameMode;
     this.wallGrid = data.wallGrid;
+    this.hazards = data.hazards;
   }
 
   preload() {
@@ -48,6 +49,27 @@ export default class GameScene extends Phaser.Scene {
     this.lastInput = {};
     this.otherPlayers = {};
     this.bullets = {};
+    this.playerNames = {};
+    Object.values(this.players).forEach(p => {
+      this.playerNames[p.playerId] = p.name;   
+    })
+    console.log(this.players);
+
+    // Create hazards
+
+    Object.values(this.hazards).forEach(hazard => {
+      var color = 0xffffff;
+      if (hazard.type === "bounce") {
+        color = 0x005500;
+      } else if (hazard.type === "spike") {
+        color = 0x000000;
+      }
+      this.add.rectangle(hazard.x, 
+          hazard.y, 
+          hazard.size, 
+          hazard.size, color).setDepth(95);
+    });
+
 
     // World boundary red line
     const borderLine = this.add.graphics(); 
@@ -177,16 +199,16 @@ export default class GameScene extends Phaser.Scene {
       // For the round complete
       this.roundPanel = this.add.graphics().setDepth(99).setVisible(false);
       this.roundPanel.fillStyle(0x000000, 0.75);
-      this.roundPanel.fillRoundedRect(220, 245, 359, 90, 12);
+      this.roundPanel.fillRoundedRect(220, 145, 359, 90, 12);
 
-      this.roundComplete = this.add.text(400, 250, 'ROUND COMPLETE', {
+      this.roundComplete = this.add.text(400, 150, 'ROUND COMPLETE', {
         fontFamily: 'Arial Black',
         fontSize: '32px',
         fontStyle: 'bold',
         color: '#ffd700',
       }).setOrigin(0.5, 0).setDepth(100).setVisible(false);
 
-      this.nextRound = this.add.text(400, 300, '', {
+      this.nextRound = this.add.text(400, 200, '', {
         fontFamily: 'Arial Black',
         fontSize: '22px',
         color: '#ffffff',
@@ -237,15 +259,18 @@ export default class GameScene extends Phaser.Scene {
 
     // Spawn players onto the screen for the first time
     Object.keys(this.players).forEach((id) => {
+      this.playerNames[this.players[id].playerId] = this.players[id].name; 
       if (this.players[id].playerId === this.socket.id) {
         this.tank = this.add.sprite(this.players[id].x, this.players[id].y, this.players[id].team)
                       .setOrigin(0.5, 0.5)
                       .setDepth(100);
+        this.createTankLabel(this.tank, this.players[id].playerId);
         console.log('My tank spawned at:', this.players[id].x, this.players[id].y);
       } else {
         this.otherPlayers[this.players[id].playerId] = this.add.sprite(this.players[id].x, this.players[id].y, this.players[id].team)
                                                     .setOrigin(0.5, 0.5)
                                                     .setDepth(100);
+        this.createTankLabel(this.otherPlayers[pid], pid);
       }
     })
 
@@ -276,6 +301,19 @@ export default class GameScene extends Phaser.Scene {
     this.scene.start('WaitingRoomScene', data);
   }
 
+  createTankLabel(sprite, id) {
+    const name = this.playerNames[id];
+    const label = this.add.text(sprite.x, sprite.y - 30, name, {
+      fontFamily: 'Arial',
+      fontSize: '12px',
+      color: '#ffffff',
+      align: 'center',
+    }).setOrigin(0.5, 1).setAlpha(0.7).setDepth(101);
+    // We attaching the label so we can reference it 
+    sprite.label = label;
+    return sprite;
+  }
+
   handleUpdatePVE(data) {
     this.curRound.text = `ROUND ${data.roundNum}`;
     this.enemiesRem.text = `Enemies: ${data.enemiesRem}`;
@@ -286,7 +324,7 @@ export default class GameScene extends Phaser.Scene {
     this.roundComplete.setVisible(true);
     this.nextRound.setVisible(true);
     this.roundPanel.setVisible(true);
-    this.nextRound.text = `Next Round in: ${Math.floor(data.cooldown / 1000)}`
+    this.nextRound.text = `Next Round In: ${Math.floor(data.cooldown / 1000)}`
   }
 
   handleStartRound() {
@@ -361,12 +399,25 @@ export default class GameScene extends Phaser.Scene {
   handleGameState(state) {
     if (!this.tank) return;
 
-
+    const labeler = (id, hp) => {
+      // Just a fallback in case somehow there are no names
+      const name = this.playerNames[id] || (id.startsWith('BOT-') ? 'BOT' : '');
+      return `${name}\nHP: ${hp}`;
+    }
     state.players.forEach(p => {
       if (p.playerId === this.socket.id) {
         this.tank.x = p.x;
         this.tank.y = p.y;
         this.tank.rotation = p.rotation;
+        if (this.tank.label) {
+          this.tank.label.x = p.x;
+          this.tank.label.y = p.y - 30;
+          const txt = labeler(p.playerId, p.hp);
+          if (this.tank.label.text !== txt) {
+            this.tank.label.setText(txt);
+          }
+          this.tank.label.setVisible(p.isAlive);
+        }
         this.tankDead = !p.isAlive;
         if (!this.tank.isFlashing) {
           p.isAlive ? this.tank.clearTint() : this.tank.setTint(0x808080);
@@ -376,10 +427,20 @@ export default class GameScene extends Phaser.Scene {
             this.otherPlayers[p.playerId] = this.add.sprite(p.x, p.y, p.team)
               .setOrigin(0.5, 0.5)
               .setDepth(100);
+            this.createTankLabel(this.otherPlayers[p.playerId], p.playerId);
           }
           this.otherPlayers[p.playerId].x = p.x;
           this.otherPlayers[p.playerId].y = p.y;
           this.otherPlayers[p.playerId].rotation = p.rotation;
+          if (this.otherPlayers[p.playerId].label) {
+            this.otherPlayers[p.playerId].label.x = p.x;
+            this.otherPlayers[p.playerId].label.y = p.y - 30;
+            const txt = labeler(p.playerId, p.hp);
+            if (this.otherPlayers[p.playerId].label !== txt) {
+              this.otherPlayers[p.playerId].label.setText(txt);
+            }
+            this.otherPlayers[p.playerId].label.setVisible(p.isAlive);
+          }
           if (!this.otherPlayers[p.playerId].isFlashing) {
             p.isAlive 
               ? this.otherPlayers[p.playerId].clearTint() 
@@ -395,6 +456,9 @@ export default class GameScene extends Phaser.Scene {
     Object.keys(this.otherPlayers).forEach(id => {
       if (!presentTanks.has(id)) {
         this.otherPlayers[id].destroy();
+        if (this.otherPlayers[id].label) {
+          this.otherPlayers[id].label.destroy();
+        }
         delete this.otherPlayers[id];
       }
     });
@@ -424,19 +488,26 @@ export default class GameScene extends Phaser.Scene {
   }
 
   handleNewPlayer(playerInfo) {
-    console.log('New player joined:', playerInfo.playerId);
+    console.log('New player joined:', playerInfo);
     if (this.otherPlayers[playerInfo.playerId]) {
       this.otherPlayers[playerInfo.playerId].destroy();
     }
-    this.otherPlayers[playerInfo.playerId] = this.add.sprite(playerInfo.x, playerInfo.y, playerInfo.team)
-                                              .setOrigin(0.5, 0.5)
-                                              .setDepth(100);
+    this.otherPlayers[playerInfo.playerId] = this.add.sprite(playerInfo.x, 
+      playerInfo.y, 
+      playerInfo.team
+    ).setOrigin(0.5, 0.5)
+      .setDepth(100);
+    this.playerNames[playerInfo.playerId] = playerInfo.name;
+    this.createTankLabel(this.otherPlayers[playerInfo.playerId], playerInfo.playerId);
   }
 
   handlePlayerDisconnect(id) {
     console.log('Player left:', id);
     if (this.otherPlayers[id]) {
       this.otherPlayers[id].destroy();
+      if (this.otherPlayers[id].label) {
+        this.otherPlayers[id].label.destroy();
+      }
       delete this.otherPlayers[id];
     }
   }

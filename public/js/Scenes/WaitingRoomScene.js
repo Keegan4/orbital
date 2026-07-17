@@ -217,11 +217,6 @@ export default class WaitingRoomScene extends Phaser.Scene {
     setNameContainer.setDepth(100);
     setNameContainer.setVisible(false);
 
-    setNameButton.on('pointerdown', () => {
-      setNameContainer.setVisible(true);
-      setTimeout(() => { inputNode.focus(); }, 10); 
-    });
-
     inputNode.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') {
         submitNameAction();

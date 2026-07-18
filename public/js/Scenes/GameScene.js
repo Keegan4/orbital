@@ -259,7 +259,7 @@ export default class GameScene extends Phaser.Scene {
         this.otherPlayers[this.players[id].playerId] = this.add.sprite(this.players[id].x, this.players[id].y, this.players[id].team)
                                                     .setOrigin(0.5, 0.5)
                                                     .setDepth(100);
-        this.createTankLabel(this.otherPlayers[pid], pid);
+        this.createTankLabel(this.otherPlayers[id], id);
       }
     })
 

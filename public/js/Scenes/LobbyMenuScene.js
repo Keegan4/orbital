@@ -9,7 +9,7 @@ export default class LobbyMenuScene extends Phaser.Scene {
     this.load.audio('tick', 'assets/tick_001.ogg');
     this.load.audio('error', 'assets/error_008.ogg');
     this.load.svg("bg", 'assets/lobby_cartoon.svg');
-    this.load.audio('theme', 'assets/theme.mp3');
+    this.load.audio('theme', 'assets/Title.mp3');
 
   }
 

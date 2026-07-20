@@ -171,7 +171,8 @@ function startGameLoop(room) {
       adjustBot(bot, type.speedUps, POWERUPS.speedBoost, POWERUPS.cursedSpeed);
       adjustBot(bot, type.turnBoost, POWERUPS.turnBoost, POWERUPS.cursedTurn);
       adjustBot(bot, type.bulletLife, POWERUPS.bulletLife, POWERUPS.cursedLife);
-      //adjustBot(bot, type.hpUp, POWERUPS.hpUp, POWERUPS.cursedHp);
+      adjustBot(bot, type.bounceUp, POWERUPS.bulletBounce, POWERUPS.cursedBounce);
+      
 
       botPowers(powerupsRound(room.roundNum), bot);
 
@@ -218,10 +219,9 @@ function startGameLoop(room) {
     }
 
 
-    // To simulate difficulty, we will have a chance for Bots to missfire, meaning they 
-    // Could see you and shoot, but missfired. This puts them on a cooldown before they 
-    // Can shoot again
-    const missFireChance = {'EASY': 0.6, 'MEDIUM': 0.4, 'HARD': 0};
+    // The difficulty is now changed to accuracy, so these
+    // bots now have very different accuracy based on difficulty
+    const errors = {'EASY': 1.3, 'MEDIUM': 0.6, 'HARD': 0.1};
 
     // Bot inputs 
     Object.values(room.players).forEach(player => {
@@ -230,13 +230,9 @@ function startGameLoop(room) {
         // This checks if a target is in sight then it shoots 
         // every time it moves
         const targ = botTarget(player, room);
-        if (targ && tankSighted(player, targ, room) && botFacing(player, targ) && player.botType.canShoot) {
-            const randFire = Math.random();
-            if (randFire >= missFireChance[room.gameConfig.current.difficulty]) {
-              player.input.fire = true;
-            }else {
-              player.lastFired = now;
-            }
+        if (targ && tankSighted(player, targ, room) && botFacing(player, targ, errors[room.gameConfig.current.difficulty]) 
+            && player.botType.canShoot) {
+          player.input.fire = true;
         }
       }
     });

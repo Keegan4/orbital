@@ -8,6 +8,13 @@ const POWERUPS = {
         disc: "-1 Hit Point",
         stats: {hpUp: -1}
     },
+    cursedBounce: {
+        id: "cursedBounce",
+        display: "Decrease bullet bounces",
+        rarity: "curse",
+        disc: "-1 bullet bounces",
+        stats: {bulletBounce: -1}
+    },
 
     cursedTurn: {
         id: "cursedTurn",
@@ -68,8 +75,8 @@ const POWERUPS = {
         id: "bulletBounce",
         display: "Increase bullet bounces",
         rarity: "common",
-        disc: "+2 bullet bounces",
-        stats: {bulletBounce: 2}
+        disc: "+1 bullet bounces",
+        stats: {bulletBounce: 1}
     },
 
     bulletLife: {

@@ -31,8 +31,8 @@ const botTypes = {
     speedUps: 0, 
     turnBoost: 0,
     bulletLife: 0,
+    bounceUp: -1,
     hpUp: 0,
-    debuf: true,
     canShoot: true, 
     contactDamage: false, 
     explode: false,
@@ -42,10 +42,10 @@ const botTypes = {
   berserker: {
     name: "berserker",
     speedUps: 4, 
-    turnBoost: 3,
+    turnBoost: 4,
+    bounceUp: 0,
     hpUp: 1,
     bulletLife: 0,
-    debuf: true,
     canShoot: false, 
     contactDamage: true, 
     explode: false,
@@ -55,25 +55,14 @@ const botTypes = {
   exploder: {
     name: "exploder",
     speedUps: -8, 
+    bounceUp: 0,
     turnBoost: 0,
     bulletLife: -10,
     hpUp: 2,
-    debuf: true,
     canShoot: false, 
     contactDamage: true, 
     explode: true,
     color: "green"
-  },
-
-  downgrader: {
-    speedUps: 0, 
-    turnBoost: 0,
-    bulletLife: 0,
-    canShoot: true, 
-    debuf: true,
-    contactDamage: false, 
-    explode: false,
-    color: "bigRed"
   },
 }
 
@@ -168,7 +157,7 @@ function tankSighted(bot, target, room) {
   return hits.length === 0;
 }
 
-function botFacing(bot, target) {
+function botFacing(bot, target, error = 0.2) {
   var dy = target.body.position.y - bot.body.position.y;
   var dx = target.body.position.x - bot.body.position.x;
   var reqAngle = Math.atan2(dy, dx) - Math.PI / 2;
@@ -178,7 +167,7 @@ function botFacing(bot, target) {
   // Normalize to [-pi, pi]
   while (diff > Math.PI)  diff -= Math.PI * 2;
   while (diff < -Math.PI) diff += Math.PI * 2;
-  return Math.abs(diff) < 0.20;
+  return Math.abs(diff) < error;
 }
 
 function isOpen(room, x, y) {

@@ -40,6 +40,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   create() {
+    makeMusic(this, "battle");
     this.socket = this.registry.get('socket');
     this.tank = null;
     this.cursors = this.input.keyboard.createCursorKeys();

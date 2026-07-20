@@ -16,6 +16,7 @@ export default class WaitingRoomScene extends Phaser.Scene {
   }
 
   create() {
+    makeMusic(this, "menu");
     this.socket = this.registry.get('socket');
     this.lobbyPlayer = this.lobbyPlayers.find(p => p.socketId === this.socket.id);
     this.currentTeam = this.lobbyPlayer.team;

@@ -16,6 +16,7 @@ export default class WaitingRoomScene extends Phaser.Scene {
   }
 
   create() {
+    makeMusic(this, "menu");
     this.socket = this.registry.get('socket');
     this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, "backG").setOrigin(0.5, 0.5).setDisplaySize(GAME_WIDTH, GAME_HEIGHT);
     this.add.text(400, 100, `GAME OVER`, {

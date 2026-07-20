@@ -124,4 +124,24 @@ const makeButton = (scene, x, y, label, bgColor, onClick, w = 240, h = 64, r = 1
       return btn;
     };
 
+function makeMusic(scene, key, config = {loop: true, volume: 0.2}) {
+  const current = scene.registry.get('music');
+  const currentKey = scene.registry.get('musicKey');
+
+  // Just return the same music if its currently playing
+  if (currentKey === key && current && current.isPlaying) {
+    return current;
+  }
+
+  if (current) {
+    current.stop();
+    current.destroy();
+  }
+  const next = scene.sound.add(key, config);
+  next.play();
+  scene.registry.set("music", next);
+  scene.registry.set("musicKey", next);
+  return next;
+}
+
 if (typeof module !== 'undefined') module.exports = {CONSTANTS, WALL_POS, coords, makeButton};

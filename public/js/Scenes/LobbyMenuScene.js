@@ -10,18 +10,14 @@ export default class LobbyMenuScene extends Phaser.Scene {
     this.load.audio('error', 'assets/error_008.ogg');
     this.load.svg("bg", 'assets/lobby_cartoon.svg');
     this.load.audio('theme', 'assets/Title.mp3');
+    this.load.audio('battle', 'assets/battle.mp3');
+    this.load.audio('menu', 'assets/menu.mp3');
 
   }
 
   create() {
     this.socket = this.registry.get('socket');
-    let music = this.sound.get('theme');   // returns existing instance if one exists
-    if (!music) {
-      music = this.sound.add('theme', { loop: true });
-    }
-    if (!music.isPlaying) {
-      music.play();
-    }
+    makeMusic(this, "theme");
 
     const createText = () => {
 

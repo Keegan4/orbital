@@ -107,7 +107,7 @@ class Room {
     const { MAP_CONFIG } = CONSTANTS;
     const HAZARD_SIZE = MAP_CONFIG.CELL_SIZE;
 
-    for (let i = 0; i < this.bspDungeons.length; i ++) {
+    for (let i = 0; i < this.bspDungeons.length / 2; i ++) {
       const { x, y } = spawnHazardLoc(this, HAZARD_SIZE);
       const type = Math.random() < 0.5 ? 'spike' : 'bounce';
       this.createHazard(x, y, HAZARD_SIZE, type);

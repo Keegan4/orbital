@@ -253,22 +253,20 @@ function initialiseCollisions(room) {
             return;
           }
 
-        // Preventing selfHarm if powerup is enabled
-
-
-          if (player.playerId.startsWith("BOT-")) {
-            killBot(player, room);
-          } else {
-            /*
-            if (killer.botType.debuf) {
-              killPlayer(player, room, killer, "curse");
-            } */
-            killPlayer(player, room, killer);
-          // Players cant shoot themselves for more points
-            if (bullet.ownerId !== player.playerId && killer.team !== player.team) {
-              updateScore(bullet.ownerId, room);
-            }
+        if (player.playerId.startsWith("BOT-")) {
+          killBot(player, room);
+          updateScore(bullet.ownerId, room);
+        } else {
+          /*
+          if (killer.botType.debuf) {
+            killPlayer(player, room, killer, "curse");
+          } */
+          killPlayer(player, room, killer);
+        // Players cant shoot themselves for more points
+          if (bullet.ownerId !== player.playerId && killer.team !== player.team) {
+            updateScore(bullet.ownerId, room);
           }
+        }
         }
 
         

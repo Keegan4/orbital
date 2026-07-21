@@ -17,6 +17,7 @@ export default class WaitingRoomScene extends Phaser.Scene {
 
   create() {
     makeMusic(this, "menu");
+    this.input.keyboard.clearCaptures();
     this.socket = this.registry.get('socket');
     this.lobbyPlayer = this.lobbyPlayers.find(p => p.socketId === this.socket.id);
     this.currentTeam = this.lobbyPlayer.team;
@@ -202,6 +203,15 @@ export default class WaitingRoomScene extends Phaser.Scene {
     inputNode.title = 'Type Name(max 16 characters) & Press Enter:';
     inputNode.maxLength = 16;
     inputNode.placeholder = `Default: ${this.lobbyPlayer.name}`;
+    if (inputNode) {
+      inputNode.onfocus = () => {
+        this.input.keyboard.enabled = false; 
+      };
+    
+      inputNode.onblur = () => {
+        this.input.keyboard.enabled = true; 
+      };
+    }
 
     const submitNameAction = () => {
       const finalName = inputNode.value.trim().length === 0

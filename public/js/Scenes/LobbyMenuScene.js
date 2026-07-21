@@ -19,6 +19,23 @@ export default class LobbyMenuScene extends Phaser.Scene {
     this.socket = this.registry.get('socket');
     makeMusic(this, "theme");
 
+    if (!window.globalMuteRegistered) {
+      window.globalMuteRegistered = true;
+      window.addEventListener('keydown', (event) => {
+        if (event.key === 'm' || event.key === 'M') {
+          const activeElement = document.activeElement;
+          const isTyping = activeElement && (
+            activeElement.tagName === 'INPUT' || 
+            activeElement.tagName === 'TEXTAREA' ||
+            activeElement.isContentEditable
+          );
+          if (!isTyping) {
+            this.toggleMute();
+          }
+        }
+      });
+    }
+
     const createText = () => {
 
       const cx = GAME_WIDTH / 2;
@@ -35,7 +52,41 @@ export default class LobbyMenuScene extends Phaser.Scene {
         resolution: 2
       }).setOrigin(0.5).setShadow(0, 4, '#0d1220', 0, false, true);
       
-      
+      this.muteBtn = makeButton(this, cx, this.cameras.main.height - 60, this.sound.mute ? '🔇' : '🔊',
+        '', () => this.toggleMute(), 50);
+
+      const hintText = this.add.text(cx, this.cameras.main.height - 100, 'Tip: Press [ M ] to toggle sound anytime', { 
+        fontSize: '14px', 
+        fill: '#ffffff',
+        backgroundColor: '#222222',
+        fontFamily: 'Fredoka', resolution: 2,
+        padding: { x: 8, y: 4 }
+      }).setOrigin(0.5);
+
+      hintText.setAlpha(0);
+
+      this.muteBtn.on('pointerover', () => {
+        this.tweens.killTweensOf(hintText);
+        this.tweens.add({
+          targets: hintText,
+          alpha: 1,
+          duration: 200,
+          ease: 'Power1'
+        });
+      });
+
+      this.muteBtn.on('pointerout', () => {
+        this.tweens.killTweensOf(hintText);
+        this.tweens.add({
+          targets: hintText,
+          alpha: 0,
+          duration: 200,
+          ease: 'Power1',
+          onComplete: () => {
+            hintText.setText('Tip: Press [ M ] to toggle sound anytime');
+          }
+        });
+      });
 
       // Error placeholder
       this.errorText = this.add.text(400, 450, '', { fontSize: '18px', fill: '#ff0000', fontFamily: 'Fredoka', resolution: 2}).setOrigin(0.5);
@@ -118,6 +169,13 @@ export default class LobbyMenuScene extends Phaser.Scene {
       this.socket.off('roomCreated');
       this.socket.off('roomJoined');
       this.socket.off('lobbyError');
+  }
+
+  toggleMute() {
+    this.sound.mute = !this.sound.mute;
+    if (this.muteBtn) {
+      this.muteBtn.setText(!this.sound.mute ? '🔇' : '🔊');
+    }
   }
 
   update() {

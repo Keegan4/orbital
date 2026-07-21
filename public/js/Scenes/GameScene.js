@@ -226,18 +226,75 @@ export default class GameScene extends Phaser.Scene {
 
     const mapTileWidth = this.wallGrid.length;
     const mapTileHeight = this.wallGrid[0].length;
-    const map = this.make.tilemap({
-      tileWidth: MAP_CONFIG.CELL_SIZE,
-      tileHeight: MAP_CONFIG.CELL_SIZE,
-      width: mapTileWidth,
-      height: mapTileHeight
-    });
-    const floorTileSet = map.addTilesetImage('floor-tile', null, MAP_CONFIG.CELL_SIZE, MAP_CONFIG.CELL_SIZE);
-    const floorLayer = map.createBlankLayer('floor', floorTileSet).setDepth(90);
+
+    const totalWidth = mapTileWidth * MAP_CONFIG.CELL_SIZE;
+    const totalHeight = mapTileHeight * MAP_CONFIG.CELL_SIZE;
+
+    // Base solid lime colour
+    this.cameras.main.setBackgroundColor(0x74c365); 
+
+    const floorGraphics = this.add.graphics();
+    floorGraphics.setDepth(10);
+
+    // Ellipse to give texture
+    floorGraphics.fillStyle(0x61b253, 1);
+    floorGraphics.beginPath();
+    floorGraphics.fillEllipse(totalWidth * 0.25, totalHeight * 0.4, totalWidth * 0.35, totalHeight * 0.25);
+    floorGraphics.fillEllipse(totalWidth * 0.75, totalHeight * 0.6, totalWidth * 0.4, totalHeight * 0.3);
+
+    // Make the bg grid like
+    floorGraphics.lineStyle(2, 0x5da84f, 0.4); 
+    for (let x = 0; x <= totalWidth; x += MAP_CONFIG.CELL_SIZE) {
+      floorGraphics.lineBetween(x, 0, x, totalHeight);
+    }
+    for (let y = 0; y <= totalHeight; y += MAP_CONFIG.CELL_SIZE) {
+      floorGraphics.lineBetween(0, y, totalWidth, y);
+    }
+
+    // 2.5d walls
+    const WALL_HEIGHT = 10; 
+
+    const wallGraphics = this.add.graphics();
+    wallGraphics.setDepth(90);
+
     for (let r = 0; r < mapTileHeight; r++) {
       for (let c = 0; c < mapTileWidth; c++) {
-        if (this.wallGrid[r][c] === 0 || this.wallGrid[r][c] == 2) {
-          floorLayer.putTileAt(1, c, r);
+        if (this.wallGrid[r][c] === 1) {
+          const x = c * MAP_CONFIG.CELL_SIZE;
+          const y = r * MAP_CONFIG.CELL_SIZE;
+          const size = MAP_CONFIG.CELL_SIZE;
+          const spaceBelow = (r < mapTileHeight - 1 && this.wallGrid[r + 1][c] !== 1);
+          const roofHeight = spaceBelow ? size - WALL_HEIGHT : size;
+          
+          // Shadow of wall with ray from North West
+          wallGraphics.fillStyle(0x1a243a, 0.4);
+          wallGraphics.fillRect(x + 4, y + 4, size, size);
+        
+          // Plain wall
+          wallGraphics.fillStyle(0x232b3d, 1);
+          wallGraphics.fillRect(x, y, size, roofHeight);
+        
+          // Darker shade of the wall to make it appear 2.5d
+          if (spaceBelow) {
+            wallGraphics.fillStyle(0x181e2b, 1);
+            wallGraphics.fillRect(x, y + roofHeight, size, WALL_HEIGHT);
+          
+            // Line between plain wall and the darker shade to form the corner
+            wallGraphics.lineStyle(2, 0x141822, 1);
+            wallGraphics.lineBetween(x, y + roofHeight, x + size, y + roofHeight);
+          }
+        
+          // More lines to make it pop
+          wallGraphics.lineStyle(2, 0x3d4961, 1);
+
+          // Top edge highlight
+          if (r === 0 || this.wallGrid[r - 1][c] !== 1) {
+            wallGraphics.lineBetween(x, y, x + size, y);
+          }
+          // Left edge highlight
+          if (c === 0 || this.wallGrid[r][c - 1] !== 1) {
+            wallGraphics.lineBetween(x, y, x, y + roofHeight);
+          }
         }
       }
     }
@@ -538,7 +595,17 @@ export default class GameScene extends Phaser.Scene {
       alt_fire: this.cursors.shift.isDown
     };
 
-    if (JSON.stringify(input) !== JSON.stringify(this.lastInput)) {
+    if (this.tankDead) input.fire = false;
+
+    const inputChanged = !this.lastInput ||
+      input.left !== this.lastInput.left ||
+      input.right !== this.lastInput.right ||
+      input.up !== this.lastInput.up ||
+      input.down !== this.lastInput.down ||
+      input.fire !== this.lastInput.fire ||
+      input.alt_fire !== this.lastInput.alt_fire;
+
+    if (inputChanged) {
       this.socket.emit('playerInput', input);
       this.lastInput = input;
     }

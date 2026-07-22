@@ -344,4 +344,4 @@ function startGameLoop(room) {
   return interval;
 }
 
-module.exports = { startGameLoop };
+module.exports = { startGameLoop, effectiveStats };

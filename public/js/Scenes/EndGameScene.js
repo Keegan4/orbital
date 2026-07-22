@@ -4,9 +4,6 @@ export default class WaitingRoomScene extends Phaser.Scene {
     super({ key: 'EndGameScene' });
   }
 
-  preload() {
-  }
-
   init(data) {
     this.winner = data.winner;
     this.mode = data.mode;

@@ -10,11 +10,6 @@ export default class WaitingRoomScene extends Phaser.Scene {
     this.gameConfig = data.gameConfig;
   }
 
-  preload() {
-    this.load.svg("backg", 'assets/versus_bg.svg');
-    this.load.image("dark", "assets/kenney_topdownTanksRedux/PNG/Default size/tank_dark.png")
-  }
-
   create() {
     makeMusic(this, "menu");
     this.input.keyboard.clearCaptures();
@@ -465,7 +460,7 @@ export default class WaitingRoomScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setStrokeStyle(0);
 
-    const badgeText = this.add.image(160, -10, "dark")
+    const badgeText = this.add.image(160, -10, "black")
       .setOrigin(0.5)
       .setScale(1.5)
       .setRotation(-Math.PI / 2);

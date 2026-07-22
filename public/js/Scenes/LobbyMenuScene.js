@@ -4,20 +4,10 @@ export default class LobbyMenuScene extends Phaser.Scene {
     super({ key: 'LobbyMenuScene' });
   }
 
-  preload() {
-    this.load.audio('click', 'assets/click_003.ogg');
-    this.load.audio('tick', 'assets/tick_001.ogg');
-    this.load.audio('error', 'assets/error_008.ogg');
-    this.load.svg("bg", 'assets/lobby_cartoon.svg');
-    this.load.audio('theme', 'assets/Title.mp3');
-    this.load.audio('battle', 'assets/battle.mp3');
-    this.load.audio('menu', 'assets/menu.mp3');
-
-  }
-
   create() {
     this.socket = this.registry.get('socket');
     makeMusic(this, "theme");
+    const hasPlayed = localStorage.getItem('hasPlayedBefore');
 
     if (!window.globalMuteRegistered) {
       window.globalMuteRegistered = true;
@@ -52,10 +42,10 @@ export default class LobbyMenuScene extends Phaser.Scene {
         resolution: 2
       }).setOrigin(0.5).setShadow(0, 4, '#0d1220', 0, false, true);
       
-      this.muteBtn = makeButton(this, cx, this.cameras.main.height - 60, this.sound.mute ? '🔇' : '🔊',
-        '', () => this.toggleMute(), 50);
+      this.muteBtn = makeButton(this, this.cameras.main.width - 150, this.cameras.main.height - 60, this.sound.mute ? '🔇' : '🔊',
+        0x3aa0d8, () => this.toggleMute(), 50);
 
-      const hintText = this.add.text(cx, this.cameras.main.height - 100, 'Tip: Press [ M ] to toggle sound anytime', { 
+      const hintText = this.add.text(this.cameras.main.width - 150, this.cameras.main.height - 100, 'Tip: Press [ M ] to toggle sound anytime', { 
         fontSize: '14px', 
         fill: '#ffffff',
         backgroundColor: '#222222',
@@ -92,7 +82,7 @@ export default class LobbyMenuScene extends Phaser.Scene {
       this.errorText = this.add.text(400, 450, '', { fontSize: '18px', fill: '#ff0000', fontFamily: 'Fredoka', resolution: 2}).setOrigin(0.5);
 
       // Button for create room
-      makeButton(this, cx, 180, 'Create Room', 0x4caf50, () => this.socket.emit('createRoom'));
+      const createRoomBtn = makeButton(this, cx, 180, 'Create Room', 0x4caf50, () => this.socket.emit('createRoom'));
 
       // Join room textbox
       this.add.text(cx, 260, 'Enter Room Code (6 characters):', { 
@@ -132,6 +122,23 @@ export default class LobbyMenuScene extends Phaser.Scene {
         if (code) this.socket.emit('joinRoom', { code });
         else this.showError({ message: 'Please enter a room code' });
       });
+
+      // How to play button
+      const howToBtn = makeButton(this, cx, this.cameras.main.height - 60, 'How to Play', '#ffcc00', () => {
+        this.roomInput.setVisible(false);
+        this.scene.launch('HowToPlayScene')});
+      this.scene.get('HowToPlayScene').events.on('closed', () => {
+        setTimeout(() => {
+          this.roomInput.setVisible(true);
+        }, 200);
+      });
+
+      if (!hasPlayed) {
+        this.pulseButton(howToBtn);
+      } else {
+        this.pulseButton(createRoomBtn);
+      }
+      localStorage.setItem('hasPlayedBefore', 'true');
     };
 
 
@@ -176,6 +183,18 @@ export default class LobbyMenuScene extends Phaser.Scene {
     if (this.muteBtn) {
       this.muteBtn.setText(!this.sound.mute ? '🔇' : '🔊');
     }
+  }
+
+  pulseButton(target) {
+    this.tweens.add({
+      targets: target,
+      scaleX: 1.08,
+      scaleY: 1.08,
+      duration: 800,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut'
+    });
   }
 
   update() {

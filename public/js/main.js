@@ -4,6 +4,7 @@ import WaitingRoomScene from './Scenes/WaitingRoomScene.js';
 import GameScene from './Scenes/GameScene.js';
 import PostHitScene from './Scenes/PostHitScene.js';
 import EndGameScene from './Scenes/EndGameScene.js';
+import HowToPlayScene from './Scenes/HowToPlayScene.js';
 
 var config = {
   type: Phaser.AUTO,
@@ -21,7 +22,7 @@ var config = {
     forceSetTimeOut: true 
   },
   parent: 'game-container',
-  scene: [ BootScene, LobbyMenuScene, WaitingRoomScene, GameScene, PostHitScene, EndGameScene ],
+  scene: [ BootScene, LobbyMenuScene, HowToPlayScene, WaitingRoomScene, GameScene, PostHitScene, EndGameScene ],
   dom: { createContainer: true }
 };
 

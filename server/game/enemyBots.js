@@ -31,7 +31,7 @@ const botTypes = {
     speedUps: 0, 
     turnBoost: 0,
     bulletLife: 0,
-    bounceUp: -1,
+    bounceUp: -4,
     hpUp: 0,
     canShoot: true, 
     contactDamage: false, 

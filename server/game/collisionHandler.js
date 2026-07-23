@@ -72,9 +72,16 @@ function handleContact(bodyA, bodyB, room) {
   } else {
     return;
   }
-  if (!player.isAlive) return;
 
-  killPlayer(player, room, bot);
+  if (!player.isAlive) return;
+  // They take more damage on collisions
+  player.hitsTaken += 2
+
+  room.io.to(room.code).emit('tankHit', { playerId: player.playerId });
+  
+  if (player.hitsTaken >= player.startingHp + (player.stats.hpUp || 0)) {
+    killPlayer(player, room, null);
+  }
   killBot(bot, room);
 }
 

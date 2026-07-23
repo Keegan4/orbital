@@ -113,7 +113,7 @@ export default class HowToPlayScene extends Phaser.Scene {
     addBody(
       'Create a room from the main menu and share the room code with your friends. ' +
         'They can enter the code to join your session. Once everyone is in, ' +
-        'set your team, enter your name, and ready up — the game starts automatically ' +
+        'set your team, enter your name, and ready up. The game starts automatically ' +
         'when all players are ready.'
     );
     addDivider();
@@ -152,7 +152,7 @@ export default class HowToPlayScene extends Phaser.Scene {
 
     addTitle('Player vs Player (PVP)', '#f4c842');
     addBody(
-      'Two teams — Red and Blue — compete to reach the kill limit first. ' +
+      'Two teams (Red and Blue) compete to reach the kill limit first. ' +
         'Every kill your team scores counts toward your team total. ' +
         'Friendly fire is enabled, but killing a teammate does not reward an upgrade on death. ' +
         'Coordinate your shots and outlast the opposing team.'
@@ -162,9 +162,10 @@ export default class HowToPlayScene extends Phaser.Scene {
     addTitle('Player vs Environment (PVE)', '#5de85d');
     addBody(
       'Team up with friends to survive waves of increasingly powerful AI-controlled bots. ' +
-        'Each completed wave triggers a round-clear signal before the next wave begins. ' +
-        'Friendly fire is enabled in PVE as well, but again, dying to a teammate ' +
-        'does not award an upgrade. Survive as long as you can.'
+        'Each player has their own individual HP. In PVE, lives are shared across the entire team ' +
+        '(or held individually if playing solo). When your HP reaches 0, your team loses 1 shared life. ' +
+        'If shared lives hit 0, the game is over. Friendly fire is enabled, but dying to a teammate ' +
+        'does not award an upgrade.'
     );
     addDivider();
 
@@ -173,17 +174,17 @@ export default class HowToPlayScene extends Phaser.Scene {
     addSpriteRow(
       'black',
       'Chaser',
-      'Tracks and follows the nearest player and shoots at them. Standard movement speed — the most common enemy type.'
+      'Tracks and follows the nearest player and shoots at them. Standard movement speed, the most common enemy type.'
     );
     addSpriteRow(
       'sand',
       'Berserker',
-      'Extremely fast. Does not shoot. Charges directly at players. On contact, both the Berserker and the player are destroyed instantly.'
+      'Extremely fast. Does not shoot. Charges directly at players. On contact, both the Berserker and the player are destroyed instantly, dropping playeer HP to 0.'
     );
     addSpriteRow(
       'green',
       'Exploder',
-      'Very slow moving. Does not shoot. On contact with a player, explodes and fires bullets in all directions — a deadly area denial threat.'
+      'Very slow moving. Does not shoot. On contact with a player, explodes and fires bullets in all directions, posing a deadly area denial threat.'
     );
     addDivider();
 
@@ -197,7 +198,7 @@ export default class HowToPlayScene extends Phaser.Scene {
     addSpriteRow(
       'spike',
       'Spike',
-      'Static hazard. On contact, instantly kills a player at 1 HP or reduces HP by 1. Plan your routes carefully.'
+      'Static hazard. On contact, it reduces a player\'s HP by 1. Plan your routes carefully to avoid losing health unnecessarily.'
     );
     addSpriteRow(
       'bounce',
@@ -209,7 +210,7 @@ export default class HowToPlayScene extends Phaser.Scene {
     // Powerups
     addTitle('⚡  Powerups');
     addBody(
-      'When you die — by an enemy or a bot, not by a teammate — you are presented ' +
+      'When your HP hits 0 and you die to an enemy or a bot, not by a teammate, your team loses 1 life and you are presented ' +
         'with three powerup options to choose from before respawning. ' +
         'Powerups come in three rarities:'
     );

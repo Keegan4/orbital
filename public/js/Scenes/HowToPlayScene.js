@@ -109,7 +109,7 @@ export default class HowToPlayScene extends Phaser.Scene {
     };
 
     // Introduction
-    addTitle('🎮  Getting Started');
+    addTitle('Getting Started');
     addBody(
       'Create a room from the main menu and share the room code with your friends. ' +
         'They can enter the code to join your session. Once everyone is in, ' +
@@ -119,7 +119,7 @@ export default class HowToPlayScene extends Phaser.Scene {
     addDivider();
 
     // Controls
-    addTitle('🕹️  Controls');
+    addTitle('Controls');
     const controls = [
       ['W / ↑', 'Move forward'],
       ['S / ↓', 'Move backward'],
@@ -170,7 +170,7 @@ export default class HowToPlayScene extends Phaser.Scene {
     addDivider();
 
     // Enemy bots
-    addTitle('🤖  Enemy Bots  (PVE)');
+    addTitle('Enemy Bots  (PVE)');
     addSpriteRow(
       'black',
       'Chaser',
@@ -179,7 +179,7 @@ export default class HowToPlayScene extends Phaser.Scene {
     addSpriteRow(
       'sand',
       'Berserker',
-      'Extremely fast. Does not shoot. Charges directly at players. On contact, both the Berserker and the player are destroyed instantly, dropping playeer HP to 0.'
+      'Extremely fast. Does not shoot. Charges directly at players. On contact, the player takes 2 damage, and the berserker is destroyed.'
     );
     addSpriteRow(
       'green',
@@ -203,12 +203,12 @@ export default class HowToPlayScene extends Phaser.Scene {
     addSpriteRow(
       'bounce',
       'Bounce Pad',
-      'Static pad. On contact, launches the player or bot away at high speed. Can be used strategically to escape or reposition.'
+      'Static hazard. On contact, launches the player or bot away at high speed. Can be used strategically to escape or reposition.'
     );
     addDivider();
 
     // Powerups
-    addTitle('⚡  Powerups');
+    addTitle('Powerups');
     addBody(
       'When your HP hits 0 and you die to an enemy or a bot, not by a teammate, your team loses 1 life and you are presented ' +
         'with three powerup options to choose from before respawning. ' +

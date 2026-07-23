@@ -62,6 +62,9 @@ const CONSTANTS = {
     FIRE_CHANCE: 0.2,
     WALL_BUFFER: 1,
     EXPLODE_COUNT: 5,
+    MIN_VALID_MOVE: 10,
+    REVERSE_TIME: 1000,
+    STUCK_THRESHOLD: 3000,
 
     // Powerup configs
     RARE_CHANCE: 0.3,

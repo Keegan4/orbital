@@ -15,7 +15,10 @@ const { Composite, Engine } = require('matter-js');
     FIRE_CHANCE,
     GAME_WIDTH,
     GAME_HEIGHT,
-    WALL_BUFFER
+    WALL_BUFFER,
+    MIN_VALID_MOVE,
+    REVERSE_TIME,
+    STUCK_THRESHOLD
 } = CONSTANTS;
 
 
@@ -78,6 +81,16 @@ function createBot(room, type) {
   bot.pathIdx = 0;
   bot.target = null;
   bot.botType = type;
+
+
+  // Stuck detection
+  bot.lastPos = { x: bot.body.position.x, y: bot.body.position.y };
+  bot.stuckSince = Date.now();
+  bot.reverseUntil = 0;
+  bot.reverseTurn = 0; //We randomly reverse and turn together
+
+
+
   const x = pixelToTile(spawnInDungeon(room.bspDungeons[Math.floor(Math.random() * room.bspDungeons.length)], SPRITE_HEIGHT));
   reqPath(room, bot, x);
 
@@ -221,6 +234,39 @@ function moveBot(bot) {
   Object.keys(bot.input).forEach(x => {
     bot.input[x] = false;
   });
+
+  const now = Date.now();
+
+  // Reverse if its triggered
+  if (bot.reverseUntil > now) {
+    bot.input.down = true;
+    if (bot.reverseTurn > 0) {
+      bot.input.right = true;
+    } else {
+      bot.input.left = true;
+    }
+    return;
+  }
+
+  const movedX = bot.body.position.x - bot.lastPos.x;
+  const movedY = bot.body.position.y - bot.lastPos.y;
+  const movedDist = Math.sqrt(movedX * movedX + movedY * movedY);
+
+  if (movedDist > MIN_VALID_MOVE) {
+    // Bot is movinggg
+    bot.lastPos = { x: bot.body.position.x, y: bot.body.position.y };
+    bot.stuckSince = now;
+  } else if (now - bot.stuckSince > STUCK_THRESHOLD) {
+    // Reverse since stuck too long
+    bot.reverseUntil = now + REVERSE_TIME;
+    bot.reverseTurn = Math.random() < 0.5 ? 1 : -2;
+    bot.stuckSince = now;
+    bot.lastPos = { x: bot.body.position.x, y: bot.body.position.y };
+    bot.input.down = true;
+  }
+
+
+
   if (!bot.path || bot.pathIdx >= bot.path.length) {
     return;
   }

@@ -112,7 +112,7 @@ function killBot(bot, room) {
   }
 }
 
-function killPlayer(player, room, killer, powerupType = null) {
+function killPlayer(player, room, killer, noPower = false) {
   room.lives--; 
   if (room.lives === 0) {
     room.stop();
@@ -132,7 +132,7 @@ function killPlayer(player, room, killer, powerupType = null) {
     playerId: player.playerId,
     score: player.score,
     timeAlive: Date.now() - player.createdAt,
-    powerups: killer && killer.team === player.team ? null : choosePowerup(),
+    powerups: killer && killer.team === player.team || noPower? null : choosePowerup(),
 
     // Just a ton of fancy ternarys to make it accept a null killer
     killerName:  killer && killer.playerId.startsWith("BOT-") ? 'BOT' : (killer ? killer.name : 'BOT')
@@ -185,7 +185,7 @@ function initialiseCollisions(room) {
         
           if (player.hitsTaken >= player.startingHp + (player.stats.hpUp || 0)) {
             if (!player.playerId.startsWith("BOT")) {
-              killPlayer(player, room, null);
+              killPlayer(player, room, null, true);
             } else {
               killBot(player, room);
             }

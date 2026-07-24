@@ -229,7 +229,7 @@ function botTarget(bot, room) {
   return target; 
 }
 
-function moveBot(bot) {
+function moveBot(bot, alive = false) {
 
   Object.keys(bot.input).forEach(x => {
     bot.input[x] = false;
@@ -252,12 +252,14 @@ function moveBot(bot) {
   const movedY = bot.body.position.y - bot.lastPos.y;
   const movedDist = Math.sqrt(movedX * movedX + movedY * movedY);
 
-  if (movedDist > MIN_VALID_MOVE) {
+  if (movedDist > MIN_VALID_MOVE || !alive) {
     // Bot is movinggg
     bot.lastPos = { x: bot.body.position.x, y: bot.body.position.y };
     bot.stuckSince = now;
-  } else if (now - bot.stuckSince > STUCK_THRESHOLD) {
-    // Reverse since stuck too long
+  } else if (now - bot.stuckSince > STUCK_THRESHOLD ) {
+    // Reverse since stuck too long, we also want to make sure there 
+    // are actually alive player tanks on the screen
+    // If not itll look like enemies are moving weirdly
     bot.reverseUntil = now + REVERSE_TIME;
     bot.reverseTurn = Math.random() < 0.5 ? 1 : -2;
     bot.stuckSince = now;

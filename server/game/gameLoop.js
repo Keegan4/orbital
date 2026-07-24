@@ -185,6 +185,10 @@ function startGameLoop(room) {
       p => p.playerId.startsWith("BOT-") && p.isAlive
     ).length;
 
+    const alivePlayers = Object.values(room.players).filter(
+      p => !p.playerId.startsWith("BOT-") && p.isAlive
+    ).length;
+
     const bulletCount = Object.values(room.bullets).length;
 
     // Control the waves/rounds of bots
@@ -226,7 +230,7 @@ function startGameLoop(room) {
     // Bot inputs 
     Object.values(room.players).forEach(player => {
       if (player.playerId.startsWith("BOT-")) {
-        moveBot(player);
+        moveBot(player, alivePlayers > 0);
         // This checks if a target is in sight then it shoots 
         // every time it moves
         const targ = botTarget(player, room);

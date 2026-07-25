@@ -155,7 +155,7 @@ export default class HowToPlayScene extends Phaser.Scene {
       'Two teams (Red and Blue) compete to reach the kill limit first. ' +
         'Every kill your team scores counts toward your team total. ' +
         'Friendly fire is enabled, but killing a teammate does not reward an upgrade on death. ' +
-        'Coordinate your shots and outlast the opposing team.'
+        'Work together to defeat your oponents'
     );
     cursor += 6;
 
@@ -189,7 +189,7 @@ export default class HowToPlayScene extends Phaser.Scene {
     addDivider();
 
     // ── SECTION 5 — Map Obstacles ────────────────────────────────────────────
-    addTitle('🗺️  Map Obstacles');
+    addTitle('Map Obstacles');
     addBody(
       'Both PVP and PVE maps contain two types of static obstacles. Bullets pass through both.'
     );
